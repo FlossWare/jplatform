@@ -1,0 +1,205 @@
+package org.flossware.jplatform.api;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Configuration for the platform REST API server.
+ * Specifies port, bind address, authentication settings, and CORS configuration.
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * ApiServerConfig config = ApiServerConfig.builder()
+ *     .port(8080)
+ *     .bindAddress("0.0.0.0")
+ *     .enableAuth(true)
+ *     .apiKey("secret-key")
+ *     .addAllowedOrigin("http://localhost:3000")
+ *     .build();
+ * }</pre>
+ *
+ * @see PlatformApiServer
+ */
+public class ApiServerConfig {
+    private final int port;
+    private final String bindAddress;
+    private final boolean enableAuth;
+    private final String apiKey;
+    private final String apiKeyHeader;
+    private final Set<String> allowedOrigins;
+
+    private ApiServerConfig(Builder builder) {
+        this.port = builder.port;
+        this.bindAddress = builder.bindAddress;
+        this.enableAuth = builder.enableAuth;
+        this.apiKey = builder.apiKey;
+        this.apiKeyHeader = builder.apiKeyHeader;
+        this.allowedOrigins = builder.allowedOrigins != null ?
+                Set.copyOf(builder.allowedOrigins) : Collections.emptySet();
+    }
+
+    /**
+     * Returns the port to listen on.
+     *
+     * @return the server port
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     * Returns the bind address.
+     *
+     * @return the bind address
+     */
+    public String getBindAddress() {
+        return bindAddress;
+    }
+
+    /**
+     * Checks if authentication is enabled.
+     *
+     * @return true if authentication is required
+     */
+    public boolean isEnableAuth() {
+        return enableAuth;
+    }
+
+    /**
+     * Returns the API key for authentication.
+     *
+     * @return the API key, or null if authentication is disabled
+     */
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    /**
+     * Returns the HTTP header name for the API key.
+     *
+     * @return the API key header name
+     */
+    public String getApiKeyHeader() {
+        return apiKeyHeader;
+    }
+
+    /**
+     * Returns the allowed CORS origins.
+     *
+     * @return an unmodifiable set of allowed origins
+     */
+    public Set<String> getAllowedOrigins() {
+        return Collections.unmodifiableSet(allowedOrigins);
+    }
+
+    /**
+     * Creates a new builder for constructing API server configurations.
+     *
+     * @return a new builder instance
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for ApiServerConfig.
+     */
+    public static class Builder {
+        private int port = 8080;
+        private String bindAddress = "0.0.0.0";
+        private boolean enableAuth = false;
+        private String apiKey;
+        private String apiKeyHeader = "X-API-Key";
+        private Set<String> allowedOrigins = new HashSet<>(Set.of("*"));
+
+        /**
+         * Sets the port to listen on.
+         *
+         * @param port the server port
+         * @return this builder
+         */
+        public Builder port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * Sets the bind address.
+         *
+         * @param bindAddress the bind address
+         * @return this builder
+         */
+        public Builder bindAddress(String bindAddress) {
+            this.bindAddress = bindAddress;
+            return this;
+        }
+
+        /**
+         * Sets whether authentication is required.
+         *
+         * @param enableAuth true to require API key authentication
+         * @return this builder
+         */
+        public Builder enableAuth(boolean enableAuth) {
+            this.enableAuth = enableAuth;
+            return this;
+        }
+
+        /**
+         * Sets the API key for authentication.
+         *
+         * @param apiKey the API key
+         * @return this builder
+         */
+        public Builder apiKey(String apiKey) {
+            this.apiKey = apiKey;
+            return this;
+        }
+
+        /**
+         * Sets the HTTP header name for the API key.
+         *
+         * @param apiKeyHeader the header name
+         * @return this builder
+         */
+        public Builder apiKeyHeader(String apiKeyHeader) {
+            this.apiKeyHeader = apiKeyHeader;
+            return this;
+        }
+
+        /**
+         * Adds an allowed CORS origin.
+         *
+         * @param origin the origin to allow
+         * @return this builder
+         */
+        public Builder addAllowedOrigin(String origin) {
+            if (this.allowedOrigins == null) {
+                this.allowedOrigins = new HashSet<>();
+            }
+            this.allowedOrigins.add(origin);
+            return this;
+        }
+
+        /**
+         * Sets all allowed CORS origins, replacing any previously added.
+         *
+         * @param origins the origins to allow
+         * @return this builder
+         */
+        public Builder allowedOrigins(Set<String> origins) {
+            this.allowedOrigins = new HashSet<>(origins);
+            return this;
+        }
+
+        /**
+         * Builds the ApiServerConfig instance.
+         *
+         * @return a new ApiServerConfig
+         */
+        public ApiServerConfig build() {
+            return new ApiServerConfig(this);
+        }
+    }
+}

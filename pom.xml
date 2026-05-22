@@ -31,7 +31,24 @@
         <module>jplatform-security</module>
         <module>jplatform-monitoring</module>
         <module>jplatform-messaging</module>
+
+        <!-- New deployment modules -->
+        <module>jplatform-config</module>
+        <module>jplatform-fs-watcher</module>
         <module>jplatform-deployment</module>
+
+        <!-- New management modules -->
+        <module>jplatform-rest-api</module>
+        <module>jplatform-web-console</module>
+
+        <!-- New metrics modules -->
+        <module>jplatform-metrics-jmx</module>
+        <module>jplatform-metrics-prometheus</module>
+
+        <!-- Advanced modules (optional - disabled for 1.0 release) -->
+        <!-- <module>jplatform-jvmti-agent</module> -->
+        <!-- <module>jplatform-cluster</module> -->
+
         <module>jplatform-launcher</module>
         <module>jplatform-samples</module>
     </modules>
@@ -75,6 +92,54 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- New deployment modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-config</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-fs-watcher</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- New management modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-rest-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-web-console</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- New metrics modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-metrics-jmx</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-metrics-prometheus</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Advanced modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-jvmti-agent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-cluster</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -104,11 +169,31 @@
                 <version>${snakeyaml.version}</version>
             </dependency>
 
+            <!-- Clustering -->
+            <dependency>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast</artifactId>
+                <version>5.3.0</version>
+            </dependency>
+
+            <!-- Metrics -->
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient</artifactId>
+                <version>0.16.0</version>
+            </dependency>
+
             <!-- Testing -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
                 <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>5.5.0</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -132,7 +217,55 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.3.0</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.10</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>PACKAGE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>

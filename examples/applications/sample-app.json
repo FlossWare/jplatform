@@ -1,0 +1,31 @@
+{
+  "applicationId": "sample-app",
+  "name": "Sample Application",
+  "version": "1.0.0",
+  "mainClass": "com.example.SampleApp",
+  "classpathEntries": [
+    "file:///path/to/sample-app.jar",
+    "file:///path/to/lib/dependencies.jar"
+  ],
+  "threadPool": {
+    "corePoolSize": 4,
+    "maxPoolSize": 20,
+    "queueCapacity": 100
+  },
+  "resources": {
+    "maxHeapMB": 512,
+    "monitoringIntervalMs": 5000
+  },
+  "security": {
+    "allowReflection": true,
+    "allowNetworking": true,
+    "allowFileSystem": true
+  },
+  "enableMessaging": true,
+  "properties": {
+    "app.environment": "production",
+    "app.config.path": "/etc/sample-app",
+    "app.database.url": "jdbc:mysql://localhost:3306/mydb",
+    "app.cache.enabled": "true"
+  }
+}

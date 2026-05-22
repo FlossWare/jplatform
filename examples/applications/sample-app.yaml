@@ -1,0 +1,39 @@
+# Sample Application Descriptor (YAML format)
+# This file demonstrates how to deploy an application to JPlatform
+
+applicationId: sample-app
+name: Sample Application
+version: 1.0.0
+mainClass: com.example.SampleApp
+
+# Classpath entries (JARs or directories)
+classpathEntries:
+  - file:///path/to/sample-app.jar
+  - file:///path/to/lib/dependencies.jar
+
+# Thread pool configuration
+threadPool:
+  corePoolSize: 4
+  maxPoolSize: 20
+  queueCapacity: 100
+
+# Resource limits
+resources:
+  maxHeapMB: 512
+  monitoringIntervalMs: 5000
+
+# Security settings
+security:
+  allowReflection: true
+  allowNetworking: true
+  allowFileSystem: true
+
+# Enable inter-application messaging
+enableMessaging: true
+
+# Application-specific properties
+properties:
+  app.environment: production
+  app.config.path: /etc/sample-app
+  app.database.url: jdbc:mysql://localhost:3306/mydb
+  app.cache.enabled: "true"

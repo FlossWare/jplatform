@@ -1,30 +1,50 @@
 package org.flossware.jplatform.launcher;
 
 import org.flossware.jplatform.api.*;
+import org.flossware.jplatform.config.JsonDescriptorParser;
+import org.flossware.jplatform.config.YamlDescriptorParser;
 import org.flossware.jplatform.core.ApplicationManager;
+import org.flossware.jplatform.fswatcher.AutoDeploymentHandler;
+import org.flossware.jplatform.fswatcher.FileSystemDeploymentWatcher;
 import org.flossware.jplatform.messaging.InMemoryMessageBus;
 import org.flossware.jplatform.messaging.ServiceRegistryImpl;
+import org.flossware.jplatform.metrics.jmx.JmxMetricsExporter;
+import org.flossware.jplatform.metrics.prometheus.PrometheusMetricsExporter;
+import org.flossware.jplatform.rest.JdkHttpApiServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 /**
  * Main entry point for JPlatform.
- * Bootstraps the platform and provides interactive management console.
+ * Bootstraps the platform and provides interactive management console with optional features.
  * <p>
  * This launcher initializes the platform infrastructure (message bus, service registry,
  * and application manager) and provides an interactive command-line interface for
  * managing applications. Applications can be deployed, started, stopped, and monitored
  * through the console.
  * <p>
+ * Optional features can be enabled via command-line arguments:
+ * <ul>
+ * <li>--rest-api - Enable REST API server (default port 8080)</li>
+ * <li>--port &lt;number&gt; - Specify port for REST API</li>
+ * <li>--web-console - Enable web console (requires --rest-api)</li>
+ * <li>--jmx-port &lt;number&gt; - Enable JMX metrics on specified port</li>
+ * <li>--prometheus - Enable Prometheus metrics (default port 9090)</li>
+ * <li>--prometheus-port &lt;number&gt; - Specify port for Prometheus metrics</li>
+ * <li>--watch-dir &lt;path&gt; - Enable filesystem watcher for auto-deployment</li>
+ * </ul>
+ * <p>
  * Supported commands:
  * <ul>
  * <li>deploy - Deploy an application from a JAR file</li>
+ * <li>deploy-yaml - Deploy an application from a YAML descriptor</li>
+ * <li>deploy-json - Deploy an application from a JSON descriptor</li>
  * <li>start - Start a deployed application</li>
  * <li>stop - Stop a running application</li>
  * <li>undeploy - Undeploy an application</li>
@@ -35,17 +55,20 @@ import java.util.Scanner;
  * </ul>
  * <p>
  * Example usage:
- * {@code
- * // Start the launcher
- * java -jar jplatform-launcher.jar
+ * <pre>{@code
+ * // Start with REST API and web console
+ * java -jar jplatform-launcher.jar --rest-api --web-console
+ *
+ * // Start with all features
+ * java -jar jplatform-launcher.jar --rest-api --web-console --jmx-port 9999 --watch-dir /var/jplatform/apps
  *
  * // At the prompt:
  * jplatform> deploy myapp /path/to/app.jar com.example.MyApp
+ * jplatform> deploy-yaml /path/to/app.yaml
  * jplatform> start myapp
  * jplatform> status myapp
- * jplatform> stop myapp
  * jplatform> exit
- * }
+ * }</pre>
  *
  * @see ApplicationManager
  */
@@ -56,21 +79,266 @@ public class PlatformLauncher {
     private final ApplicationManager applicationManager;
     private final InMemoryMessageBus messageBus;
     private final ServiceRegistryImpl serviceRegistry;
+    private final YamlDescriptorParser yamlParser;
+    private final JsonDescriptorParser jsonParser;
+
+    // Optional components
+    private JdkHttpApiServer restApiServer;
+    private JmxMetricsExporter jmxExporter;
+    private PrometheusMetricsExporter prometheusExporter;
+    private FileSystemDeploymentWatcher fileWatcher;
+
     private volatile boolean running = true;
 
+    // Configuration
+    private final LauncherConfig config;
+
     /**
-     * Creates a new platform launcher.
-     * <p>
-     * Initializes the message bus, service registry, and application manager.
+     * Launcher configuration parsed from command-line arguments.
      */
-    public PlatformLauncher() {
+    private static class LauncherConfig {
+        boolean restApiEnabled = false;
+        int restApiPort = 8080;
+        boolean webConsoleEnabled = false;
+        boolean jmxEnabled = false;
+        int jmxPort = 9999;
+        boolean prometheusEnabled = false;
+        int prometheusPort = 9090;
+        boolean watcherEnabled = false;
+        String watchDirectory = null;
+
+        static LauncherConfig parse(String[] args) {
+            LauncherConfig config = new LauncherConfig();
+
+            for (int i = 0; i < args.length; i++) {
+                String arg = args[i];
+
+                switch (arg) {
+                    case "--rest-api":
+                        config.restApiEnabled = true;
+                        break;
+
+                    case "--port":
+                        if (i + 1 < args.length) {
+                            config.restApiPort = Integer.parseInt(args[++i]);
+                            config.restApiEnabled = true; // Implied
+                        }
+                        break;
+
+                    case "--web-console":
+                        config.webConsoleEnabled = true;
+                        config.restApiEnabled = true; // Web console requires REST API
+                        break;
+
+                    case "--jmx-port":
+                        if (i + 1 < args.length) {
+                            config.jmxPort = Integer.parseInt(args[++i]);
+                            config.jmxEnabled = true;
+                        }
+                        break;
+
+                    case "--prometheus":
+                        config.prometheusEnabled = true;
+                        break;
+
+                    case "--prometheus-port":
+                        if (i + 1 < args.length) {
+                            config.prometheusPort = Integer.parseInt(args[++i]);
+                            config.prometheusEnabled = true;
+                        }
+                        break;
+
+                    case "--watch-dir":
+                        if (i + 1 < args.length) {
+                            config.watchDirectory = args[++i];
+                            config.watcherEnabled = true;
+                        }
+                        break;
+
+                    case "--help":
+                    case "-h":
+                        printStartupHelp();
+                        System.exit(0);
+                        break;
+
+                    default:
+                        if (arg.startsWith("--")) {
+                            System.err.println("Unknown argument: " + arg);
+                            printStartupHelp();
+                            System.exit(1);
+                        }
+                }
+            }
+
+            return config;
+        }
+
+        private static void printStartupHelp() {
+            System.out.println("JPlatform Launcher");
+            System.out.println();
+            System.out.println("Usage: java -jar jplatform-launcher.jar [options]");
+            System.out.println();
+            System.out.println("Options:");
+            System.out.println("  --rest-api              Enable REST API server (default port 8080)");
+            System.out.println("  --port <number>         Specify port for REST API (implies --rest-api)");
+            System.out.println("  --web-console           Enable web console (implies --rest-api)");
+            System.out.println("  --jmx-port <number>     Enable JMX metrics on specified port");
+            System.out.println("  --watch-dir <path>      Enable filesystem watcher for auto-deployment");
+            System.out.println("  --help, -h              Show this help message");
+            System.out.println();
+            System.out.println("Examples:");
+            System.out.println("  java -jar jplatform-launcher.jar");
+            System.out.println("  java -jar jplatform-launcher.jar --rest-api --web-console");
+            System.out.println("  java -jar jplatform-launcher.jar --rest-api --port 9090 --jmx-port 9999");
+            System.out.println("  java -jar jplatform-launcher.jar --watch-dir /var/jplatform/apps");
+        }
+    }
+
+    /**
+     * Creates a new platform launcher with the specified configuration.
+     *
+     * @param config the launcher configuration
+     */
+    public PlatformLauncher(LauncherConfig config) {
+        this.config = config;
+
         logger.info("Initializing JPlatform...");
 
+        // Initialize core components
         this.messageBus = new InMemoryMessageBus();
         this.serviceRegistry = new ServiceRegistryImpl();
         this.applicationManager = new ApplicationManager(messageBus, serviceRegistry);
 
+        // Initialize parsers
+        this.yamlParser = new YamlDescriptorParser();
+        this.jsonParser = new JsonDescriptorParser();
+
+        // Initialize optional components
+        initializeOptionalComponents();
+
         logger.info("JPlatform initialized successfully");
+    }
+
+    /**
+     * Initializes optional components based on configuration.
+     */
+    private void initializeOptionalComponents() {
+        // Initialize REST API server
+        if (config.restApiEnabled) {
+            try {
+                logger.info("Initializing REST API on port {}...", config.restApiPort);
+
+                ApiServerConfig apiConfig = ApiServerConfig.builder()
+                        .port(config.restApiPort)
+                        .bindAddress("0.0.0.0")
+                        .enableAuth(false) // Disabled for simplicity
+                        .build();
+
+                restApiServer = new JdkHttpApiServer(apiConfig, applicationManager);
+                restApiServer.start();
+
+                logger.info("REST API started at http://localhost:{}/api", config.restApiPort);
+
+                if (config.webConsoleEnabled) {
+                    logger.info("Web Console available at http://localhost:{}/console", config.restApiPort);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to start REST API server", e);
+                throw new RuntimeException("Failed to start REST API server", e);
+            }
+        }
+
+        // Initialize JMX metrics exporter
+        if (config.jmxEnabled) {
+            try {
+                logger.info("Initializing JMX metrics on port {}...", config.jmxPort);
+
+                JmxExporterConfig jmxConfig = JmxExporterConfig.builder()
+                        .enabled(true)
+                        .port(config.jmxPort)
+                        .domain("org.flossware.jplatform")
+                        .build();
+
+                jmxExporter = new JmxMetricsExporter(jmxConfig, applicationManager);
+                jmxExporter.start();
+
+                // Register lifecycle hooks to auto-register/unregister applications
+                addJmxLifecycleHooks();
+
+                logger.info("JMX metrics started. Connect with: jconsole localhost:{}", config.jmxPort);
+            } catch (Exception e) {
+                logger.error("Failed to start JMX metrics exporter", e);
+                throw new RuntimeException("Failed to start JMX metrics exporter", e);
+            }
+        }
+
+        // Initialize Prometheus metrics exporter
+        if (config.prometheusEnabled) {
+            try {
+                logger.info("Initializing Prometheus metrics on port {}...", config.prometheusPort);
+
+                PrometheusExporterConfig prometheusConfig = PrometheusExporterConfig.builder()
+                        .port(config.prometheusPort)
+                        .path("/metrics")
+                        .build();
+
+                prometheusExporter = new PrometheusMetricsExporter(prometheusConfig);
+                prometheusExporter.start();
+
+                logger.info("Prometheus metrics started. Metrics available at: http://localhost:{}/metrics",
+                        config.prometheusPort);
+            } catch (Exception e) {
+                logger.error("Failed to start Prometheus metrics exporter", e);
+                throw new RuntimeException("Failed to start Prometheus metrics exporter", e);
+            }
+        }
+
+        // Initialize filesystem watcher
+        if (config.watcherEnabled) {
+            try {
+                logger.info("Initializing filesystem watcher for directory: {}", config.watchDirectory);
+
+                Path watchPath = Paths.get(config.watchDirectory);
+
+                WatcherConfig watcherConfig = WatcherConfig.builder()
+                        .watchDirectory(watchPath)
+                        .autoStart(true)
+                        .autoDeploy(true)
+                        .fileExtensions(Set.of("yaml", "json"))
+                        .debounceMillis(500)
+                        .build();
+
+                fileWatcher = new FileSystemDeploymentWatcher(watcherConfig);
+
+                // Set up auto-deployment handler with parser map
+                Map<String, ApplicationDescriptorParser> parsers = new HashMap<>();
+                parsers.put("yaml", yamlParser);
+                parsers.put("json", jsonParser);
+
+                AutoDeploymentHandler handler = new AutoDeploymentHandler(
+                        applicationManager,
+                        parsers,
+                        watcherConfig
+                );
+
+                fileWatcher.addListener(handler);
+                fileWatcher.start();
+
+                logger.info("Filesystem watcher started. Drop YAML/JSON files in: {}", config.watchDirectory);
+            } catch (Exception e) {
+                logger.error("Failed to start filesystem watcher", e);
+                throw new RuntimeException("Failed to start filesystem watcher", e);
+            }
+        }
+    }
+
+    /**
+     * Adds lifecycle hooks to automatically register/unregister applications with JMX.
+     */
+    private void addJmxLifecycleHooks() {
+        // Note: This would require adding lifecycle listener support to ApplicationManager
+        // For now, we'll register applications manually in the deploy commands
+        // TODO: Add ApplicationLifecycleListener interface to jplatform-api
     }
 
     /**
@@ -81,8 +349,7 @@ public class PlatformLauncher {
      * the 'exit' or 'quit' command is received.
      */
     public void start() {
-        logger.info("JPlatform started");
-        logger.info("Type 'help' for available commands");
+        printWelcome();
 
         Scanner scanner = new Scanner(System.in);
 
@@ -109,6 +376,30 @@ public class PlatformLauncher {
         scanner.close();
     }
 
+    private void printWelcome() {
+        System.out.println();
+        System.out.println("========================================");
+        System.out.println("  JPlatform v1.0");
+        System.out.println("========================================");
+        System.out.println();
+
+        if (config.restApiEnabled) {
+            System.out.println("  REST API:     http://localhost:" + config.restApiPort + "/api");
+        }
+        if (config.webConsoleEnabled) {
+            System.out.println("  Web Console:  http://localhost:" + config.restApiPort + "/console");
+        }
+        if (config.jmxEnabled) {
+            System.out.println("  JMX:          localhost:" + config.jmxPort);
+        }
+        if (config.watcherEnabled) {
+            System.out.println("  Watch Dir:    " + config.watchDirectory);
+        }
+
+        System.out.println();
+        System.out.println("Type 'help' for available commands");
+    }
+
     private void handleCommand(String command, String args) throws Exception {
         switch (command) {
             case "help":
@@ -117,6 +408,14 @@ public class PlatformLauncher {
 
             case "deploy":
                 handleDeploy(args);
+                break;
+
+            case "deploy-yaml":
+                handleDeployYaml(args);
+                break;
+
+            case "deploy-json":
+                handleDeployJson(args);
                 break;
 
             case "start":
@@ -152,7 +451,9 @@ public class PlatformLauncher {
 
     private void printHelp() {
         System.out.println("\nAvailable commands:");
-        System.out.println("  deploy <appId> <jarFile> <mainClass>  - Deploy an application");
+        System.out.println("  deploy <appId> <jarFile> <mainClass>  - Deploy an application from JAR");
+        System.out.println("  deploy-yaml <file>                    - Deploy from YAML descriptor");
+        System.out.println("  deploy-json <file>                    - Deploy from JSON descriptor");
         System.out.println("  start <appId>                         - Start a deployed application");
         System.out.println("  stop <appId>                          - Stop a running application");
         System.out.println("  undeploy <appId>                      - Undeploy an application");
@@ -191,7 +492,84 @@ public class PlatformLauncher {
                 .build();
 
         applicationManager.deploy(descriptor);
+
+        // Register with JMX if enabled
+        if (jmxExporter != null) {
+            ApplicationContext context = applicationManager.getApplicationContext(appId);
+            jmxExporter.registerApplication(appId, context);
+        }
+
+        // Register with Prometheus if enabled
+        if (prometheusExporter != null) {
+            ApplicationContext context = applicationManager.getApplicationContext(appId);
+            prometheusExporter.registerApplication(appId, context);
+        }
+
         System.out.println("Application deployed: " + appId);
+    }
+
+    private void handleDeployYaml(String args) throws Exception {
+        if (args.isEmpty()) {
+            System.out.println("Usage: deploy-yaml <file>");
+            return;
+        }
+
+        String filePath = args.trim();
+        File file = new File(filePath);
+
+        if (!file.exists()) {
+            System.out.println("File not found: " + filePath);
+            return;
+        }
+
+        ApplicationDescriptor descriptor = yamlParser.parseFile(file.toPath());
+        applicationManager.deploy(descriptor);
+
+        // Register with JMX if enabled
+        if (jmxExporter != null) {
+            ApplicationContext context = applicationManager.getApplicationContext(descriptor.getApplicationId());
+            jmxExporter.registerApplication(descriptor.getApplicationId(), context);
+        }
+
+        // Register with Prometheus if enabled
+        if (prometheusExporter != null) {
+            ApplicationContext context = applicationManager.getApplicationContext(descriptor.getApplicationId());
+            prometheusExporter.registerApplication(descriptor.getApplicationId(), context);
+        }
+
+        System.out.println("Application deployed from YAML: " + descriptor.getApplicationId());
+    }
+
+    private void handleDeployJson(String args) throws Exception {
+        if (args.isEmpty()) {
+            System.out.println("Usage: deploy-json <file>");
+            return;
+        }
+
+        String filePath = args.trim();
+        File file = new File(filePath);
+
+        if (!file.exists()) {
+            System.out.println("File not found: " + filePath);
+            return;
+        }
+
+        ApplicationDescriptor descriptor = jsonParser.parseFile(file.toPath());
+        applicationManager.deploy(descriptor);
+
+        // Register with JMX if enabled
+        if (jmxExporter != null) {
+            ApplicationContext context = applicationManager.getApplicationContext(descriptor.getApplicationId());
+            jmxExporter.registerApplication(descriptor.getApplicationId(), context);
+        }
+
+        // Register with Prometheus if enabled
+        if (prometheusExporter != null) {
+            ApplicationContext context = applicationManager.getApplicationContext(descriptor.getApplicationId());
+            prometheusExporter.registerApplication(descriptor.getApplicationId(), context);
+        }
+
+        System.out.println("Application deployed from JSON: " + descriptor.getApplicationId());
     }
 
     private void handleStart(String appId) throws Exception {
@@ -218,6 +596,16 @@ public class PlatformLauncher {
         if (appId.isEmpty()) {
             System.out.println("Usage: undeploy <appId>");
             return;
+        }
+
+        // Unregister from JMX if enabled
+        if (jmxExporter != null) {
+            jmxExporter.unregisterApplication(appId);
+        }
+
+        // Unregister from Prometheus if enabled
+        if (prometheusExporter != null) {
+            prometheusExporter.unregisterApplication(appId);
         }
 
         applicationManager.undeploy(appId);
@@ -261,9 +649,42 @@ public class PlatformLauncher {
     private void handleExit() {
         System.out.println("Shutting down platform...");
         running = false;
-        applicationManager.shutdown();
-        messageBus.shutdown();
-        System.out.println("Platform shutdown complete");
+
+        // Shutdown in reverse order of initialization
+        try {
+            if (fileWatcher != null) {
+                logger.info("Stopping filesystem watcher...");
+                fileWatcher.stop();
+                fileWatcher.close();
+            }
+
+            if (jmxExporter != null) {
+                logger.info("Stopping JMX metrics exporter...");
+                jmxExporter.stop();
+            }
+
+            if (prometheusExporter != null) {
+                logger.info("Stopping Prometheus metrics exporter...");
+                prometheusExporter.stop();
+            }
+
+            if (restApiServer != null) {
+                logger.info("Stopping REST API server...");
+                restApiServer.stop();
+            }
+
+            logger.info("Shutting down application manager...");
+            applicationManager.shutdown();
+
+            logger.info("Shutting down message bus...");
+            messageBus.shutdown();
+
+            System.out.println("Platform shutdown complete");
+
+        } catch (Exception e) {
+            logger.error("Error during shutdown", e);
+            System.err.println("Error during shutdown: " + e.getMessage());
+        }
     }
 
     /**
@@ -272,14 +693,16 @@ public class PlatformLauncher {
      * Creates and starts the platform launcher. If a fatal error occurs during
      * initialization or execution, logs the error and exits with code 1.
      *
-     * @param args command-line arguments (currently unused)
+     * @param args command-line arguments for platform configuration
      */
     public static void main(String[] args) {
         try {
-            PlatformLauncher launcher = new PlatformLauncher();
+            LauncherConfig config = LauncherConfig.parse(args);
+            PlatformLauncher launcher = new PlatformLauncher(config);
             launcher.start();
         } catch (Exception e) {
             logger.error("Fatal error in platform launcher", e);
+            System.err.println("Fatal error: " + e.getMessage());
             System.exit(1);
         }
     }

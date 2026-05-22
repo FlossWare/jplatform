@@ -1,0 +1,60 @@
+# JPlatform Configuration Example
+# This file demonstrates all available configuration options for JPlatform
+
+# REST API Configuration
+api:
+  enabled: true
+  port: 8080
+  bindAddress: "0.0.0.0"
+
+# Web Console Configuration
+webConsole:
+  enabled: true
+  path: "/console"
+
+# JMX Metrics Configuration
+metrics:
+  jmx:
+    enabled: true
+    port: 9999
+    domain: "org.flossware.jplatform"
+
+  # Prometheus Metrics Configuration
+  prometheus:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+
+# Filesystem Watcher Configuration
+watcher:
+  enabled: true
+  watchDirectory: "/var/jplatform/apps"
+  autoStart: true
+  autoDeploy: true
+  fileExtensions:
+    - yaml
+    - json
+  debounceMillis: 500
+
+# Application Defaults
+applicationDefaults:
+  threadPool:
+    corePoolSize: 4
+    maxPoolSize: 20
+    queueCapacity: 100
+
+  resources:
+    maxHeapMB: 512
+    monitoringIntervalMs: 5000
+
+  security:
+    allowReflection: true
+    allowNetworking: true
+    allowFileSystem: true
+
+# Logging Configuration
+logging:
+  level: INFO
+  file: "/var/log/jplatform/platform.log"
+  maxSize: 10MB
+  maxFiles: 5

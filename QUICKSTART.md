@@ -1,197 +1,281 @@
-# JPlatform Quick Start
+# JPlatform Quick Start Guide
 
-This guide will get you up and running with JPlatform in 5 minutes.
+Get up and running with JPlatform in 5 minutes!
 
 ## Prerequisites
 
-- Java 11 or higher
-- Maven 3.6+ (for building)
+- Java 11 or later
+- Maven 3.6+
 
-## 1. Build the Platform
+## Build JPlatform
 
 ```bash
-cd /home/sfloess/Development/github/FlossWare/jplatform
+# Clone the repository
+git clone https://github.com/FlossWare/jplatform.git
+cd jplatform
+
+# Build all modules (takes ~2 minutes)
 mvn clean install
+
+# Launcher JAR will be at:
+# jplatform-launcher/target/jplatform-launcher-1.0.jar
 ```
 
-This builds all modules including sample applications.
+## Quick Start: Interactive Mode
 
-## 2. Start the Platform
+The simplest way to get started is with the interactive console:
 
 ```bash
-java -jar jplatform-launcher/target/jplatform-launcher-1.0.jar
+cd jplatform-launcher/target
+java -jar jplatform-launcher-1.0.jar
 ```
 
-You should see:
+You'll see:
 
 ```
-[INFO] Initializing JPlatform...
-[INFO] JPlatform initialized successfully
-[INFO] JPlatform started
-[INFO] Type 'help' for available commands
+  _____ _____  _       _    __                    
+  |_   _|  __ \| |     | |  / _|                   
+    | | | |__) | | __ _| |_| |_ ___  _ __ _ __ ___  
+    | | |  ___/| |/ _` | __|  _/ _ \| '__| '_ ` _ \ 
+   _| |_| |    | | (_| | |_| || (_) | |  | | | | | |
+  |_____|_|    |_|\__,_|\__|_| \___/|_|  |_| |_| |_|
+
+JPlatform 1.0 - Java Application Platform
+Type 'help' for commands
 
 jplatform>
 ```
 
-## 3. Deploy and Run the Hello World Sample
+### Deploy Your First Application
+
+Let's deploy the Hello World sample:
 
 ```bash
-jplatform> deploy hello-world jplatform-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.jplatform.samples.helloworld.HelloWorldApp
+# Build the sample
+cd ../../jplatform-samples/hello-world
+mvn clean package
+cd ../../jplatform-launcher/target
+
+# Launch platform and deploy
+java -jar jplatform-launcher-1.0.jar
+
+jplatform> deploy hello-world ../../jplatform-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.jplatform.samples.helloworld.HelloWorldApp
 Application deployed: hello-world
 
 jplatform> start hello-world
+[hello-world] Hello from JPlatform!
+[hello-world] Application ID: hello-world
+[hello-world] Running in thread: hello-world-pool-1
 Application started: hello-world
-```
 
-You'll see output like:
-
-```
-Hello from JPlatform! Message #1
-Hello from JPlatform! Message #2
-Hello from JPlatform! Message #3
-...
-```
-
-## 4. Check Application Status
-
-```bash
 jplatform> status hello-world
+Application ID: hello-world
+State: RUNNING
+CPU Time: 1234567 ns
+Heap Used: 1048576 bytes
+Thread Count: 5
+Active Threads: 2
+Queued Tasks: 0
+Completed Tasks: 1
 
-Application: hello-world
-  State: RUNNING
-  Thread Pool: ThreadPoolStats{activeCount=1, completedTaskCount=0, queueSize=0, ...}
-  Resources:
-    CPU Time: 0.05s
-    Heap Used: 128 MB
-    Thread Count: 2
-```
-
-## 5. Deploy the Messaging Sample
-
-Keep the hello-world app running and deploy the messaging app:
-
-```bash
-jplatform> deploy messaging-app jplatform-samples/messaging-app/target/sample-messaging-app-1.0.jar org.flossware.jplatform.samples.messaging.MessagingApp
-Application deployed: messaging-app
-
-jplatform> start messaging-app
-Application started: messaging-app
-```
-
-Now you have two applications running in the same JVM!
-
-## 6. List All Applications
-
-```bash
-jplatform> list
-
-Applications:
-  hello-world - RUNNING
-  messaging-app - RUNNING
-```
-
-## 7. Stop and Undeploy
-
-```bash
 jplatform> stop hello-world
 Application stopped: hello-world
 
-jplatform> stop messaging-app
-Application stopped: messaging-app
+jplatform> list
+Applications:
+  hello-world - STOPPED
 
-jplatform> undeploy hello-world
-Application undeployed: hello-world
-
-jplatform> undeploy messaging-app
-Application undeployed: messaging-app
-```
-
-## 8. Exit the Platform
-
-```bash
 jplatform> exit
 Shutting down platform...
-Platform shutdown complete
 ```
 
-## What Just Happened?
+## Advanced: Descriptor-Based Deployment
 
-You just ran two completely isolated Java applications within a single JVM:
+Create a YAML descriptor (`my-app.yaml`):
 
-1. **ClassLoader Isolation**: Each application had its own classloader, preventing class conflicts
-2. **Thread Pool Isolation**: Each application used its own dedicated thread pool
-3. **Resource Monitoring**: The platform tracked CPU, memory, and thread usage per application
-4. **Messaging**: The messaging-app demonstrated inter-application communication
-5. **Lifecycle Management**: Applications were deployed, started, stopped, and undeployed independently
+```yaml
+applicationId: my-app
+name: My Application
+version: 1.0.0
+mainClass: com.example.MyApp
+
+classpathEntries:
+  - file:///path/to/my-app.jar
+
+threadPool:
+  corePoolSize: 4
+  maxPoolSize: 20
+
+resources:
+  maxHeapMB: 512
+
+enableMessaging: true
+
+properties:
+  app.environment: production
+```
+
+Deploy it:
+
+```bash
+jplatform> deploy-yaml /path/to/my-app.yaml
+Application deployed from YAML: my-app
+
+jplatform> start my-app
+```
+
+## Enable Web Console
+
+For a graphical management interface:
+
+```bash
+java -jar jplatform-launcher-1.0.jar --rest-api --web-console
+
+# Open browser to:
+http://localhost:8080/console
+```
+
+The web console provides:
+- Application deployment via upload or paste
+- Start/stop/undeploy buttons
+- Real-time metrics charts (CPU, memory, threads)
+- Application properties viewer
+
+## Enable Metrics Monitoring
+
+### JMX Metrics (JConsole, VisualVM)
+
+```bash
+java -jar jplatform-launcher-1.0.jar --jmx-port 9999
+
+# In another terminal:
+jconsole localhost:9999
+
+# Navigate to MBeans tab → org.flossware.jplatform
+# See per-application metrics and operations
+```
+
+### Prometheus Metrics
+
+```bash
+java -jar jplatform-launcher-1.0.jar --prometheus
+
+# Metrics endpoint:
+curl http://localhost:9090/metrics
+```
+
+Output:
+```prometheus
+# HELP jplatform_app_cpu_time_seconds Total CPU time used by application
+# TYPE jplatform_app_cpu_time_seconds counter
+jplatform_app_cpu_time_seconds{app_id="my-app"} 123.45
+
+# HELP jplatform_app_heap_used_bytes Heap memory used by application
+# TYPE jplatform_app_heap_used_bytes gauge
+jplatform_app_heap_used_bytes{app_id="my-app"} 134217728
+
+# HELP jplatform_app_state Application lifecycle state
+# TYPE jplatform_app_state gauge
+jplatform_app_state{app_id="my-app",state="running"} 1.0
+jplatform_app_state{app_id="my-app",state="stopped"} 0.0
+```
+
+## Auto-Deployment via Filesystem Watcher
+
+Enable automatic deployment when descriptor files are added:
+
+```bash
+# Create watch directory
+mkdir /var/jplatform/apps
+
+# Start launcher with watcher
+java -jar jplatform-launcher-1.0.jar --watch-dir /var/jplatform/apps
+
+# In another terminal, drop descriptor files:
+cp my-app.yaml /var/jplatform/apps/
+
+# Application automatically deploys and starts!
+# Remove file to undeploy:
+rm /var/jplatform/apps/my-app.yaml
+```
+
+## REST API Usage
+
+Start with REST API enabled:
+
+```bash
+java -jar jplatform-launcher-1.0.jar --rest-api
+```
+
+### Deploy Application
+
+```bash
+curl -X POST http://localhost:8080/api/applications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "applicationId": "api-app",
+    "mainClass": "com.example.ApiApp",
+    "classpathEntries": ["file:///path/to/app.jar"],
+    "threadPool": {
+      "corePoolSize": 4,
+      "maxPoolSize": 20
+    }
+  }'
+```
+
+### List Applications
+
+```bash
+curl http://localhost:8080/api/applications
+```
+
+### Start Application
+
+```bash
+curl -X POST http://localhost:8080/api/applications/api-app/start
+```
+
+### Get Application Status
+
+```bash
+curl http://localhost:8080/api/applications/api-app/status
+```
+
+### Stop and Undeploy
+
+```bash
+# Stop
+curl -X POST http://localhost:8080/api/applications/api-app/stop
+
+# Undeploy
+curl -X DELETE http://localhost:8080/api/applications/api-app
+```
+
+## Production Deployment
+
+For production use, enable all features:
+
+```bash
+java -jar jplatform-launcher-1.0.jar \
+  --rest-api \
+  --port 8080 \
+  --web-console \
+  --jmx-port 9999 \
+  --prometheus \
+  --prometheus-port 9090 \
+  --watch-dir /var/jplatform/apps
+```
+
+This gives you:
+- REST API on port 8080
+- Web console at http://localhost:8080/console
+- JMX metrics on port 9999
+- Prometheus metrics on port 9090
+- Auto-deployment from /var/jplatform/apps
 
 ## Next Steps
 
-- Read the full [README.md](README.md) for architecture details
-- Create your own application (see "Writing Applications" section in README.md)
-- Explore the sample code in `jplatform-samples/`
-- Check out [JClassLoader](https://github.com/FlossWare/jclassloader) for classloading details
-
-## Troubleshooting
-
-**Build fails:**
-```bash
-# Make sure you're in the jplatform directory
-cd /home/sfloess/Development/github/FlossWare/jplatform
-mvn clean install
-```
-
-**Can't find sample JARs:**
-```bash
-# Verify samples were built
-ls -la jplatform-samples/hello-world/target/
-ls -la jplatform-samples/messaging-app/target/
-```
-
-**Applications don't start:**
-- Check that the JAR path is correct (relative to where you started the launcher)
-- Verify the main class name is correct and fully qualified
-- Check the logs for exceptions
-
-## Sample Session
-
-Here's a complete example session:
-
-```bash
-$ java -jar jplatform-launcher/target/jplatform-launcher-1.0.jar
-
-jplatform> deploy hello jplatform-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.jplatform.samples.helloworld.HelloWorldApp
-Application deployed: hello
-
-jplatform> deploy msg jplatform-samples/messaging-app/target/sample-messaging-app-1.0.jar org.flossware.jplatform.samples.messaging.MessagingApp
-Application deployed: msg
-
-jplatform> start hello
-Application started: hello
-
-jplatform> start msg
-Application started: msg
-
-jplatform> list
-Applications:
-  hello - RUNNING
-  msg - RUNNING
-
-jplatform> status hello
-Application: hello
-  State: RUNNING
-  ...
-
-jplatform> status msg
-Application: msg
-  State: RUNNING
-  ...
-
-jplatform> stop hello
-Application stopped: hello
-
-jplatform> stop msg
-Application stopped: msg
-
-jplatform> exit
-Shutting down platform...
-```
+- Read the [README](README.md) for architecture details
+- Check [examples/applications](examples/applications) for sample descriptors
+- Explore sample applications in [jplatform-samples](jplatform-samples)
+- Review API documentation in [jplatform-api](jplatform-api)

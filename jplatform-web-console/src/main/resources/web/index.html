@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPlatform Management Console</title>
+    <link rel="stylesheet" href="/static/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>JPlatform Management Console</h1>
+            <div id="connection-status" class="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Connected</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- Platform Information Section -->
+            <section id="platform-info" class="card">
+                <h2>Platform Information</h2>
+                <div id="platform-details" class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Platform Version:</span>
+                        <span id="platform-version" class="info-value">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total Applications:</span>
+                        <span id="total-apps" class="info-value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Running Applications:</span>
+                        <span id="running-apps" class="info-value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">System Uptime:</span>
+                        <span id="system-uptime" class="info-value">-</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Application Management Section -->
+            <section id="applications" class="card">
+                <div class="section-header">
+                    <h2>Applications</h2>
+                    <button class="btn btn-primary" onclick="showDeployForm()">Deploy New Application</button>
+                </div>
+
+                <div id="deploy-form" class="deploy-form" style="display: none;">
+                    <h3>Deploy Application</h3>
+                    <form onsubmit="deployApp(event)">
+                        <div class="form-group">
+                            <label for="app-id">Application ID:</label>
+                            <input type="text" id="app-id" required placeholder="my-app">
+                        </div>
+                        <div class="form-group">
+                            <label for="app-name">Application Name:</label>
+                            <input type="text" id="app-name" required placeholder="My Application">
+                        </div>
+                        <div class="form-group">
+                            <label for="app-version">Version:</label>
+                            <input type="text" id="app-version" required placeholder="1.0.0">
+                        </div>
+                        <div class="form-group">
+                            <label for="app-artifact">Artifact Path:</label>
+                            <input type="text" id="app-artifact" required placeholder="/path/to/app.jar">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Deploy</button>
+                            <button type="button" class="btn btn-secondary" onclick="hideDeployForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <table id="app-table" class="app-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Version</th>
+                            <th>State</th>
+                            <th>CPU</th>
+                            <th>Memory</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="app-table-body">
+                        <tr>
+                            <td colspan="7" class="loading-message">Loading applications...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Application Detail Section -->
+            <section id="app-detail" class="card" style="display: none;">
+                <div class="section-header">
+                    <h2 id="detail-title">Application Details</h2>
+                    <button class="btn btn-secondary" onclick="hideDetail()">Close</button>
+                </div>
+
+                <div id="detail-content">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Application ID:</span>
+                            <span id="detail-id" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Name:</span>
+                            <span id="detail-name" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Version:</span>
+                            <span id="detail-version" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">State:</span>
+                            <span id="detail-state" class="info-value">-</span>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3>CPU Usage</h3>
+                            <canvas id="cpu-chart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Memory Usage</h3>
+                            <canvas id="memory-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>JPlatform Management Console v1.0 | Last Updated: <span id="last-update">-</span></p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

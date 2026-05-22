@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.flossware.jplatform</groupId>
+        <artifactId>jplatform-parent</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>jplatform-jvmti-agent</artifactId>
+    <packaging>jar</packaging>
+
+    <name>JPlatform JVMTI Agent</name>
+    <description>JVMTI-based native agent for precise heap profiling by ClassLoader</description>
+
+    <dependencies>
+        <!-- JPlatform Dependencies -->
+        <dependency>
+            <groupId>org.flossware.jplatform</groupId>
+            <artifactId>jplatform-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flossware.jplatform</groupId>
+            <artifactId>jplatform-monitoring</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Native Maven Plugin for C compilation -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>1.0-alpha-11</version>
+                <configuration>
+                    <javahOS>linux</javahOS>
+                    <compilerProvider>generic</compilerProvider>
+                    <compilerExecutable>gcc</compilerExecutable>
+                    <linkerExecutable>gcc</linkerExecutable>
+                    <sources>
+                        <source>
+                            <directory>src/main/c</directory>
+                            <fileNames>
+                                <fileName>jplatform_agent.c</fileName>
+                            </fileNames>
+                        </source>
+                    </sources>
+                    <compilerStartOptions>
+                        <compilerStartOption>-fPIC</compilerStartOption>
+                        <compilerStartOption>-I${JAVA_HOME}/include</compilerStartOption>
+                        <compilerStartOption>-I${JAVA_HOME}/include/linux</compilerStartOption>
+                        <compilerStartOption>-Wall</compilerStartOption>
+                        <compilerStartOption>-O2</compilerStartOption>
+                    </compilerStartOptions>
+                    <linkerStartOptions>
+                        <linkerStartOption>-shared</linkerStartOption>
+                        <linkerStartOption>-o</linkerStartOption>
+                        <linkerStartOption>${project.build.directory}/libjplatform-agent.so</linkerStartOption>
+                    </linkerStartOptions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>compile-native</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>javah</goal>
+                            <goal>compile</goal>
+                            <goal>link</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Ant Run plugin to copy native library to resources -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-native-lib</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.build.outputDirectory}/native/linux-x64"/>
+                                <copy file="${project.build.directory}/libjplatform-agent.so"
+                                      todir="${project.build.outputDirectory}/native/linux-x64"
+                                      failonerror="false"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Profile to skip native compilation if tools are unavailable -->
+        <profile>
+            <id>skip-native</id>
+            <activation>
+                <property>
+                    <name>skipNative</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>compile-native</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
