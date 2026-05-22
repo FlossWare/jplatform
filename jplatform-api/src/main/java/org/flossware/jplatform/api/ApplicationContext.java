@@ -86,6 +86,15 @@ public interface ApplicationContext {
     Optional<ServiceRegistry> getServiceRegistry();
 
     /**
+     * Returns the volume manager if volumes are defined for this application.
+     * Provides access to persistent and ephemeral storage directories.
+     *
+     * @return optional volume manager, empty if no volumes are defined
+     * @since 2.0
+     */
+    Optional<VolumeManager> getVolumeManager();
+
+    /**
      * Returns custom properties configured for this application.
      *
      * @return immutable map of application properties

@@ -61,6 +61,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
     private final List<ResourceSnapshot> history;
     private final List<ResourceEventListener> listeners;
     private volatile ResourceQuota quota;
+    private volatile ResourceEnforcer enforcer;  // Optional enforcer for quota violations
 
     /**
      * Creates a new resource monitor for the specified application.
@@ -132,6 +133,11 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
                     quota.enforce(snapshot);
                 } catch (ResourceQuotaExceededException e) {
                     fireQuotaExceeded(snapshot);
+
+                    // Trigger enforcement action if configured
+                    if (enforcer != null) {
+                        enforcer.enforceQuota(quota, snapshot);
+                    }
                 }
             }
 
@@ -213,6 +219,32 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
     @Override
     public ResourceQuota getQuota() {
         return quota;
+    }
+
+    /**
+     * Sets the resource enforcer for automatic quota enforcement.
+     * <p>
+     * When set, the enforcer will automatically take configured actions
+     * (throttle, shutdown, kill) when quotas are exceeded after the
+     * grace period.
+     *
+     * @param enforcer the resource enforcer, or null to disable enforcement
+     * @since 2.0
+     */
+    public void setEnforcer(ResourceEnforcer enforcer) {
+        this.enforcer = enforcer;
+        logger.info("[{}] Resource enforcer {}", applicationId,
+                enforcer != null ? "enabled" : "disabled");
+    }
+
+    /**
+     * Returns the current resource enforcer, if set.
+     *
+     * @return the resource enforcer, or null if not set
+     * @since 2.0
+     */
+    public ResourceEnforcer getEnforcer() {
+        return enforcer;
     }
 
     /**

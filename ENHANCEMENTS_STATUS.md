@@ -8,7 +8,8 @@ Implementation of 7 major platform enhancements is in progress. This document tr
 **Build Status**: ✅ BUILD SUCCESS  
 **Test Status**: ✅ 276 tests passing (4 skipped)  
 **Code Coverage**: ✅ 80%+ line coverage on all modules  
-**JavaDoc Status**: ✅ 100% complete
+**JavaDoc Status**: ✅ 100% complete  
+**Platform Features**: ✅ Resource Enforcement & Persistent Volumes (2.0)
 
 ---
 
@@ -560,6 +561,123 @@ Pending enhancements:
 - End-to-end integration testing (~3-4 hours)
 
 **Estimated Time to Complete Optional Features**: 19-26 hours
+
+---
+
+## Platform-Level Features (Version 2.0) ✅
+
+### Feature 2: Resource Limits Enforcement ✅
+
+**Status**: COMPLETE  
+**Modules**: `jplatform-api`, `jplatform-monitoring`, `jplatform-core`
+
+#### Files Created/Modified
+
+**API (in `jplatform-api`)**:
+- `EnforcementAction.java` - Enum defining enforcement actions (NOTIFY, THROTTLE, SHUTDOWN, KILL)
+- `ResourceConfig.java` - Extended with enforcement action fields and grace period
+
+**Implementation (in `jplatform-monitoring`)**:
+- `EnforcementPolicy.java` - Grace period tracking and violation history
+- `ResourceEnforcer.java` - Enforcement engine executing configured actions
+- `ApplicationResourceMonitor.java` - Modified to integrate ResourceEnforcer
+
+**Integration (in `jplatform-core`)**:
+- `ApplicationManager.java` - Creates ResourceEnforcer and wires into monitor, adds forceKill() method
+
+#### Features
+- Automatic enforcement actions when applications exceed CPU/memory/thread quotas
+- Grace periods to prevent transient spikes from triggering enforcement (default: 3 violations)
+- Four enforcement levels:
+  - **NOTIFY**: Log and notify only (default/existing behavior)
+  - **THROTTLE**: Slow down application execution
+  - **SHUTDOWN**: Graceful application stop
+  - **KILL**: Immediate forceful termination
+- Per-resource-type enforcement configuration (CPU, memory, threads can have different actions)
+- Thread-safe violation tracking using ConcurrentHashMap
+- Integration with existing ResourceQuota and ApplicationResourceMonitor
+
+#### Configuration Example
+```java
+ResourceConfig.builder()
+    .maxHeapMB(512)
+    .memoryEnforcementAction(EnforcementAction.SHUTDOWN)
+    .maxCpuTimeSeconds(300)
+    .cpuEnforcementAction(EnforcementAction.THROTTLE)
+    .maxThreads(50)
+    .threadEnforcementAction(EnforcementAction.SHUTDOWN)
+    .violationGracePeriod(3)
+    .build();
+```
+
+#### Verification
+```bash
+mvn clean compile -pl jplatform-monitoring,jplatform-core  # ✅ SUCCESS
+```
+
+---
+
+### Feature 4: Persistent State / Data Volumes ✅
+
+**Status**: COMPLETE  
+**Module**: `jplatform-storage` (NEW)
+
+#### Files Created/Modified
+
+**API (in `jplatform-api`)**:
+- `VolumeMount.java` - Volume descriptor with name, mountPath, persistent flag, size limit
+- `VolumeManager.java` - Interface for managing volumes
+- `ApplicationDescriptor.java` - Extended with volumes field and addVolume() builder method
+- `ApplicationContext.java` - Extended with getVolumeManager() method
+
+**Implementation (in `jplatform-storage`)**:
+- `FileSystemVolumeManager.java` - Filesystem-based volume manager implementation
+- `pom.xml` - New module POM with dependencies
+
+**Integration (in `jplatform-core`)**:
+- `ApplicationContextImpl.java` - Added volumeManager field and getVolumeManager() method
+- `ApplicationManager.java` - Creates FileSystemVolumeManager during deploy, cleans up ephemeral volumes on undeploy
+
+#### Features
+- Persistent and ephemeral volume support per application
+- Filesystem-based storage at `/var/jplatform/volumes/{applicationId}/{volumeName}`
+- Automatic directory creation on application deployment
+- Volume usage tracking via filesystem walk
+- Size limits with validation
+- Cleanup lifecycle:
+  - **Persistent volumes**: Survive application restarts and undeploys
+  - **Ephemeral volumes**: Automatically deleted on undeploy
+- Thread-safe using ConcurrentHashMap for volume registration
+- Optional size limits (maxSizeMB) with enforcement capability
+- Configurable base path via system property `jplatform.volumes.dir`
+
+#### Volume Configuration Example
+```java
+ApplicationDescriptor.builder()
+    .applicationId("my-app")
+    .addVolume(new VolumeMount("database", "/var/myapp/db", true, 1024))   // persistent, 1GB limit
+    .addVolume(new VolumeMount("cache", "/var/myapp/cache", false, 512))    // ephemeral, 512MB limit
+    .build();
+```
+
+#### Usage in Application
+```java
+public class MyApp implements Application {
+    @Override
+    public void start(ApplicationContext context) {
+        context.getVolumeManager().ifPresent(vm -> {
+            Path dbPath = vm.getVolumePath("database");
+            Path cachePath = vm.getVolumePath("cache");
+            // Use paths for file I/O
+        });
+    }
+}
+```
+
+#### Verification
+```bash
+mvn clean compile -pl jplatform-storage,jplatform-core  # ✅ SUCCESS
+```
 
 ---
 

@@ -3,7 +3,9 @@ package org.flossware.jplatform.core;
 import org.flossware.jplatform.api.*;
 import org.flossware.jplatform.classloader.IsolatedClassLoader;
 import org.flossware.jplatform.monitoring.ApplicationResourceMonitor;
+import org.flossware.jplatform.monitoring.ResourceEnforcer;
 import org.flossware.jplatform.security.ApplicationSecurityPolicy;
+import org.flossware.jplatform.storage.FileSystemVolumeManager;
 import org.flossware.jplatform.threadpool.ManagedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +104,35 @@ public class ApplicationManager {
                 resourceConfig.getMaxCpuTimeSeconds().ifPresent(sec -> quotaBuilder.maxCpuTimeNanos(sec * 1_000_000_000L));
 
                 resourceMonitor.setQuota(quotaBuilder.build());
+
+                // Create and attach resource enforcer
+                ResourceEnforcer enforcer = new ResourceEnforcer(
+                        appId,
+                        resourceConfig,
+                        id -> {
+                            try {
+                                stop(id);
+                            } catch (Exception e) {
+                                logger.error("[{}] Enforcer failed to stop application", id, e);
+                            }
+                        },  // shutdown action
+                        this::forceKill  // kill action
+                );
+                resourceMonitor.setEnforcer(enforcer);
+                logger.info("[{}] Resource enforcer configured with grace period: {}",
+                        appId, resourceConfig.getViolationGracePeriod());
+            }
+
+            // Create volume manager if volumes are defined
+            VolumeManager volumeManager = null;
+            if (!descriptor.getVolumes().isEmpty()) {
+                try {
+                    volumeManager = new FileSystemVolumeManager(appId, descriptor.getVolumes());
+                    logger.info("[{}] Created volume manager with {} volumes", appId, descriptor.getVolumes().size());
+                } catch (Exception e) {
+                    logger.error("[{}] Failed to create volume manager", appId, e);
+                    throw e;
+                }
             }
 
             // Create application context
@@ -114,6 +145,7 @@ public class ApplicationManager {
                     .resourceMonitor(resourceMonitor)
                     .messageBus(descriptor.isEnableMessaging() ? sharedMessageBus : null)
                     .serviceRegistry(descriptor.isEnableMessaging() ? sharedServiceRegistry : null)
+                    .volumeManager(volumeManager)
                     .properties(descriptor.getProperties())
                     .build();
 
@@ -228,6 +260,49 @@ public class ApplicationManager {
     }
 
     /**
+     * Forcefully terminates an application without graceful shutdown.
+     * Used by ResourceEnforcer when KILL action is triggered.
+     * Package-private for use by ResourceEnforcer.
+     *
+     * @param applicationId the application identifier
+     */
+    void forceKill(String applicationId) {
+        ApplicationContextImpl context = applications.get(applicationId);
+
+        if (context == null) {
+            logger.warn("[{}] Cannot force kill: application not deployed", applicationId);
+            return;
+        }
+
+        logger.warn("[{}] Force killing application due to resource enforcement", applicationId);
+
+        try {
+            // Immediately shutdown thread pool without waiting
+            context.getThreadPool().shutdownNow();
+
+            // Shutdown resource monitor
+            if (context.getResourceMonitor() instanceof ApplicationResourceMonitor) {
+                ((ApplicationResourceMonitor) context.getResourceMonitor()).shutdown();
+            }
+
+            // Close classloader
+            if (context.getClassLoader() instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) context.getClassLoader()).close();
+                } catch (Exception e) {
+                    logger.error("[{}] Error closing classloader during force kill", applicationId, e);
+                }
+            }
+
+            context.setState(ApplicationState.FAILED);
+            logger.error("[{}] Application force killed", applicationId);
+
+        } catch (Exception e) {
+            logger.error("[{}] Error during force kill", applicationId, e);
+        }
+    }
+
+    /**
      * Undeploys an application from the platform.
      * Stops the application if running and releases all resources.
      *
@@ -262,6 +337,18 @@ public class ApplicationManager {
             if (context.getClassLoader() instanceof AutoCloseable) {
                 ((AutoCloseable) context.getClassLoader()).close();
             }
+
+            // Cleanup ephemeral volumes
+            context.getVolumeManager().ifPresent(vm -> {
+                if (vm instanceof FileSystemVolumeManager) {
+                    try {
+                        ((FileSystemVolumeManager) vm).cleanupEphemeralVolumes();
+                        logger.info("[{}] Cleaned up ephemeral volumes", applicationId);
+                    } catch (Exception e) {
+                        logger.error("[{}] Failed to cleanup ephemeral volumes", applicationId, e);
+                    }
+                }
+            });
 
             context.setState(ApplicationState.UNDEPLOYED);
             applications.remove(applicationId);

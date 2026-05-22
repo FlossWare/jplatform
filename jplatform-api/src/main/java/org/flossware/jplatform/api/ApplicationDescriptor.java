@@ -37,6 +37,7 @@ public class ApplicationDescriptor {
     private final ResourceConfig resourceConfig;
     private final Map<String, String> properties;
     private final boolean enableMessaging;
+    private final List<VolumeMount> volumes;  // Added in 2.0
 
     private ApplicationDescriptor(Builder builder) {
         this.applicationId = Objects.requireNonNull(builder.applicationId, "applicationId is required");
@@ -54,6 +55,8 @@ public class ApplicationDescriptor {
         this.properties = builder.properties != null ?
                 new HashMap<>(builder.properties) : Collections.emptyMap();
         this.enableMessaging = builder.enableMessaging;
+        this.volumes = builder.volumes != null ?
+                List.copyOf(builder.volumes) : Collections.emptyList();
     }
 
     /**
@@ -147,6 +150,16 @@ public class ApplicationDescriptor {
     }
 
     /**
+     * Returns the volume mounts defined for this application.
+     *
+     * @return immutable list of volume mounts
+     * @since 2.0
+     */
+    public List<VolumeMount> getVolumes() {
+        return volumes;
+    }
+
+    /**
      * Creates a new builder for constructing application descriptors.
      *
      * @return a new builder instance
@@ -171,6 +184,7 @@ public class ApplicationDescriptor {
         private ResourceConfig resourceConfig;
         private Map<String, String> properties;
         private boolean enableMessaging;
+        private List<VolumeMount> volumes;  // Added in 2.0
 
         /**
          * Sets the application identifier (required).
@@ -319,6 +333,22 @@ public class ApplicationDescriptor {
          */
         public Builder enableMessaging(boolean enableMessaging) {
             this.enableMessaging = enableMessaging;
+            return this;
+        }
+
+        /**
+         * Adds a volume mount to this application.
+         * Volumes provide persistent or ephemeral storage accessible to the application.
+         *
+         * @param volume the volume mount configuration
+         * @return this builder
+         * @since 2.0
+         */
+        public Builder addVolume(VolumeMount volume) {
+            if (this.volumes == null) {
+                this.volumes = new ArrayList<>();
+            }
+            this.volumes.add(volume);
             return this;
         }
 

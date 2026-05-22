@@ -21,6 +21,7 @@ public class ApplicationContextImpl implements ApplicationContext {
     private final ResourceMonitor resourceMonitor;
     private final MessageBus messageBus;
     private final ServiceRegistry serviceRegistry;
+    private final VolumeManager volumeManager;  // Added in 2.0
     private final Map<String, String> properties;
     private volatile Object applicationInstance;
 
@@ -34,6 +35,7 @@ public class ApplicationContextImpl implements ApplicationContext {
         this.resourceMonitor = builder.resourceMonitor;
         this.messageBus = builder.messageBus;
         this.serviceRegistry = builder.serviceRegistry;
+        this.volumeManager = builder.volumeManager;
         this.properties = builder.properties != null ?
                 Collections.unmodifiableMap(builder.properties) : Collections.emptyMap();
     }
@@ -76,6 +78,11 @@ public class ApplicationContextImpl implements ApplicationContext {
     @Override
     public Optional<ServiceRegistry> getServiceRegistry() {
         return Optional.ofNullable(serviceRegistry);
+    }
+
+    @Override
+    public Optional<VolumeManager> getVolumeManager() {
+        return Optional.ofNullable(volumeManager);
     }
 
     @Override
@@ -140,6 +147,7 @@ public class ApplicationContextImpl implements ApplicationContext {
         private ResourceMonitor resourceMonitor;
         private MessageBus messageBus;
         private ServiceRegistry serviceRegistry;
+        private VolumeManager volumeManager;
         private Map<String, String> properties;
 
         /**
@@ -227,6 +235,18 @@ public class ApplicationContextImpl implements ApplicationContext {
          */
         public Builder serviceRegistry(ServiceRegistry serviceRegistry) {
             this.serviceRegistry = serviceRegistry;
+            return this;
+        }
+
+        /**
+         * Sets the volume manager (optional).
+         *
+         * @param volumeManager the volume manager for persistent storage, or null if no volumes
+         * @return this builder
+         * @since 2.0
+         */
+        public Builder volumeManager(VolumeManager volumeManager) {
+            this.volumeManager = volumeManager;
             return this;
         }
 
