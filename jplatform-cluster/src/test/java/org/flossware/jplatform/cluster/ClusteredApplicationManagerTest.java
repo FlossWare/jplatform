@@ -607,7 +607,8 @@ class ClusteredApplicationManagerTest {
                 .applicationId(appId)
                 .name(appId + "-name")
                 .version("1.0.0")
-                .mainClass("com.test.Main")
+                .mainClass("org.flossware.jplatform.cluster.TestApp")
+                .addClasspathEntry(java.net.URI.create("file:///test/app.jar"))
                 .build();
     }
 }

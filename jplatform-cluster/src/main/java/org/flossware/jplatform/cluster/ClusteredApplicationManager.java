@@ -88,26 +88,29 @@ public class ClusteredApplicationManager extends ApplicationManager {
             this.scheduler = null;
         }
 
-        // Subscribe to cluster events
-        clusterManager.addListener(new ClusterEventListener() {
-            @Override
-            public void onNodeJoined(ClusterNode node) {
-                logger.info("Node joined cluster: {}", node.getNodeId());
-            }
+        // Subscribe to cluster events (only if cluster manager is present)
+        if (clusterManager != null) {
+            clusterManager.addListener(new ClusterEventListener() {
+                @Override
+                public void onNodeJoined(ClusterNode node) {
+                    logger.info("Node joined cluster: {}", node.getNodeId());
+                }
 
-            @Override
-            public void onNodeLeft(ClusterNode node) {
-                logger.warn("Node left cluster: {}", node.getNodeId());
-                handleNodeFailure(node);
-            }
+                @Override
+                public void onNodeLeft(ClusterNode node) {
+                    logger.warn("Node left cluster: {}", node.getNodeId());
+                    handleNodeFailure(node);
+                }
 
-            @Override
-            public void onLeaderChanged(ClusterNode newLeader) {
-                logger.info("New cluster leader: {}", newLeader.getNodeId());
-            }
-        });
+                @Override
+                public void onLeaderChanged(ClusterNode newLeader) {
+                    logger.info("New cluster leader: {}", newLeader.getNodeId());
+                }
+            });
+        }
 
-        logger.info("ClusteredApplicationManager initialized");
+        logger.info("ClusteredApplicationManager initialized in {} mode",
+                clusterManager != null ? "clustered" : "standalone");
     }
 
     /**

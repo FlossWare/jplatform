@@ -69,6 +69,19 @@ public class HazelcastClusterManager implements ClusterManager {
     }
 
     /**
+     * Package-private constructor for testing.
+     * Allows injection of a mock HazelcastInstance.
+     *
+     * @param hazelcast the Hazelcast instance to use
+     */
+    HazelcastClusterManager(HazelcastInstance hazelcast) {
+        this.hazelcast = hazelcast;
+        this.listeners = new CopyOnWriteArrayList<>();
+        this.joined = false;
+        this.isLeader = false;
+    }
+
+    /**
      * Joins the cluster with the specified configuration.
      * Initializes Hazelcast, registers membership listeners, and attempts leader election.
      *
@@ -85,35 +98,38 @@ public class HazelcastClusterManager implements ClusterManager {
         logger.info("Joining cluster: {}", config.getClusterName());
 
         try {
-            // Configure Hazelcast
-            Config hazelcastConfig = new Config();
-            hazelcastConfig.setClusterName(config.getClusterName());
+            // Create Hazelcast instance if not already injected (for testing)
+            if (hazelcast == null) {
+                // Configure Hazelcast
+                Config hazelcastConfig = new Config();
+                hazelcastConfig.setClusterName(config.getClusterName());
 
-            // Network configuration
-            NetworkConfig network = hazelcastConfig.getNetworkConfig();
-            network.setPort(config.getBindPort());
-            network.setPortAutoIncrement(false);
+                // Network configuration
+                NetworkConfig network = hazelcastConfig.getNetworkConfig();
+                network.setPort(config.getBindPort());
+                network.setPortAutoIncrement(false);
 
-            if (config.getBindAddress() != null && !config.getBindAddress().isEmpty()) {
-                network.getInterfaces().setEnabled(true);
-                network.getInterfaces().addInterface(config.getBindAddress());
+                if (config.getBindAddress() != null && !config.getBindAddress().isEmpty()) {
+                    network.getInterfaces().setEnabled(true);
+                    network.getInterfaces().addInterface(config.getBindAddress());
+                }
+
+                // Disable multicast, use TCP/IP discovery
+                network.getJoin().getMulticastConfig().setEnabled(false);
+
+                TcpIpConfig tcpIp = network.getJoin().getTcpIpConfig();
+                tcpIp.setEnabled(true);
+                for (String seed : config.getSeedNodes()) {
+                    tcpIp.addMember(seed);
+                    logger.debug("Added seed node: {}", seed);
+                }
+
+                // Enable CP subsystem for leader election
+                hazelcastConfig.getCPSubsystemConfig().setCPMemberCount(3);
+
+                // Create Hazelcast instance
+                hazelcast = Hazelcast.newHazelcastInstance(hazelcastConfig);
             }
-
-            // Disable multicast, use TCP/IP discovery
-            network.getJoin().getMulticastConfig().setEnabled(false);
-
-            TcpIpConfig tcpIp = network.getJoin().getTcpIpConfig();
-            tcpIp.setEnabled(true);
-            for (String seed : config.getSeedNodes()) {
-                tcpIp.addMember(seed);
-                logger.debug("Added seed node: {}", seed);
-            }
-
-            // Enable CP subsystem for leader election
-            hazelcastConfig.getCPSubsystemConfig().setCPMemberCount(3);
-
-            // Create Hazelcast instance
-            hazelcast = Hazelcast.newHazelcastInstance(hazelcastConfig);
 
             // Register membership listener
             membershipListenerId = hazelcast.getCluster().addMembershipListener(new MembershipListener() {

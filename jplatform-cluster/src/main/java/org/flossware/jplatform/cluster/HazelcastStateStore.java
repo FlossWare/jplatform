@@ -1,6 +1,7 @@
 package org.flossware.jplatform.cluster;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
@@ -76,6 +77,12 @@ public class HazelcastStateStore implements ClusterStateStore {
         this.stateMap = hazelcast.getMap(STATE_MAP_NAME);
         this.descriptorMap = hazelcast.getMap(DESCRIPTOR_MAP_NAME);
         this.objectMapper = new ObjectMapper();
+        // Configure ObjectMapper to ignore failures accessing private fields
+        // This is needed for Java 11+ module system restrictions
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // Register custom module for ApplicationDescriptor serialization/deserialization
+        // This handles the Builder pattern and excludes non-serializable fields
+        this.objectMapper.registerModule(new ApplicationDescriptorJsonModule());
         this.listenerRegistry = new ConcurrentHashMap<>();
 
         logger.info("HazelcastStateStore initialized with maps: {}, {}",

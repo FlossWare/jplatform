@@ -34,6 +34,12 @@ class ApplicationSchedulerTest {
 
         when(mockHazelcast.<String, String>getMap("jplatform-application-assignments")).thenReturn(mockAssignmentMap);
         when(mockHazelcast.<String, Integer>getMap("jplatform-node-load")).thenReturn(mockNodeLoadMap);
+
+        // Mock getOrDefault to return the default value when key not found
+        when(mockNodeLoadMap.getOrDefault(anyString(), anyInt())).thenAnswer(invocation -> {
+            // For testing, just return the default value (second argument)
+            return invocation.getArgument(1);
+        });
     }
 
     @Test
@@ -153,6 +159,12 @@ class ApplicationSchedulerTest {
         when(mockClusterManager.getNodes()).thenReturn(nodes);
 
         String nodeId = nodes.iterator().next().getNodeId();
+
+        // Mock compute to actually execute the BiFunction
+        when(mockNodeLoadMap.compute(eq(nodeId), any())).thenAnswer(invocation -> {
+            java.util.function.BiFunction<String, Integer, Integer> func = invocation.getArgument(1);
+            return func.apply(nodeId, null);
+        });
 
         // When
         scheduler.assignApplication("test-app");
@@ -307,7 +319,10 @@ class ApplicationSchedulerTest {
         expectedAssignments.put("app2", "node2");
         expectedAssignments.put("app3", "node1");
 
+        // Mock the map methods needed for HashMap copy constructor
+        when(mockAssignmentMap.size()).thenReturn(expectedAssignments.size());
         when(mockAssignmentMap.entrySet()).thenReturn(expectedAssignments.entrySet());
+        when(mockAssignmentMap.isEmpty()).thenReturn(false);
 
         // When
         Map<String, String> assignments = scheduler.getAllAssignments();
@@ -326,7 +341,10 @@ class ApplicationSchedulerTest {
         expectedLoads.put("node2", 1);
         expectedLoads.put("node3", 2);
 
+        // Mock the map methods needed for HashMap copy constructor
+        when(mockNodeLoadMap.size()).thenReturn(expectedLoads.size());
         when(mockNodeLoadMap.entrySet()).thenReturn(expectedLoads.entrySet());
+        when(mockNodeLoadMap.isEmpty()).thenReturn(false);
 
         // When
         Map<String, Integer> loads = scheduler.getNodeLoads();
@@ -345,11 +363,12 @@ class ApplicationSchedulerTest {
         when(mockClusterManager.isLeader()).thenReturn(true);
 
         // Setup assignments
-        Map<String, String> assignments = new ConcurrentHashMap<>();
+        Map<String, String> assignments = new HashMap<>();
         assignments.put("app1", failedNodeId);
         assignments.put("app2", failedNodeId);
         assignments.put("app3", "other-node");
 
+        // Mock entrySet() to return the assignments
         when(mockAssignmentMap.entrySet()).thenReturn(assignments.entrySet());
         when(mockAssignmentMap.remove("app1")).thenReturn(failedNodeId);
         when(mockAssignmentMap.remove("app2")).thenReturn(failedNodeId);
@@ -357,6 +376,13 @@ class ApplicationSchedulerTest {
         // Setup available nodes
         Set<ClusterNode> nodes = createNodes(2);
         when(mockClusterManager.getNodes()).thenReturn(nodes);
+
+        // Mock compute to execute the BiFunction
+        when(mockNodeLoadMap.compute(anyString(), any())).thenAnswer(invocation -> {
+            String key = invocation.getArgument(0);
+            java.util.function.BiFunction<String, Integer, Integer> func = invocation.getArgument(1);
+            return func.apply(key, null);
+        });
 
         // When
         int reassignedCount = scheduler.reassignFromFailedNode(failedNodeId);
@@ -416,7 +442,7 @@ class ApplicationSchedulerTest {
         when(mockClusterManager.isLeader()).thenReturn(true);
 
         // Setup assignments
-        Map<String, String> assignments = new ConcurrentHashMap<>();
+        Map<String, String> assignments = new HashMap<>();
         assignments.put("app1", failedNodeId);
         assignments.put("app2", failedNodeId);
 
@@ -426,6 +452,13 @@ class ApplicationSchedulerTest {
 
         Set<ClusterNode> nodes = createNodes(1);
         when(mockClusterManager.getNodes()).thenReturn(nodes);
+
+        // Mock compute to execute the BiFunction
+        when(mockNodeLoadMap.compute(anyString(), any())).thenAnswer(invocation -> {
+            String key = invocation.getArgument(0);
+            java.util.function.BiFunction<String, Integer, Integer> func = invocation.getArgument(1);
+            return func.apply(key, null);
+        });
 
         // When
         int reassignedCount = scheduler.reassignFromFailedNode(failedNodeId);
@@ -512,6 +545,13 @@ class ApplicationSchedulerTest {
 
         Set<ClusterNode> nodes = createNodes(3);
         when(mockClusterManager.getNodes()).thenReturn(nodes);
+
+        // Mock compute to execute the BiFunction
+        when(mockNodeLoadMap.compute(anyString(), any())).thenAnswer(invocation -> {
+            String key = invocation.getArgument(0);
+            java.util.function.BiFunction<String, Integer, Integer> func = invocation.getArgument(1);
+            return func.apply(key, null);
+        });
 
         int threadCount = 10;
         Thread[] threads = new Thread[threadCount];

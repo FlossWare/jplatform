@@ -39,6 +39,22 @@ JPlatform 1.0 is a production-ready Java application platform that enables runni
   - Application state tracking
   - Port: 9090 (configurable)
 
+### Clustering Support (NEW)
+- **Multi-Node Deployment**: Distribute applications across multiple cluster nodes
+  - Hazelcast IMDG 5.3.0 for distributed coordination
+  - TCP/IP discovery with configurable seed nodes
+  - Leader election via Hazelcast CP subsystem
+  
+- **Automatic Failover**: Applications reassigned on node failure
+  - Leader-based application scheduling
+  - Load-balanced assignment (ROUND_ROBIN or LEAST_LOADED strategies)
+  - Distributed state replication across all nodes
+  
+- **Cluster State Store**: Shared application descriptors and state
+  - JSON serialization for ApplicationDescriptor
+  - Event notifications on state changes
+  - Thread-safe distributed maps
+
 ### Web Console Features (NEW)
 - Dashboard with application list and status
 - Deploy applications via file upload or YAML/JSON paste
@@ -77,11 +93,12 @@ GET    /api/health                    - Health check
 - `jplatform-web-console` - Browser-based UI (NEW)
 - `jplatform-metrics-jmx` - JMX metrics exporter (NEW)
 - `jplatform-metrics-prometheus` - Prometheus exporter (NEW)
+- `jplatform-cluster` - Multi-node clustering support (NEW)
 - `jplatform-launcher` - Platform bootstrap and CLI
 - `jplatform-samples` - Sample applications
 
 ### Test Coverage
-- **547 unit and integration tests** across all modules
+- **623 unit and integration tests** across all modules
 - **85%+ code coverage** (average across all modules)
 - **15 integration tests** for end-to-end verification
 - **100% test pass rate** in CI/CD pipelines

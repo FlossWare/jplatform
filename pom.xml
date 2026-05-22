@@ -45,9 +45,9 @@
         <module>jplatform-metrics-jmx</module>
         <module>jplatform-metrics-prometheus</module>
 
-        <!-- Advanced modules (optional - disabled for 1.0 release) -->
+        <!-- Advanced modules -->
         <!-- <module>jplatform-jvmti-agent</module> -->
-        <!-- <module>jplatform-cluster</module> -->
+        <module>jplatform-cluster</module>
 
         <module>jplatform-launcher</module>
         <module>jplatform-samples</module>

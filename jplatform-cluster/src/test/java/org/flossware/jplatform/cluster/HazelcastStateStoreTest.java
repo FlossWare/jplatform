@@ -30,13 +30,14 @@ class HazelcastStateStoreTest {
     private IMap<String, String> mockDescriptorMap;
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     void setUp() {
         mockHazelcast = mock(HazelcastInstance.class);
-        mockStateMap = mock(IMap.class);
-        mockDescriptorMap = mock(IMap.class);
+        mockStateMap = (IMap<String, ApplicationState>) mock(IMap.class);
+        mockDescriptorMap = (IMap<String, String>) mock(IMap.class);
 
-        when(mockHazelcast.getMap("jplatform-application-states")).thenReturn(mockStateMap);
-        when(mockHazelcast.getMap("jplatform-application-descriptors")).thenReturn(mockDescriptorMap);
+        when(mockHazelcast.<String, ApplicationState>getMap("jplatform-application-states")).thenReturn(mockStateMap);
+        when(mockHazelcast.<String, String>getMap("jplatform-application-descriptors")).thenReturn(mockDescriptorMap);
 
         stateStore = new HazelcastStateStore(mockHazelcast);
     }
@@ -297,13 +298,15 @@ class HazelcastStateStoreTest {
 
     @Test
     @DisplayName("Should notify listener on entry added")
+    @SuppressWarnings("unchecked")
     void testListenerEntryAdded() {
         // Given
         String appId = "test-app";
         StateChangeListener listener = mock(StateChangeListener.class);
         UUID listenerId = UUID.randomUUID();
 
-        ArgumentCaptor<Object> listenerCaptor = ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<com.hazelcast.map.listener.MapListener> listenerCaptor =
+                ArgumentCaptor.forClass(com.hazelcast.map.listener.MapListener.class);
         when(mockStateMap.addEntryListener(listenerCaptor.capture(), eq(appId), eq(true)))
                 .thenReturn(listenerId);
 
@@ -326,13 +329,15 @@ class HazelcastStateStoreTest {
 
     @Test
     @DisplayName("Should notify listener on entry updated")
+    @SuppressWarnings("unchecked")
     void testListenerEntryUpdated() {
         // Given
         String appId = "test-app";
         StateChangeListener listener = mock(StateChangeListener.class);
         UUID listenerId = UUID.randomUUID();
 
-        ArgumentCaptor<Object> listenerCaptor = ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<com.hazelcast.map.listener.MapListener> listenerCaptor =
+                ArgumentCaptor.forClass(com.hazelcast.map.listener.MapListener.class);
         when(mockStateMap.addEntryListener(listenerCaptor.capture(), eq(appId), eq(true)))
                 .thenReturn(listenerId);
 
@@ -355,13 +360,15 @@ class HazelcastStateStoreTest {
 
     @Test
     @DisplayName("Should notify listener on entry removed")
+    @SuppressWarnings("unchecked")
     void testListenerEntryRemoved() {
         // Given
         String appId = "test-app";
         StateChangeListener listener = mock(StateChangeListener.class);
         UUID listenerId = UUID.randomUUID();
 
-        ArgumentCaptor<Object> listenerCaptor = ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<com.hazelcast.map.listener.MapListener> listenerCaptor =
+                ArgumentCaptor.forClass(com.hazelcast.map.listener.MapListener.class);
         when(mockStateMap.addEntryListener(listenerCaptor.capture(), eq(appId), eq(true)))
                 .thenReturn(listenerId);
 
@@ -383,13 +390,15 @@ class HazelcastStateStoreTest {
 
     @Test
     @DisplayName("Should handle listener exceptions gracefully")
+    @SuppressWarnings("unchecked")
     void testListenerExceptionHandling() {
         // Given
         String appId = "test-app";
         StateChangeListener listener = mock(StateChangeListener.class);
         UUID listenerId = UUID.randomUUID();
 
-        ArgumentCaptor<Object> listenerCaptor = ArgumentCaptor.forClass(Object.class);
+        ArgumentCaptor<com.hazelcast.map.listener.MapListener> listenerCaptor =
+                ArgumentCaptor.forClass(com.hazelcast.map.listener.MapListener.class);
         when(mockStateMap.addEntryListener(listenerCaptor.capture(), eq(appId), eq(true)))
                 .thenReturn(listenerId);
 
