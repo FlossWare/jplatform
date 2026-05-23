@@ -2,6 +2,8 @@ package org.flossware.jplatform.samples.helloworld;
 
 import org.flossware.jplatform.api.Application;
 import org.flossware.jplatform.api.ApplicationContext;
+import org.flossware.jplatform.api.ApplicationShutdownException;
+import org.flossware.jplatform.api.ApplicationStartupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +45,10 @@ public class HelloWorldApp implements Application {
      * The worker thread continues until {@link #stop()} is called.
      *
      * @param context the application context providing access to platform services
-     * @throws Exception if an error occurs during startup
+     * @throws ApplicationStartupException if an error occurs during startup
      */
     @Override
-    public void start(ApplicationContext context) throws Exception {
+    public void start(ApplicationContext context) throws ApplicationStartupException {
         logger.info("Hello World Application starting!");
         logger.info("Application ID: {}", context.getApplicationId());
         logger.info("Classpath: {}", System.getProperty("java.class.path"));
@@ -79,16 +81,22 @@ public class HelloWorldApp implements Application {
      * Signals the worker thread to stop and waits up to 5 seconds for it to terminate.
      * This demonstrates graceful shutdown of background threads.
      *
-     * @throws Exception if an error occurs during shutdown
+     * @throws ApplicationShutdownException if an error occurs during shutdown
      */
     @Override
-    public void stop() throws Exception {
+    public void stop() throws ApplicationShutdownException {
         logger.info("Hello World Application stopping...");
         running.set(false);
 
         if (workerThread != null) {
             workerThread.interrupt();
-            workerThread.join(5000);
+            try {
+                workerThread.join(5000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new ApplicationShutdownException("hello-world",
+                        "Interrupted while waiting for worker thread to stop", e);
+            }
         }
 
         logger.info("Hello World Application stopped");

@@ -19,22 +19,25 @@ package org.flossware.jplatform.api;
  * }</pre>
  *
  * @see ApiServerConfig
+ * @since 1.0
  */
 public interface PlatformApiServer extends AutoCloseable {
 
     /**
      * Starts the HTTP server.
      *
-     * @throws Exception if the server cannot be started
+     * @throws ServerStartupException if the server cannot be started
+     * @since 1.0
      */
-    void start() throws Exception;
+    void start() throws ServerStartupException;
 
     /**
      * Stops the HTTP server.
      *
-     * @throws Exception if the server cannot be stopped
+     * @throws ServerShutdownException if the server cannot be stopped
+     * @since 1.0
      */
-    void stop() throws Exception;
+    void stop() throws ServerShutdownException;
 
     /**
      * Returns the port the server is listening on.

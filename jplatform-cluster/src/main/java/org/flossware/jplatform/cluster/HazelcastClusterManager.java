@@ -86,10 +86,10 @@ public class HazelcastClusterManager implements ClusterManager {
      * Initializes Hazelcast, registers membership listeners, and attempts leader election.
      *
      * @param config the cluster configuration containing network settings and seed nodes
-     * @throws Exception if joining the cluster fails
+     * @throws ClusterJoinException if joining the cluster fails
      */
     @Override
-    public void join(ClusterConfig config) throws Exception {
+    public void join(ClusterConfig config) throws ClusterJoinException {
         if (joined) {
             throw new IllegalStateException("Already joined to cluster");
         }
@@ -160,7 +160,7 @@ public class HazelcastClusterManager implements ClusterManager {
 
         } catch (Exception e) {
             logger.error("Failed to join cluster: {}", config.getClusterName(), e);
-            throw new Exception("Failed to join cluster", e);
+            throw new ClusterJoinException(config.getClusterName(), "Failed to join cluster", e);
         }
     }
 
@@ -168,10 +168,10 @@ public class HazelcastClusterManager implements ClusterManager {
      * Leaves the cluster gracefully.
      * Releases leader lock if held and shuts down Hazelcast instance.
      *
-     * @throws Exception if leaving the cluster fails
+     * @throws ClusterLeaveException if leaving the cluster fails
      */
     @Override
-    public void leave() throws Exception {
+    public void leave() throws ClusterLeaveException {
         if (!joined) {
             logger.warn("Not joined to any cluster");
             return;
@@ -203,7 +203,7 @@ public class HazelcastClusterManager implements ClusterManager {
 
         } catch (Exception e) {
             logger.error("Error leaving cluster", e);
-            throw new Exception("Failed to leave cluster", e);
+            throw new ClusterLeaveException("Failed to leave cluster", e);
         }
     }
 

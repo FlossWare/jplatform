@@ -26,6 +26,7 @@ import java.util.Set;
  *
  * @see ClusterNode
  * @see ClusterConfig
+ * @since 1.0
  */
 public interface ClusterManager extends AutoCloseable {
 
@@ -33,16 +34,18 @@ public interface ClusterManager extends AutoCloseable {
      * Joins the cluster with the specified configuration.
      *
      * @param config the cluster configuration
-     * @throws Exception if joining fails
+     * @throws ClusterJoinException if joining fails
+     * @since 1.0
      */
-    void join(ClusterConfig config) throws Exception;
+    void join(ClusterConfig config) throws ClusterJoinException;
 
     /**
      * Leaves the cluster gracefully.
      *
-     * @throws Exception if leaving fails
+     * @throws ClusterLeaveException if leaving fails
+     * @since 1.0
      */
-    void leave() throws Exception;
+    void leave() throws ClusterLeaveException;
 
     /**
      * Returns all nodes in the cluster.

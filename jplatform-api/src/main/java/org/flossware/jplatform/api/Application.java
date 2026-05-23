@@ -9,21 +9,24 @@ package org.flossware.jplatform.api;
  * but will not have access to platform features.</p>
  *
  * @see ApplicationContext
+ * @since 1.0
  */
 public interface Application {
     /**
      * Called when the application is started by the platform.
      *
      * @param context the application context providing access to platform features
-     * @throws Exception if the application fails to start
+     * @throws ApplicationStartupException if the application fails to start
+     * @since 1.0
      */
-    void start(ApplicationContext context) throws Exception;
+    void start(ApplicationContext context) throws ApplicationStartupException;
 
     /**
      * Called when the application is stopped by the platform.
      * Implementations should clean up resources and shut down gracefully.
      *
-     * @throws Exception if the application fails to stop cleanly
+     * @throws ApplicationShutdownException if the application fails to stop cleanly
+     * @since 1.0
      */
-    void stop() throws Exception;
+    void stop() throws ApplicationShutdownException;
 }

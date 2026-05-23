@@ -5,6 +5,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.flossware.jplatform.api.ApiServerConfig;
 import org.flossware.jplatform.api.PlatformApiServer;
+import org.flossware.jplatform.api.ServerShutdownException;
+import org.flossware.jplatform.api.ServerStartupException;
 import org.flossware.jplatform.core.ApplicationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,11 +98,11 @@ public class JdkHttpApiServer implements PlatformApiServer {
      * Creates the HTTP server, registers endpoint handlers, configures CORS,
      * sets up authentication filter, and starts the server.
      *
-     * @throws Exception if the server cannot be started
+     * @throws ServerStartupException if the server cannot be started
      * @throws IllegalStateException if the server is already running
      */
     @Override
-    public void start() throws Exception {
+    public void start() throws ServerStartupException {
         if (running) {
             throw new IllegalStateException("Server is already running");
         }
@@ -141,7 +143,8 @@ public class JdkHttpApiServer implements PlatformApiServer {
 
         } catch (IOException e) {
             logger.error("Failed to start HTTP API server", e);
-            throw new Exception("Failed to start HTTP API server on port " + config.getPort(), e);
+            throw new ServerStartupException("Failed to start HTTP API server on port " + config.getPort(),
+                    config.getPort(), e);
         }
     }
 
@@ -149,11 +152,11 @@ public class JdkHttpApiServer implements PlatformApiServer {
      * Stops the HTTP server and releases resources.
      * Gracefully shuts down the server with a 5-second delay.
      *
-     * @throws Exception if the server cannot be stopped
+     * @throws ServerShutdownException if the server cannot be stopped
      * @throws IllegalStateException if the server is not running
      */
     @Override
-    public void stop() throws Exception {
+    public void stop() throws ServerShutdownException {
         if (!running) {
             throw new IllegalStateException("Server is not running");
         }
@@ -185,7 +188,7 @@ public class JdkHttpApiServer implements PlatformApiServer {
 
         } catch (Exception e) {
             logger.error("Error stopping HTTP API server", e);
-            throw new Exception("Failed to stop HTTP API server", e);
+            throw new ServerShutdownException("Failed to stop HTTP API server", e);
         }
     }
 

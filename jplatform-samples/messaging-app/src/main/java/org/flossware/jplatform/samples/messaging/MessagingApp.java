@@ -57,10 +57,10 @@ public class MessagingApp implements Application {
      * in the context, logs a warning and returns without starting.
      *
      * @param context the application context providing access to platform services
-     * @throws Exception if an error occurs during startup
+     * @throws ApplicationStartupException if an error occurs during startup
      */
     @Override
-    public void start(ApplicationContext context) throws Exception {
+    public void start(ApplicationContext context) throws ApplicationStartupException {
         this.context = context;
         logger.info("Messaging Application starting!");
 
@@ -122,16 +122,22 @@ public class MessagingApp implements Application {
      * and cancels the message subscription. This demonstrates proper cleanup of
      * messaging resources.
      *
-     * @throws Exception if an error occurs during shutdown
+     * @throws ApplicationShutdownException if an error occurs during shutdown
      */
     @Override
-    public void stop() throws Exception {
+    public void stop() throws ApplicationShutdownException {
         logger.info("Messaging Application stopping...");
         running.set(false);
 
         if (publisherThread != null) {
             publisherThread.interrupt();
-            publisherThread.join(5000);
+            try {
+                publisherThread.join(5000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new ApplicationShutdownException(context.getApplicationId(),
+                        "Interrupted while waiting for publisher thread to stop", e);
+            }
         }
 
         if (subscription != null && subscription.isActive()) {
