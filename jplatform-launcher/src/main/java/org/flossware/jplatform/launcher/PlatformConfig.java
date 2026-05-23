@@ -81,6 +81,7 @@ public class PlatformConfig {
     public static class MetricsConfig {
         private JmxConfig jmx = new JmxConfig();
         private PrometheusConfig prometheus = new PrometheusConfig();
+        private OpenTelemetryConfig opentelemetry = new OpenTelemetryConfig();
 
         public JmxConfig getJmx() {
             return jmx;
@@ -96,6 +97,14 @@ public class PlatformConfig {
 
         public void setPrometheus(PrometheusConfig prometheus) {
             this.prometheus = prometheus;
+        }
+
+        public OpenTelemetryConfig getOpentelemetry() {
+            return opentelemetry;
+        }
+
+        public void setOpentelemetry(OpenTelemetryConfig opentelemetry) {
+            this.opentelemetry = opentelemetry;
         }
     }
 
@@ -156,6 +165,27 @@ public class PlatformConfig {
 
         public void setPath(String path) {
             this.path = path;
+        }
+    }
+
+    public static class OpenTelemetryConfig {
+        private boolean enabled = false;
+        private String endpoint = "http://localhost:4317";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getEndpoint() {
+            return endpoint;
+        }
+
+        public void setEndpoint(String endpoint) {
+            this.endpoint = endpoint;
         }
     }
 

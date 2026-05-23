@@ -37,6 +37,55 @@ Think of it as running multiple Java applications in separate terminal windows, 
 - **Filesystem Watcher**: Automatic deployment when descriptor files are added/modified
 - **YAML/JSON Descriptors**: Declarative application configuration with full validation
 
+### Platform-Level Features (Version 2.0) ✅ **ALL IMPLEMENTED**
+
+JPlatform provides runtime platform features comparable to Kubernetes/YARN for JVM processes:
+
+#### Hot Code Reload
+- Update application code without platform restart
+- Zero-downtime deployments with classloader hot-swapping
+- Optional state preservation during reload via `ReloadableApplication` interface
+- Automatic rollback on reload failure
+- [Documentation](HOT_RELOAD.md)
+
+#### Resource Enforcement
+- Automatic enforcement when applications exceed CPU/memory/thread quotas
+- Four enforcement levels: NOTIFY, THROTTLE, SHUTDOWN, KILL
+- Configurable grace periods to handle transient spikes
+- Per-resource-type enforcement policies
+- [Documentation](RESOURCE_ENFORCEMENT.md)
+
+#### Application Dependencies
+- Declare REQUIRED and OPTIONAL dependencies on other applications' services
+- Automatic validation at deploy time
+- Circular dependency detection
+- Ordered startup based on dependency graph (topological sort)
+- Service version tracking with semver support
+- [Documentation](APPLICATION_DEPENDENCIES.md)
+
+#### Persistent Storage Volumes
+- Per-application persistent and ephemeral volumes
+- Filesystem-based storage with configurable size limits
+- Automatic lifecycle management (creation, mounting, cleanup)
+- Volumes survive application restarts and redeployments
+- Volume usage tracking and enforcement
+- [Documentation](VOLUMES.md)
+
+#### Native Binary Support
+- Load platform-specific native libraries (.so, .dll, .dylib)
+- Automatic platform detection (Linux x64, Windows x64, macOS ARM64, etc.)
+- Per-application library isolation (no version conflicts)
+- Support for GraalVM native images (future enhancement)
+- [Documentation](NATIVE_BINARIES.md)
+
+#### Enhanced Observability
+- OpenTelemetry integration for metrics export via OTLP protocol
+- Distributed tracing support (future enhancement)
+- Per-application structured logging with MDC context (trace_id, span_id, app_id)
+- Periodic metrics export (CPU, memory, threads) every 60 seconds
+- Integration with Prometheus, Grafana, Jaeger
+- [Documentation](OBSERVABILITY.md)
+
 ## Architecture
 
 ### Module Structure
@@ -56,6 +105,9 @@ jplatform/
 ├── jplatform-web-console/      # Browser-based management UI ✅ **COMPLETE**
 ├── jplatform-metrics-jmx/      # JMX metrics exporter ✅ **COMPLETE**
 ├── jplatform-metrics-prometheus/ # Prometheus metrics exporter ✅ **COMPLETE**
+├── jplatform-storage/          # Persistent volume management ✅ **COMPLETE (2.0)**
+├── jplatform-otel/             # OpenTelemetry integration ✅ **COMPLETE (2.0)**
+├── jplatform-cluster/          # Multi-node clustering (Hazelcast) ✅ **COMPLETE**
 ├── jplatform-deployment/       # Deployment mechanisms
 ├── jplatform-launcher/         # Platform bootstrap and main entry point
 └── jplatform-samples/          # Sample applications
@@ -536,12 +588,31 @@ Applications SHOULD use the provided `ManagedThreadPool`. Direct thread creation
 15. Clustering support
 16. Advanced monitoring and alerting
 
+## Documentation
+
+### Platform Features
+- [Hot Code Reload](HOT_RELOAD.md) - Zero-downtime deployments with state preservation
+- [Application Dependencies](APPLICATION_DEPENDENCIES.md) - Dependency management and ordered startup
+- [Persistent Volumes](VOLUMES.md) - Per-application storage management
+- [Native Binary Support](NATIVE_BINARIES.md) - Platform-specific library loading
+- [Observability](OBSERVABILITY.md) - OpenTelemetry, JMX, Prometheus integration
+
+### Developer Guides
+- [ClassLoader Best Practices](CLASSLOADER_BEST_PRACTICES.md) - Avoiding memory leaks
+- [Security Guide](SECURITY.md) - Modern security enforcement without SecurityManager
+- [Resource Enforcement](RESOURCE_ENFORCEMENT.md) - CPU/memory/thread limit enforcement
+
+### Project Status
+- [Enhancement Status](ENHANCEMENTS_STATUS.md) - Feature implementation tracking
+- [Release Notes](RELEASE_NOTES.md) - Version history and changelog
+- [GitHub Issues Resolved](GITHUB_ISSUES_RESOLVED.md) - Issue resolution summary
+
 ## Version Numbering
 
 JPlatform uses a simple **X.Y version format** without patch versions or SNAPSHOT suffixes.
 
 - **Current version**: 1.0
-- **Format**: Major.Minor (e.g., 1.0, 1.1, 2.0)
+- **Format**: Major.Minor (e.g., 1.0, 2.0, 2.1)
 - **Consistency**: All modules share the same version number
 - **No snapshots**: Every build is release quality
 

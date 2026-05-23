@@ -86,6 +86,7 @@ public class PlatformLauncher {
     private JdkHttpApiServer restApiServer;
     private JmxMetricsExporter jmxExporter;
     private PrometheusMetricsExporter prometheusExporter;
+    private org.flossware.jplatform.otel.OpenTelemetryMetricsExporter otelExporter;
     private FileSystemDeploymentWatcher fileWatcher;
 
     private volatile boolean running = true;
@@ -104,6 +105,8 @@ public class PlatformLauncher {
         int jmxPort = 9999;
         boolean prometheusEnabled = false;
         int prometheusPort = 9090;
+        boolean otelEnabled = false;
+        String otelEndpoint = "http://localhost:4317";
         boolean watcherEnabled = false;
         String watchDirectory = null;
 
@@ -146,6 +149,9 @@ public class PlatformLauncher {
 
             config.prometheusEnabled = platformConfig.getMetrics().getPrometheus().isEnabled();
             config.prometheusPort = platformConfig.getMetrics().getPrometheus().getPort();
+
+            config.otelEnabled = platformConfig.getMetrics().getOpentelemetry().isEnabled();
+            config.otelEndpoint = platformConfig.getMetrics().getOpentelemetry().getEndpoint();
 
             config.watcherEnabled = platformConfig.getWatcher().isEnabled();
             config.watchDirectory = platformConfig.getWatcher().getWatchDirectory();
@@ -277,6 +283,21 @@ public class PlatformLauncher {
             } catch (Exception e) {
                 logger.error("Failed to start Prometheus metrics exporter", e);
                 throw new RuntimeException("Failed to start Prometheus metrics exporter", e);
+            }
+        }
+
+        // Initialize OpenTelemetry metrics exporter
+        if (config.otelEnabled) {
+            try {
+                logger.info("Initializing OpenTelemetry metrics with endpoint: {}", config.otelEndpoint);
+
+                otelExporter = new org.flossware.jplatform.otel.OpenTelemetryMetricsExporter(config.otelEndpoint);
+                otelExporter.start();
+
+                logger.info("OpenTelemetry metrics started. Exporting to: {}", config.otelEndpoint);
+            } catch (Exception e) {
+                logger.error("Failed to start OpenTelemetry metrics exporter", e);
+                throw new RuntimeException("Failed to start OpenTelemetry metrics exporter", e);
             }
         }
 
@@ -653,6 +674,11 @@ public class PlatformLauncher {
             if (prometheusExporter != null) {
                 logger.info("Stopping Prometheus metrics exporter...");
                 prometheusExporter.stop();
+            }
+
+            if (otelExporter != null) {
+                logger.info("Stopping OpenTelemetry metrics exporter...");
+                otelExporter.stop();
             }
 
             if (restApiServer != null) {

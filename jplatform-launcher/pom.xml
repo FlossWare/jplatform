@@ -60,6 +60,11 @@
             <artifactId>jplatform-metrics-prometheus</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.flossware.jplatform</groupId>
+            <artifactId>jplatform-otel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Jackson for JSON/YAML -->
         <dependency>

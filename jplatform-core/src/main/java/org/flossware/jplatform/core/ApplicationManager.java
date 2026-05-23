@@ -89,6 +89,11 @@ public class ApplicationManager {
                     descriptor.getSecurityConfig()
             );
 
+            // Register security policy with enforcer (for StackWalker-based enforcement)
+            org.flossware.jplatform.security.SecurityEnforcer.getInstance()
+                .registerPolicy(classLoader, securityPolicy);
+            logger.info("[{}] Registered security policy with enforcer", appId);
+
             // Create resource monitor
             ThreadGroup threadGroup = new ThreadGroup(appId + "-threads");
             ApplicationResourceMonitor resourceMonitor = new ApplicationResourceMonitor(
@@ -135,6 +140,27 @@ public class ApplicationManager {
                     logger.info("[{}] Created volume manager with {} volumes", appId, descriptor.getVolumes().size());
                 } catch (Exception e) {
                     logger.error("[{}] Failed to create volume manager", appId, e);
+                    throw e;
+                }
+            }
+
+            // Load native libraries if defined
+            if (!descriptor.getNativeLibraries().isEmpty()) {
+                try {
+                    NativeLibraryLoader nativeLoader = new NativeLibraryLoader(appId);
+                    java.nio.file.Path libDir = nativeLoader.loadLibraries(descriptor.getNativeLibraries());
+
+                    // Add to java.library.path
+                    String existingPath = System.getProperty("java.library.path", "");
+                    String newPath = existingPath.isEmpty() ?
+                            libDir.toString() :
+                            existingPath + System.getProperty("path.separator") + libDir.toString();
+                    System.setProperty("java.library.path", newPath);
+
+                    logger.info("[{}] Loaded {} native libraries from {}",
+                            appId, descriptor.getNativeLibraries().size(), libDir);
+                } catch (Exception e) {
+                    logger.error("[{}] Failed to load native libraries", appId, e);
                     throw e;
                 }
             }
@@ -309,6 +335,18 @@ public class ApplicationManager {
                 }
             }
 
+            // Cleanup ClassLoader resources (best effort during force kill)
+            if (context.getClassLoader() != null) {
+                try {
+                    org.flossware.jplatform.classloader.ClassLoaderCleanupUtil cleanup =
+                        new org.flossware.jplatform.classloader.ClassLoaderCleanupUtil(
+                            applicationId, context.getClassLoader());
+                    cleanup.cleanupAll();
+                } catch (Exception e) {
+                    logger.error("[{}] Error during ClassLoader cleanup in force kill", applicationId, e);
+                }
+            }
+
             context.setState(ApplicationState.FAILED);
             logger.error("[{}] Application force killed", applicationId);
 
@@ -353,6 +391,24 @@ public class ApplicationManager {
                 ((AutoCloseable) context.getClassLoader()).close();
             }
 
+            // Unregister security policy
+            org.flossware.jplatform.security.SecurityEnforcer.getInstance()
+                .unregisterPolicy(context.getClassLoader());
+            logger.info("[{}] Unregistered security policy from enforcer", applicationId);
+
+            // Comprehensive ClassLoader cleanup to prevent memory leaks
+            if (context.getClassLoader() != null) {
+                org.flossware.jplatform.classloader.ClassLoaderCleanupUtil cleanup =
+                    new org.flossware.jplatform.classloader.ClassLoaderCleanupUtil(
+                        applicationId, context.getClassLoader());
+                cleanup.cleanupAll();
+
+                // Detect leaks in non-production mode
+                if (Boolean.getBoolean("jplatform.debug.detectLeaks")) {
+                    cleanup.detectLeaks();
+                }
+            }
+
             // Cleanup ephemeral volumes
             context.getVolumeManager().ifPresent(vm -> {
                 if (vm instanceof FileSystemVolumeManager) {
@@ -364,6 +420,17 @@ public class ApplicationManager {
                     }
                 }
             });
+
+            // Cleanup native libraries
+            if (!context.getDescriptor().getNativeLibraries().isEmpty()) {
+                try {
+                    NativeLibraryLoader nativeLoader = new NativeLibraryLoader(applicationId);
+                    nativeLoader.cleanup();
+                    logger.info("[{}] Cleaned up native libraries", applicationId);
+                } catch (Exception e) {
+                    logger.error("[{}] Failed to cleanup native libraries", applicationId, e);
+                }
+            }
 
             context.setState(ApplicationState.UNDEPLOYED);
             applications.remove(applicationId);
