@@ -244,6 +244,11 @@ class DependencyGraph {
             );
         }
 
+        // Reverse result for startup order: dependencies should come before dependents
+        // Kahn's algorithm returns nodes with no incoming edges first, but in our graph
+        // A->B means A depends on B, so B has incoming edge and should start FIRST.
+        // Therefore we reverse the result.
+        Collections.reverse(result);
         return result;
     }
 
