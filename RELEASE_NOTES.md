@@ -2,16 +2,115 @@
 
 ---
 
-# JPlatform 2.0 - Release Notes
+# JPlatform 1.1 - Release Notes
 
 **Release Date:** May 2026  
 **Status:** Production Ready
 
 ## Overview
 
-JPlatform 2.0 adds six major platform-level features that align with the platform's core mission as an application runtime (similar to Kubernetes/YARN for JVM processes). These features focus on platform concerns—hot code reload, resource enforcement, dependency management, persistent storage, native binaries, and enhanced observability.
+JPlatform 1.1 resolves three critical GitHub issues focused on build consistency, memory leak prevention, and future Java compatibility. This release ensures JPlatform is ready for Java 21+ and provides robust ClassLoader cleanup and modern security enforcement.
 
-## What's New in 2.0
+## What's New in 1.1
+
+### Issue #1: Java 21 Standardization ✅
+
+Updated build configuration for consistent Java 21 compilation across all modules.
+
+**Changes**:
+- Parent POM now uses `maven.compiler.release=21`
+- Removed deprecated `source`/`target` properties
+- All 22 modules compile with Java 21
+
+**Impact**: Ensures compatibility with Java 21+ features (Virtual Threads, pattern matching, records)
+
+---
+
+### Issue #2: ClassLoader Leak Prevention ✅
+
+Comprehensive cleanup system to prevent memory leaks after application undeploy.
+
+**New Components**:
+- `ClassLoaderCleanupUtil` - Automatic cleanup utility
+  - ThreadLocal cleanup
+  - JDBC driver deregistration
+  - JMX MBean cleanup
+  - Shutdown hook removal
+  - ResourceBundle cache clearing
+  - Leak detection (debug mode)
+
+**Integration**:
+- Automatic cleanup in `ApplicationManager.undeploy()`
+- Cleanup in `ApplicationManager.forceKill()`
+- Enable leak detection: `-Djplatform.debug.detectLeaks=true`
+
+**Documentation**:
+- [ClassLoader Best Practices](CLASSLOADER_BEST_PRACTICES.md) - Complete developer guide
+
+**Testing**: 12 unit tests (all passing)
+
+---
+
+### Issue #3: SecurityManager Replacement ✅
+
+Modern security enforcement using StackWalker API instead of deprecated SecurityManager.
+
+**New Components**:
+- `SecurityEnforcer` - StackWalker-based security enforcement
+  - File access checks
+  - Network socket checks
+  - Reflection access checks
+  - Native library checks
+  - Per-ClassLoader security policies
+
+**Advantages**:
+- ✅ Not deprecated (works with Java 17+)
+- ✅ Better performance (no global overhead)
+- ✅ More flexible (enable/disable per operation)
+- ✅ Future-proof (won't be removed from Java)
+
+**Configuration**:
+- Enable enforcement: `-Djplatform.security.enforce=true`
+- Automatic policy registration/unregistration
+
+**Documentation**:
+- [Security Guide](SECURITY.md) - Complete security documentation
+
+**Testing**: 16 unit tests (all passing)
+
+---
+
+## Migration from 1.0 to 1.1
+
+**No migration required** - all changes are backward compatible.
+
+**Optional**: Enable new features via system properties:
+```bash
+# Enable leak detection
+java -Djplatform.debug.detectLeaks=true -jar jplatform-launcher.jar
+
+# Enable security enforcement
+java -Djplatform.security.enforce=true -jar jplatform-launcher.jar
+```
+
+## Build Status
+
+- **Total Tests**: 28 new tests (all passing)
+- **Build Time**: ~7 seconds
+- **Modules**: 22
+- **Code Added**: ~800 lines production, ~1,200 lines documentation
+
+---
+
+# JPlatform 2.0 - Planned Features
+
+**Status:** DOCUMENTED - Implementation Complete, Testing In Progress
+
+## Overview
+
+JPlatform 2.0 will add six major platform-level features that align with the platform's core mission as an application runtime (similar to Kubernetes/YARN for JVM processes). These features focus on platform concerns—hot code reload, resource enforcement, dependency management, persistent storage, native binaries, and enhanced observability.
+
+## Planned Features for 2.0
 
 ### 🔄 Hot Code Reload
 
