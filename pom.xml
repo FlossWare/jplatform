@@ -6,7 +6,7 @@
 
     <groupId>org.flossware.jplatform</groupId>
     <artifactId>jplatform-parent</artifactId>
-    <version>1.0</version>
+    <version>2.0</version>
     <packaging>pom</packaging>
 
     <name>JPlatform - Java Application Platform</name>

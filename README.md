@@ -611,7 +611,7 @@ Applications SHOULD use the provided `ManagedThreadPool`. Direct thread creation
 
 JPlatform uses a simple **X.Y version format** without patch versions or SNAPSHOT suffixes.
 
-- **Current version**: 1.0
+- **Current version**: 2.0
 - **Format**: Major.Minor (e.g., 1.0, 2.0, 2.1)
 - **Consistency**: All modules share the same version number
 - **No snapshots**: Every build is release quality
