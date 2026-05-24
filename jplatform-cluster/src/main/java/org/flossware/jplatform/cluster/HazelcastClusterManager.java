@@ -125,7 +125,12 @@ public class HazelcastClusterManager implements ClusterManager {
                 }
 
                 // Enable CP subsystem for leader election
-                hazelcastConfig.getCPSubsystemConfig().setCPMemberCount(3);
+                // Set CP member count based on cluster size (min 1, max 3)
+                // For development/testing, smaller clusters are allowed
+                int clusterSize = Math.max(config.getSeedNodes().size(), 1);
+                int cpMemberCount = Math.min(clusterSize, 3);
+                hazelcastConfig.getCPSubsystemConfig().setCPMemberCount(cpMemberCount);
+                logger.info("CP subsystem configured with {} members", cpMemberCount);
 
                 // Create Hazelcast instance
                 hazelcast = Hazelcast.newHazelcastInstance(hazelcastConfig);
