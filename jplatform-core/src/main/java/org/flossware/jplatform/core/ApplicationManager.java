@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * on the instance, making all operations thread-safe but serialized (performance bottleneck -
  * see GitHub issue #37). The {@code applications} map is guarded by {@code this} lock.
  */
-public class ApplicationManager {
+public class ApplicationManager implements PlatformManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationManager.class);
 

@@ -10,10 +10,12 @@ and this project adheres to X.Y semantic versioning.
 ### Added
 - ThreadPoolConfig.Builder now validates parameters (issue #44)
 - ApplicationContext.getDeployedAt() to track actual deployment timestamp
+- PlatformManager interface for dependency inversion (issue #36)
 
 ### Fixed
 - ThreadPoolConfig.Builder missing parameter validation (issue #44)
 - ApplicationResponseDTO returns actual deployment time instead of current time (issue #45)
+- Tight coupling - ApplicationManager now implements PlatformManager interface (issue #36)
 
 ### Changed
 - CI/CD pipeline now active with automated version bumping and artifact publishing
