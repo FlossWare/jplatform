@@ -1,16 +1,41 @@
 # JPlatform Config - Consul
 
-Consul-based configuration source for JPlatform.
+HashiCorp Consul KV configuration source for JPlatform. Dynamic, distributed configuration with ACL support and change watching.
 
 ## Features
-- Dynamic configuration loading
-- Configuration watching
-- Environment-specific configs
 
-## Usage
+- Consul KV store integration
+- ACL token support
+- Configuration change watching
+- Thread-safe operations
+- Dynamic configuration updates
+
+## Maven Dependency
+
+```xml
+<dependency>
+    <groupId>org.flossware.jplatform</groupId>
+    <artifactId>jplatform-config-consul</artifactId>
+    <version>1.1</version>
+</dependency>
+```
+
+## Quick Start
+
 ```java
-// TODO: Add usage example
+ConsulConfigSourceConfig config = ConsulConfigSourceConfig.builder()
+    .host("localhost")
+    .port(8500)
+    .keyPrefix("config/myapp")
+    .build();
+
+ConsulConfigSource source = new ConsulConfigSource(config);
+source.start();
+
+source.setConfig("database.host", "localhost");
+String host = source.getConfig("database.host");
 ```
 
 ## Status
-⚠️ Minimal implementation - functional stubs only.
+
+Production-ready Consul configuration implementation.
