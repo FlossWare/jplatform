@@ -66,10 +66,15 @@ public class ApplicationReloader {
      * @param currentContext the current application context (will be modified)
      * @param manager the application manager for lifecycle operations
      * @throws Exception if reload fails at any step
+     * @throws NullPointerException if any parameter is null
      */
     public synchronized void reload(String applicationId, ApplicationDescriptor newDescriptor,
                                    ApplicationContextImpl currentContext,
                                    ApplicationManager manager) throws Exception {
+        Objects.requireNonNull(applicationId, "applicationId cannot be null");
+        Objects.requireNonNull(newDescriptor, "newDescriptor cannot be null");
+        Objects.requireNonNull(currentContext, "currentContext cannot be null");
+        Objects.requireNonNull(manager, "manager cannot be null");
 
         logger.info("[{}] Starting hot reload", applicationId);
 

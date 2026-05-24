@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Loads native libraries for applications.
@@ -56,10 +57,11 @@ public class NativeLibraryLoader {
      *
      * @param applicationId the application identifier
      * @param basePath the base directory for native libraries
+     * @throws NullPointerException if applicationId or basePath is null
      */
     public NativeLibraryLoader(String applicationId, Path basePath) {
-        this.applicationId = applicationId;
-        this.basePath = basePath;
+        this.applicationId = Objects.requireNonNull(applicationId, "applicationId cannot be null");
+        this.basePath = Objects.requireNonNull(basePath, "basePath cannot be null");
         this.currentPlatform = Platform.detect();
 
         logger.info("[{}] NativeLibraryLoader created for platform: {}", applicationId, currentPlatform);
@@ -74,8 +76,11 @@ public class NativeLibraryLoader {
      * @param libraries the list of native libraries from the descriptor
      * @return the directory containing extracted native libraries
      * @throws IOException if extraction fails
+     * @throws NullPointerException if libraries is null
      */
     public Path loadLibraries(List<NativeLibrary> libraries) throws IOException {
+        Objects.requireNonNull(libraries, "libraries cannot be null");
+
         Path libDir = basePath.resolve(applicationId);
 
         // Create directory if it doesn't exist

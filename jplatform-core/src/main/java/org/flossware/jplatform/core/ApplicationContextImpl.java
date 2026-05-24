@@ -5,6 +5,7 @@ import org.flossware.jplatform.api.*;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -351,8 +352,16 @@ public class ApplicationContextImpl implements ApplicationContext {
          * Builds the ApplicationContextImpl instance.
          *
          * @return a new ApplicationContextImpl with the configured values
+         * @throws NullPointerException if any required field is not set
          */
         public ApplicationContextImpl build() {
+            Objects.requireNonNull(applicationId, "applicationId is required");
+            Objects.requireNonNull(descriptor, "descriptor is required");
+            Objects.requireNonNull(classLoader, "classLoader is required");
+            Objects.requireNonNull(threadPool, "threadPool is required");
+            Objects.requireNonNull(securityPolicy, "securityPolicy is required");
+            Objects.requireNonNull(resourceMonitor, "resourceMonitor is required");
+
             return new ApplicationContextImpl(this);
         }
     }

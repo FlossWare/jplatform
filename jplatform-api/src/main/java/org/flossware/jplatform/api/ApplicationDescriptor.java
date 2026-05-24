@@ -292,8 +292,10 @@ public class ApplicationDescriptor {
          *
          * @param entry the classpath URI to add
          * @return this builder
+         * @throws NullPointerException if entry is null
          */
         public Builder addClasspathEntry(URI entry) {
+            Objects.requireNonNull(entry, "Classpath entry cannot be null");
             if (this.classpathEntries == null) {
                 this.classpathEntries = new ArrayList<>();
             }
@@ -383,9 +385,11 @@ public class ApplicationDescriptor {
          *
          * @param volume the volume mount configuration
          * @return this builder
+         * @throws NullPointerException if volume is null
          * @since 2.0
          */
         public Builder addVolume(VolumeMount volume) {
+            Objects.requireNonNull(volume, "Volume cannot be null");
             if (this.volumes == null) {
                 this.volumes = new ArrayList<>();
             }
@@ -399,9 +403,11 @@ public class ApplicationDescriptor {
          *
          * @param dependency the application dependency
          * @return this builder
+         * @throws NullPointerException if dependency is null
          * @since 2.0
          */
         public Builder addDependency(ApplicationDependency dependency) {
+            Objects.requireNonNull(dependency, "Dependency cannot be null");
             if (this.dependencies == null) {
                 this.dependencies = new ArrayList<>();
             }
@@ -415,9 +421,11 @@ public class ApplicationDescriptor {
          *
          * @param library the native library descriptor
          * @return this builder
+         * @throws NullPointerException if library is null
          * @since 2.0
          */
         public Builder addNativeLibrary(NativeLibrary library) {
+            Objects.requireNonNull(library, "Native library cannot be null");
             if (this.nativeLibraries == null) {
                 this.nativeLibraries = new ArrayList<>();
             }

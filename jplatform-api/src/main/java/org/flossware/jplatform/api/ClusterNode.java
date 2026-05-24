@@ -1,5 +1,7 @@
 package org.flossware.jplatform.api;
 
+import java.util.Objects;
+
 /**
  * Represents a node in the platform cluster.
  * Contains information about node identity, location, and health status.
@@ -21,12 +23,24 @@ public class ClusterNode {
      * @param port the node port
      * @param state the node state
      * @param lastHeartbeat the last heartbeat timestamp
+     * @throws IllegalArgumentException if nodeId or address is null/empty, or port is invalid
+     * @throws NullPointerException if state is null
      */
     public ClusterNode(String nodeId, String address, int port, NodeState state, long lastHeartbeat) {
+        if (nodeId == null || nodeId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Node ID cannot be null or empty");
+        }
+        if (address == null || address.trim().isEmpty()) {
+            throw new IllegalArgumentException("Address cannot be null or empty");
+        }
+        if (port < 1 || port > 65535) {
+            throw new IllegalArgumentException("Port must be between 1 and 65535, got: " + port);
+        }
+
         this.nodeId = nodeId;
         this.address = address;
         this.port = port;
-        this.state = state;
+        this.state = Objects.requireNonNull(state, "Node state cannot be null");
         this.lastHeartbeat = lastHeartbeat;
     }
 

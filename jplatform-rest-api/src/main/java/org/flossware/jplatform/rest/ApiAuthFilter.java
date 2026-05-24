@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Objects;
 
 /**
  * HTTP filter for API key authentication.
@@ -38,9 +39,10 @@ public class ApiAuthFilter extends Filter {
      * Constructs a new API authentication filter.
      *
      * @param config the API server configuration containing auth settings
+     * @throws NullPointerException if config is null
      */
     public ApiAuthFilter(ApiServerConfig config) {
-        this.config = config;
+        this.config = Objects.requireNonNull(config, "API server config cannot be null");
     }
 
     /**
