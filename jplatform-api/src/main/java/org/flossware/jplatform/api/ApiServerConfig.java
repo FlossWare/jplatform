@@ -197,8 +197,13 @@ public class ApiServerConfig {
          * Builds the ApiServerConfig instance.
          *
          * @return a new ApiServerConfig
+         * @throws IllegalStateException if enableAuth is true but apiKey is not set
          */
         public ApiServerConfig build() {
+            if (enableAuth && (apiKey == null || apiKey.trim().isEmpty())) {
+                throw new IllegalStateException(
+                    "apiKey is required when enableAuth is true");
+            }
             return new ApiServerConfig(this);
         }
     }

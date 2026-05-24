@@ -165,7 +165,7 @@ public class FileSystemVolumeManager implements VolumeManager {
         if (volume == null) {
             throw new IllegalArgumentException("Volume not defined: " + volumeName);
         }
-        return volume.getMaxSizeMB() * 1024 * 1024;  // Convert MB to bytes
+        return (long) volume.getMaxSizeMB() * 1024 * 1024;  // Convert MB to bytes, cast to long to prevent overflow
     }
 
     @Override
