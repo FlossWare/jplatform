@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -90,6 +91,9 @@ public class InMemoryMessageBus implements MessageBus {
      */
     @Override
     public void publish(String topic, Message message) {
+        Objects.requireNonNull(topic, "topic cannot be null");
+        Objects.requireNonNull(message, "message cannot be null");
+
         List<SubscriptionImpl> topicSubscribers = subscribers.get(topic);
 
         if (topicSubscribers == null || topicSubscribers.isEmpty()) {
@@ -125,6 +129,9 @@ public class InMemoryMessageBus implements MessageBus {
      */
     @Override
     public Subscription subscribe(String topic, MessageHandler handler) {
+        Objects.requireNonNull(topic, "topic cannot be null");
+        Objects.requireNonNull(handler, "handler cannot be null");
+
         SubscriptionImpl subscription = new SubscriptionImpl(topic, handler, this);
 
         subscribers.computeIfAbsent(topic, k -> new CopyOnWriteArrayList<>())

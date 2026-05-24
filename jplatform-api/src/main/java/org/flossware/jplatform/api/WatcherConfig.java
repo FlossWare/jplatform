@@ -178,8 +178,12 @@ public class WatcherConfig {
          * Builds the WatcherConfig instance.
          *
          * @return a new WatcherConfig
+         * @throws IllegalStateException if watchDirectory is not set
          */
         public WatcherConfig build() {
+            if (watchDirectory == null) {
+                throw new IllegalStateException("watchDirectory is required");
+            }
             return new WatcherConfig(this);
         }
     }

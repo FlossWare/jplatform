@@ -1,5 +1,6 @@
 package org.flossware.jplatform.api;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -88,10 +89,10 @@ public class Message {
     /**
      * Returns the message payload.
      *
-     * @return the binary message content
+     * @return a defensive copy of the binary message content
      */
     public byte[] getPayload() {
-        return payload;
+        return payload != null ? Arrays.copyOf(payload, payload.length) : null;
     }
 
     /**
@@ -214,8 +215,15 @@ public class Message {
          * Auto-generates ID and timestamp if not provided.
          *
          * @return a new Message with the configured values
+         * @throws IllegalStateException if topic or sourceApplicationId is not set
          */
         public Message build() {
+            if (topic == null || topic.trim().isEmpty()) {
+                throw new IllegalStateException("Message topic is required");
+            }
+            if (sourceApplicationId == null || sourceApplicationId.trim().isEmpty()) {
+                throw new IllegalStateException("Message sourceApplicationId is required");
+            }
             return new Message(this);
         }
     }

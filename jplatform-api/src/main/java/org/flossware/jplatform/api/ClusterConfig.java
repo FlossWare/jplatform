@@ -141,8 +141,13 @@ public class ClusterConfig {
          *
          * @param bindPort the bind port
          * @return this builder
+         * @throws IllegalArgumentException if bindPort is not in valid range (1-65535)
          */
         public Builder bindPort(int bindPort) {
+            if (bindPort < 1 || bindPort > 65535) {
+                throw new IllegalArgumentException(
+                    "bindPort must be in range 1-65535, got: " + bindPort);
+            }
             this.bindPort = bindPort;
             return this;
         }
