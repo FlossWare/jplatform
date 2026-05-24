@@ -3,6 +3,7 @@ package org.flossware.jplatform.monitoring;
 import org.flossware.jplatform.api.EnforcementAction;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -33,9 +34,14 @@ public class EnforcementPolicy {
      *
      * @param applicationId the application identifier
      * @param gracePeriod the number of consecutive violations before enforcement
+     * @throws NullPointerException if applicationId is null
+     * @throws IllegalArgumentException if gracePeriod is not positive
      */
     public EnforcementPolicy(String applicationId, int gracePeriod) {
-        this.applicationId = applicationId;
+        this.applicationId = Objects.requireNonNull(applicationId, "applicationId cannot be null");
+        if (gracePeriod <= 0) {
+            throw new IllegalArgumentException("gracePeriod must be positive, got: " + gracePeriod);
+        }
         this.gracePeriod = gracePeriod;
         this.violationCounts = new ConcurrentHashMap<>();
     }

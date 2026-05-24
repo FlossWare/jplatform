@@ -5,6 +5,7 @@ import org.flossware.jplatform.api.ThreadPoolStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,9 +53,20 @@ public class ManagedThreadPool implements org.flossware.jplatform.api.ThreadPool
      * @param config the thread pool configuration specifying core size, max size,
      *               keep-alive time, and queue capacity
      * @throws NullPointerException if applicationId or config is null
+     * @throws IllegalArgumentException if config contains invalid values
      */
     public ManagedThreadPool(String applicationId, ThreadPoolConfig config) {
-        this.applicationId = applicationId;
+        this.applicationId = Objects.requireNonNull(applicationId, "applicationId cannot be null");
+        Objects.requireNonNull(config, "config cannot be null");
+
+        if (config.getQueueCapacity() < 0) {
+            throw new IllegalArgumentException("Queue capacity cannot be negative: " + config.getQueueCapacity());
+        }
+        if (config.getCorePoolSize() > config.getMaxPoolSize()) {
+            throw new IllegalArgumentException(
+                "Core pool size (" + config.getCorePoolSize() +
+                ") cannot exceed max pool size (" + config.getMaxPoolSize() + ")");
+        }
 
         this.threadFactory = r -> {
             Thread t = new Thread(r, applicationId + "-thread-" + threadCounter.incrementAndGet());
