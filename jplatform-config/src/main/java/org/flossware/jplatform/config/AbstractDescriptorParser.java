@@ -146,7 +146,14 @@ public abstract class AbstractDescriptorParser implements ApplicationDescriptorP
             throw new ParseException("Parsed DTO is null");
         }
 
-        // Additional validation can be added here or in subclasses
+        // Validate required fields
+        if (dto.getApplicationId() == null || dto.getApplicationId().trim().isEmpty()) {
+            throw new ParseException("applicationId is required");
+        }
+        if (dto.getMainClass() == null || dto.getMainClass().trim().isEmpty()) {
+            throw new ParseException("mainClass is required");
+        }
+
         logger.debug("DTO validation passed");
     }
 

@@ -147,6 +147,15 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
                 case "maven":
                     // Parse: maven:groupId:artifactId:version
                     String coords = classpathEntry.getSchemeSpecificPart();
+                    if (coords == null || coords.trim().isEmpty()) {
+                        throw new IllegalArgumentException(
+                                "Maven URI must specify coordinates: maven:groupId:artifactId:version");
+                    }
+                    String[] parts = coords.split(":");
+                    if (parts.length < 3) {
+                        throw new IllegalArgumentException(
+                                "Maven coordinates must have format groupId:artifactId:version, got: " + coords);
+                    }
                     builder.addMavenCentral(coords);
                     break;
 

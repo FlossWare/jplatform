@@ -86,8 +86,13 @@ public class JmxExporterConfig {
          *
          * @param port the port number
          * @return this builder
+         * @throws IllegalArgumentException if port is not in valid range (1-65535)
          */
         public Builder port(int port) {
+            if (port < 1 || port > 65535) {
+                throw new IllegalArgumentException(
+                    "Port must be between 1 and 65535, got: " + port);
+            }
             this.port = port;
             return this;
         }
@@ -97,8 +102,13 @@ public class JmxExporterConfig {
          *
          * @param domain the domain name
          * @return this builder
+         * @throws IllegalArgumentException if domain is null or empty
          */
         public Builder domain(String domain) {
+            if (domain == null || domain.trim().isEmpty()) {
+                throw new IllegalArgumentException(
+                    "JMX domain cannot be null or empty");
+            }
             this.domain = domain;
             return this;
         }

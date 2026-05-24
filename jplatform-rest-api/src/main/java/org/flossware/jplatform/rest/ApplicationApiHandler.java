@@ -418,8 +418,16 @@ public class ApplicationApiHandler implements HttpHandler {
          * Converts this DTO to an ApplicationDescriptor.
          *
          * @return the application descriptor
+         * @throws IllegalArgumentException if required fields are missing or invalid
          */
         public ApplicationDescriptor toApplicationDescriptor() {
+            if (applicationId == null || applicationId.trim().isEmpty()) {
+                throw new IllegalArgumentException("applicationId is required");
+            }
+            if (mainClass == null || mainClass.trim().isEmpty()) {
+                throw new IllegalArgumentException("mainClass is required");
+            }
+
             ApplicationDescriptor.Builder builder = ApplicationDescriptor.builder()
                     .applicationId(applicationId)
                     .mainClass(mainClass);

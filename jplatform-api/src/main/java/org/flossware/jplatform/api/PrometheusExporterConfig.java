@@ -86,8 +86,13 @@ public class PrometheusExporterConfig {
          *
          * @param port the port number
          * @return this builder
+         * @throws IllegalArgumentException if port is not in valid range (1-65535)
          */
         public Builder port(int port) {
+            if (port < 1 || port > 65535) {
+                throw new IllegalArgumentException(
+                    "Port must be between 1 and 65535, got: " + port);
+            }
             this.port = port;
             return this;
         }
@@ -97,8 +102,17 @@ public class PrometheusExporterConfig {
          *
          * @param path the endpoint path
          * @return this builder
+         * @throws IllegalArgumentException if path is null, empty, or doesn't start with '/'
          */
         public Builder path(String path) {
+            if (path == null || path.trim().isEmpty()) {
+                throw new IllegalArgumentException(
+                    "Metrics path cannot be null or empty");
+            }
+            if (!path.startsWith("/")) {
+                throw new IllegalArgumentException(
+                    "Metrics path must start with '/', got: " + path);
+            }
             this.path = path;
             return this;
         }

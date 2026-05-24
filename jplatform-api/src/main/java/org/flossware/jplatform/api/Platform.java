@@ -1,5 +1,7 @@
 package org.flossware.jplatform.api;
 
+import java.util.Objects;
+
 /**
  * Represents operating system and architecture combinations.
  *
@@ -125,8 +127,12 @@ public enum Platform {
      * @param os the operating system
      * @param arch the architecture
      * @return true if matches, false otherwise
+     * @throws NullPointerException if os or arch is null
      */
     public boolean matches(String os, String arch) {
+        Objects.requireNonNull(os, "os cannot be null");
+        Objects.requireNonNull(arch, "arch cannot be null");
+
         if (this == ANY) {
             return true;
         }

@@ -1,6 +1,7 @@
 package org.flossware.jplatform.core;
 
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * Tracks a specific version of an application's classloader.
@@ -23,10 +24,15 @@ class ClassLoaderVersion {
      *
      * @param version the version number (incrementing)
      * @param classLoader the classloader for this version
+     * @throws IllegalArgumentException if version is negative
+     * @throws NullPointerException if classLoader is null
      */
     public ClassLoaderVersion(int version, ClassLoader classLoader) {
+        if (version < 0) {
+            throw new IllegalArgumentException("Version must be non-negative, got: " + version);
+        }
         this.version = version;
-        this.classLoader = classLoader;
+        this.classLoader = Objects.requireNonNull(classLoader, "classLoader cannot be null");
         this.createdAt = Instant.now();
         this.referenceCount = 1;
     }

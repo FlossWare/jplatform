@@ -240,7 +240,12 @@ public class AutoDeploymentHandler implements DeploymentEventListener {
      * @throws ParseException if parsing fails or no parser is available for the file extension
      */
     private ApplicationDescriptor parseDescriptor(Path descriptorFile) throws ParseException {
-        String filename = descriptorFile.getFileName().toString().toLowerCase();
+        Path fileNamePath = descriptorFile.getFileName();
+        if (fileNamePath == null) {
+            throw new ParseException("Cannot determine filename from path: " + descriptorFile);
+        }
+
+        String filename = fileNamePath.toString().toLowerCase();
         String extension = getFileExtension(filename);
 
         if (extension == null || extension.isEmpty()) {

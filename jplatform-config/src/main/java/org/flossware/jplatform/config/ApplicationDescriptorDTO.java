@@ -72,12 +72,37 @@ public class ApplicationDescriptorDTO {
     private Boolean enableMessaging;
 
     /**
+     * Returns the application ID.
+     *
+     * @return the application ID
+     */
+    public String getApplicationId() {
+        return applicationId;
+    }
+
+    /**
+     * Returns the main class name.
+     *
+     * @return the main class name
+     */
+    public String getMainClass() {
+        return mainClass;
+    }
+
+    /**
      * Converts this DTO to an ApplicationDescriptor domain object.
      *
      * @return the ApplicationDescriptor instance
-     * @throws ParseException if conversion fails (e.g., invalid URI syntax)
+     * @throws ParseException if conversion fails (e.g., invalid URI syntax or missing required fields)
      */
     public ApplicationDescriptor toApplicationDescriptor() throws ParseException {
+        if (applicationId == null || applicationId.trim().isEmpty()) {
+            throw new ParseException("applicationId field is required");
+        }
+        if (mainClass == null || mainClass.trim().isEmpty()) {
+            throw new ParseException("mainClass field is required");
+        }
+
         ApplicationDescriptor.Builder builder = ApplicationDescriptor.builder()
                 .applicationId(applicationId)
                 .mainClass(mainClass);
