@@ -43,8 +43,17 @@ and this project adheres to X.Y semantic versioning.
 - Added comprehensive unit tests for jplatform-core module
 - Created ApplicationManagerConcurrencyTest to verify fine-grained locking
 - Added tests for DependencyResolver, ApplicationReloader, NativeLibraryLoader, ClassLoaderVersion
-- Increased test coverage from minimal to 45% instruction coverage
-- Total of 52 unit tests across 7 test classes
+- Added tests for NativeProcessLauncher and ContainerLauncher
+- Test coverage at 39% instruction coverage (70 tests across 9 test classes)
+- Focus on API contracts and configuration validation
+- Integration tests require actual executables/containers
+
+### Documentation
+- NATIVE_EXECUTION.md - Complete guide to native process deployment (GraalVM, Rust, Go, C++)
+- CONTAINER_DEPLOYMENT.md - Complete guide to container orchestration (Docker/Podman/LXC)
+- jplatform-core/README.md - Module documentation with all components and deployment modes
+- Updated README.md with native execution and container orchestration features
+- All classes have complete Javadoc (NativeProcessLauncher, ContainerLauncher)
 
 ### Changed
 - CI/CD pipeline now active with automated version bumping and artifact publishing

@@ -311,9 +311,61 @@ Command-line flags override configuration file settings:
 java -jar jplatform-launcher-1.0.jar --config platform.yaml --port 9000
 ```
 
+## Deployment Modes
+
+JPlatform supports three deployment modes:
+
+### 1. JVM Applications (Default)
+
+Standard Java applications running in isolated classloaders:
+
+```yaml
+applicationId: my-java-app
+mainClass: com.example.MyApp
+classpathEntries:
+  - file:///path/to/app.jar
+```
+
+### 2. Native Processes
+
+Deploy GraalVM native images or compiled executables:
+
+```yaml
+applicationId: graal-app
+nativeImage: true
+classpathEntries:
+  - file:///usr/local/bin/myapp
+
+properties:
+  native.args: "--server --port=8080"
+  native.env.DATABASE_URL: "jdbc:postgresql://db/app"
+  native.workdir: "/var/apps/graal-app"
+```
+
+See [NATIVE_EXECUTION.md](NATIVE_EXECUTION.md) for details.
+
+### 3. Containers
+
+Deploy applications as Docker, Podman, or LXC containers:
+
+```yaml
+applicationId: web-server
+properties:
+  container.runtime: docker
+  container.image: nginx:alpine
+  container.ports: "8080:80,8443:443"
+  container.volumes: "/var/www:/usr/share/nginx/html"
+  container.network: bridge
+  container.env.NGINX_HOST: example.com
+```
+
+See [CONTAINER_DEPLOYMENT.md](CONTAINER_DEPLOYMENT.md) for details.
+
 ## Next Steps
 
 - Read the [README](README.md) for architecture details
+- Learn about [Native Execution](NATIVE_EXECUTION.md) - GraalVM and compiled binaries
+- Learn about [Container Deployment](CONTAINER_DEPLOYMENT.md) - Docker/Podman/LXC
 - Check [examples/applications](examples/applications) for sample descriptors
 - Explore sample applications in [jplatform-samples](jplatform-samples)
 - Review API documentation in [jplatform-api](jplatform-api)
