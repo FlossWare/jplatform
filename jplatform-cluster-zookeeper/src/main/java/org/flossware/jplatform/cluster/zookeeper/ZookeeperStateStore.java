@@ -41,8 +41,12 @@ public class ZookeeperStateStore implements ClusterStateStore {
      * Constructs a new ZooKeeper state store.
      *
      * @param client the Curator framework client
+     * @throws IllegalArgumentException if client is null
      */
     public ZookeeperStateStore(CuratorFramework client) {
+        if (client == null) {
+            throw new IllegalArgumentException("Client must not be null");
+        }
         this.client = client;
         this.mapper = new ObjectMapper();
         this.listeners = new ConcurrentHashMap<>();

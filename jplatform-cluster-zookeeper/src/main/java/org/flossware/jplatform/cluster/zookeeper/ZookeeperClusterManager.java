@@ -46,8 +46,12 @@ public class ZookeeperClusterManager implements ClusterManager {
      * Constructs a new ZooKeeper cluster manager.
      *
      * @param config the ZooKeeper configuration
+     * @throws IllegalArgumentException if config is null
      */
     public ZookeeperClusterManager(ZookeeperConfig config) {
+        if (config == null) {
+            throw new IllegalArgumentException("Config must not be null");
+        }
         this.config = config;
         this.listeners = new CopyOnWriteArrayList<>();
         this.nodeId = UUID.randomUUID().toString();
@@ -58,8 +62,12 @@ public class ZookeeperClusterManager implements ClusterManager {
      *
      * @param config the ZooKeeper configuration
      * @param client the Curator client
+     * @throws IllegalArgumentException if config is null
      */
     ZookeeperClusterManager(ZookeeperConfig config, CuratorFramework client) {
+        if (config == null) {
+            throw new IllegalArgumentException("Config must not be null");
+        }
         this.config = config;
         this.client = client;
         this.listeners = new CopyOnWriteArrayList<>();

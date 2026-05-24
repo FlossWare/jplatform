@@ -41,8 +41,12 @@ public class RedisStateStore implements ClusterStateStore {
      * Constructs a new Redis state store.
      *
      * @param pool the Jedis connection pool
+     * @throws IllegalArgumentException if pool is null
      */
     public RedisStateStore(JedisPool pool) {
+        if (pool == null) {
+            throw new IllegalArgumentException("Pool must not be null");
+        }
         this.pool = pool;
         this.mapper = new ObjectMapper();
         this.listeners = new ConcurrentHashMap<>();

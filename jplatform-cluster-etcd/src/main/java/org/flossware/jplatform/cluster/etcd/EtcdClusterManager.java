@@ -36,8 +36,12 @@ public class EtcdClusterManager implements ClusterManager {
      * Constructs a new etcd cluster manager.
      *
      * @param config the etcd configuration
+     * @throws IllegalArgumentException if config is null
      */
     public EtcdClusterManager(EtcdConfig config) {
+        if (config == null) {
+            throw new IllegalArgumentException("Config must not be null");
+        }
         this.config = config;
         this.listeners = new CopyOnWriteArrayList<>();
         this.nodeId = UUID.randomUUID().toString();
@@ -48,8 +52,12 @@ public class EtcdClusterManager implements ClusterManager {
      *
      * @param config the etcd configuration
      * @param client the etcd client
+     * @throws IllegalArgumentException if config is null
      */
     EtcdClusterManager(EtcdConfig config, Client client) {
+        if (config == null) {
+            throw new IllegalArgumentException("Config must not be null");
+        }
         this.config = config;
         this.etcdClient = client;
         this.listeners = new CopyOnWriteArrayList<>();

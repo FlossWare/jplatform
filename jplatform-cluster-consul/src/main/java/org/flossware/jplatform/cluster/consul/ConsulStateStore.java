@@ -67,8 +67,12 @@ public class ConsulStateStore implements ClusterStateStore {
      * Constructs a new Consul state store.
      *
      * @param consulClient the Consul client to use for KV operations
+     * @throws IllegalArgumentException if consulClient is null
      */
     public ConsulStateStore(Consul consulClient) {
+        if (consulClient == null) {
+            throw new IllegalArgumentException("ConsulClient must not be null");
+        }
         this.consulClient = consulClient;
         this.kvClient = consulClient.keyValueClient();
         this.objectMapper = new ObjectMapper();

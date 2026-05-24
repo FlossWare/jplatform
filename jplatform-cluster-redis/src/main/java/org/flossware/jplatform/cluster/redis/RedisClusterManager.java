@@ -44,8 +44,12 @@ public class RedisClusterManager implements ClusterManager {
      * Constructs a new Redis cluster manager.
      *
      * @param config the Redis configuration
+     * @throws IllegalArgumentException if config is null
      */
     public RedisClusterManager(RedisConfig config) {
+        if (config == null) {
+            throw new IllegalArgumentException("Config must not be null");
+        }
         this.config = config;
         this.listeners = new CopyOnWriteArrayList<>();
         this.nodeId = UUID.randomUUID().toString();
@@ -56,8 +60,12 @@ public class RedisClusterManager implements ClusterManager {
      *
      * @param config the Redis configuration
      * @param pool the Jedis pool
+     * @throws IllegalArgumentException if config is null
      */
     RedisClusterManager(RedisConfig config, JedisPool pool) {
+        if (config == null) {
+            throw new IllegalArgumentException("Config must not be null");
+        }
         this.config = config;
         this.pool = pool;
         this.listeners = new CopyOnWriteArrayList<>();

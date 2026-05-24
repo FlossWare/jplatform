@@ -78,8 +78,12 @@ public class ConsulClusterManager implements ClusterManager {
      * Constructs a new Consul cluster manager with the specified configuration.
      *
      * @param consulConfig the Consul connection configuration
+     * @throws IllegalArgumentException if consulConfig is null
      */
     public ConsulClusterManager(ConsulConfig consulConfig) {
+        if (consulConfig == null) {
+            throw new IllegalArgumentException("ConsulConfig must not be null");
+        }
         this.consulConfig = consulConfig;
         this.listeners = new CopyOnWriteArrayList<>();
         this.nodeId = UUID.randomUUID().toString();
