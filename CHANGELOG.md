@@ -24,6 +24,13 @@ and this project adheres to X.Y semantic versioning.
 - Enables parallel operations on different applications
 - Significantly improved scalability and throughput
 
+### Testing
+- Added comprehensive unit tests for jplatform-core module
+- Created ApplicationManagerConcurrencyTest to verify fine-grained locking
+- Added tests for DependencyResolver, ApplicationReloader, NativeLibraryLoader, ClassLoaderVersion
+- Increased test coverage from minimal to 45% instruction coverage
+- Total of 52 unit tests across 7 test classes
+
 ### Changed
 - CI/CD pipeline now active with automated version bumping and artifact publishing
 
