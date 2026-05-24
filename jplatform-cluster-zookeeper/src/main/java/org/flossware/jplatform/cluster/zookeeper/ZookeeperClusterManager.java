@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * ZooKeeper-based ClusterManager implementation using Apache Curator.
@@ -38,6 +39,7 @@ public class ZookeeperClusterManager implements ClusterManager {
     private LeaderSelector leaderSelector;
     private volatile boolean joined = false;
     private volatile boolean isLeader = false;
+    private volatile CountDownLatch leadershipLatch;
     private ClusterConfig clusterConfig;
     private String nodeId;
     private final List<ClusterEventListener> listeners;
@@ -114,13 +116,15 @@ public class ZookeeperClusterManager implements ClusterManager {
                     logger.info("Became leader for cluster: {}", config.getClusterName());
 
                     // Hold leadership until interrupted
+                    leadershipLatch = new CountDownLatch(1);
                     try {
-                        Thread.sleep(Long.MAX_VALUE);
+                        leadershipLatch.await();
                     } catch (InterruptedException e) {
                         logger.info("Leadership interrupted");
                         Thread.currentThread().interrupt();
                     } finally {
                         isLeader = false;
+                        leadershipLatch = null;
                     }
                 }
             });
@@ -137,6 +141,11 @@ public class ZookeeperClusterManager implements ClusterManager {
     public void leave() throws ClusterLeaveException {
         if (!joined) return;
         try {
+            // Release leadership latch to interrupt takeLeadership
+            if (leadershipLatch != null) {
+                leadershipLatch.countDown();
+            }
+
             if (leaderSelector != null) {
                 leaderSelector.close();
             }
