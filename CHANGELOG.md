@@ -17,6 +17,12 @@ and this project adheres to X.Y semantic versioning.
 - ApplicationResponseDTO returns actual deployment time instead of current time (issue #45)
 - Tight coupling - ApplicationManager now implements PlatformManager interface (issue #36)
 - Updated all dependent modules to use PlatformManager interface instead of concrete ApplicationManager (issue #36)
+- ApplicationManager synchronization bottleneck - replaced class-level locking with fine-grained per-application locking (issue #37)
+
+### Performance
+- ApplicationManager now uses per-application ReentrantLock instead of synchronized methods
+- Enables parallel operations on different applications
+- Significantly improved scalability and throughput
 
 ### Changed
 - CI/CD pipeline now active with automated version bumping and artifact publishing

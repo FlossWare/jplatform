@@ -13,21 +13,24 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Core platform component that manages application lifecycle.
  * Handles deployment, starting, stopping, and undeployment of applications.
  * <p>
- * <b>Thread Safety:</b> This class is thread-safe. All public methods are synchronized
- * on the instance, making all operations thread-safe but serialized (performance bottleneck -
- * see GitHub issue #37). The {@code applications} map is guarded by {@code this} lock.
+ * <b>Thread Safety:</b> This class is thread-safe using fine-grained per-application locking.
+ * Each application has its own {@link ReentrantLock} allowing parallel operations on different
+ * applications while serializing operations on the same application. The {@code applications}
+ * and {@code applicationLocks} maps use {@link ConcurrentHashMap} for thread-safe access.
  */
 public class ApplicationManager implements PlatformManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationManager.class);
 
-    // Guarded by 'this' - all access synchronized
-    private final Map<String, ApplicationContextImpl> applications;
+    // Thread-safe maps - operations protected by per-application locks
+    private final ConcurrentHashMap<String, ApplicationContextImpl> applications;
+    private final ConcurrentHashMap<String, ReentrantLock> applicationLocks;
     private final ClassLoader platformSharedLoader;
     private final MessageBus sharedMessageBus;
     private final ServiceRegistry sharedServiceRegistry;
@@ -49,12 +52,13 @@ public class ApplicationManager implements PlatformManager {
      */
     public ApplicationManager(MessageBus messageBus, ServiceRegistry serviceRegistry) {
         this.applications = new ConcurrentHashMap<>();
+        this.applicationLocks = new ConcurrentHashMap<>();
         this.platformSharedLoader = ApplicationManager.class.getClassLoader();
         this.sharedMessageBus = messageBus;
         this.sharedServiceRegistry = serviceRegistry;
         this.dependencyResolver = new DependencyResolver(serviceRegistry);
         this.reloader = new ApplicationReloader(platformSharedLoader);
-        logger.info("ApplicationManager initialized with dependency resolution and hot reload");
+        logger.info("ApplicationManager initialized with fine-grained locking, dependency resolution and hot reload");
     }
 
     /**
@@ -65,16 +69,20 @@ public class ApplicationManager implements PlatformManager {
      * @throws Exception if deployment fails
      * @throws IllegalStateException if application is already deployed
      */
-    public synchronized void deploy(ApplicationDescriptor descriptor) throws Exception {
+    public void deploy(ApplicationDescriptor descriptor) throws Exception {
         String appId = descriptor.getApplicationId();
 
-        if (applications.containsKey(appId)) {
-            throw new IllegalStateException("Application already deployed: " + appId);
-        }
-
-        logger.info("[{}] Deploying application: {}", appId, descriptor.getName());
-
+        // Create lock for this application if it doesn't exist
+        ReentrantLock lock = applicationLocks.computeIfAbsent(appId, k -> new ReentrantLock());
+        lock.lock();
         try {
+            if (applications.containsKey(appId)) {
+                throw new IllegalStateException("Application already deployed: " + appId);
+            }
+
+            logger.info("[{}] Deploying application: {}", appId, descriptor.getName());
+
+            try {
             // Create isolated classloader
             IsolatedClassLoader classLoader = IsolatedClassLoader.create(
                     appId,
@@ -196,11 +204,14 @@ public class ApplicationManager implements PlatformManager {
                 // Required dependencies will cause start() to fail
             }
 
-            logger.info("[{}] Application deployed successfully", appId);
+                logger.info("[{}] Application deployed successfully", appId);
 
-        } catch (Exception e) {
-            logger.error("[{}] Failed to deploy application", appId, e);
-            throw new Exception("Failed to deploy application: " + appId, e);
+            } catch (Exception e) {
+                logger.error("[{}] Failed to deploy application", appId, e);
+                throw new Exception("Failed to deploy application: " + appId, e);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -212,56 +223,69 @@ public class ApplicationManager implements PlatformManager {
      * @throws Exception if starting fails
      * @throws IllegalStateException if application is not deployed or in wrong state
      */
-    public synchronized void start(String applicationId) throws Exception {
-        ApplicationContextImpl context = applications.get(applicationId);
-
-        if (context == null) {
+    public void start(String applicationId) throws Exception {
+        ReentrantLock lock = applicationLocks.get(applicationId);
+        if (lock == null) {
             throw new IllegalStateException("Application not deployed: " + applicationId);
         }
 
-        if (context.getState() != ApplicationState.DEPLOYED && context.getState() != ApplicationState.STOPPED) {
-            throw new IllegalStateException(
-                    "Application cannot be started from state: " + context.getState());
-        }
-
-        logger.info("[{}] Starting application", applicationId);
-        context.setState(ApplicationState.STARTING);
-
+        lock.lock();
         try {
-            // Load main class using application's classloader
-            ClassLoader appClassLoader = context.getClassLoader();
-            Thread.currentThread().setContextClassLoader(appClassLoader);
+            ApplicationContextImpl context = applications.get(applicationId);
 
-            String mainClassName = getMainClassName(applicationId);
-            Class<?> mainClass = Class.forName(mainClassName, true, appClassLoader);
-
-            // Instantiate application
-            Object instance = mainClass.getDeclaredConstructor().newInstance();
-            context.setApplicationInstance(instance);
-
-            // If implements Application interface, call start()
-            if (instance instanceof Application) {
-                ((Application) instance).start(context);
-            } else {
-                // Try to invoke main(String[]) method
-                try {
-                    Method mainMethod = mainClass.getMethod("main", String[].class);
-                    String[] args = new String[0];
-                    mainMethod.invoke(null, (Object) args);
-                } catch (NoSuchMethodException e) {
-                    logger.warn("[{}] Main class does not implement Application interface and has no main() method", applicationId);
-                }
+            if (context == null) {
+                throw new IllegalStateException("Application not deployed: " + applicationId);
             }
 
-            context.setState(ApplicationState.RUNNING);
-            logger.info("[{}] Application started successfully", applicationId);
+            if (context.getState() != ApplicationState.DEPLOYED && context.getState() != ApplicationState.STOPPED) {
+                throw new IllegalStateException(
+                        "Application cannot be started from state: " + context.getState());
+            }
 
-        } catch (Exception e) {
-            context.setState(ApplicationState.FAILED);
-            logger.error("[{}] Failed to start application", applicationId, e);
-            throw new Exception("Failed to start application: " + applicationId, e);
+            logger.info("[{}] Starting application", applicationId);
+            context.setState(ApplicationState.STARTING);
+
+            try {
+                // Load main class using application's classloader
+                ClassLoader appClassLoader = context.getClassLoader();
+                Thread.currentThread().setContextClassLoader(appClassLoader);
+
+                String mainClassName = getMainClassName(applicationId);
+                Class<?> mainClass = Class.forName(mainClassName, true, appClassLoader);
+
+                // Instantiate application
+                Object instance = mainClass.getDeclaredConstructor().newInstance();
+                context.setApplicationInstance(instance);
+
+                // If implements Application interface, call start()
+                if (instance instanceof Application) {
+                    ((Application) instance).start(context);
+                } else {
+                    // Try to invoke main(String[]) method
+                    try {
+                        Method mainMethod = mainClass.getMethod("main", String[].class);
+                        String[] args = new String[0];
+                        mainMethod.invoke(null, (Object) args);
+                    } catch (NoSuchMethodException e) {
+                        logger.warn("[{}] Main class does not implement Application interface and has no main() method", applicationId);
+                    }
+                }
+
+                context.setState(ApplicationState.RUNNING);
+                logger.info("[{}] Application started successfully", applicationId);
+
+            } catch (Exception e) {
+                ApplicationContextImpl ctx = applications.get(applicationId);
+                if (ctx != null) {
+                    ctx.setState(ApplicationState.FAILED);
+                }
+                logger.error("[{}] Failed to start application", applicationId, e);
+                throw new Exception("Failed to start application: " + applicationId, e);
+            } finally {
+                Thread.currentThread().setContextClassLoader(platformSharedLoader);
+            }
         } finally {
-            Thread.currentThread().setContextClassLoader(platformSharedLoader);
+            lock.unlock();
         }
     }
 
@@ -272,35 +296,45 @@ public class ApplicationManager implements PlatformManager {
      * @throws Exception if stopping fails
      * @throws IllegalStateException if application is not deployed
      */
-    public synchronized void stop(String applicationId) throws Exception {
-        ApplicationContextImpl context = applications.get(applicationId);
-
-        if (context == null) {
+    public void stop(String applicationId) throws Exception {
+        ReentrantLock lock = applicationLocks.get(applicationId);
+        if (lock == null) {
             throw new IllegalStateException("Application not deployed: " + applicationId);
         }
 
-        if (context.getState() != ApplicationState.RUNNING) {
-            logger.warn("[{}] Application is not running, current state: {}", applicationId, context.getState());
-            return;
-        }
-
-        logger.info("[{}] Stopping application", applicationId);
-        context.setState(ApplicationState.STOPPING);
-
+        lock.lock();
         try {
-            Object instance = context.getApplicationInstance();
+            ApplicationContextImpl context = applications.get(applicationId);
 
-            if (instance instanceof Application) {
-                ((Application) instance).stop();
+            if (context == null) {
+                throw new IllegalStateException("Application not deployed: " + applicationId);
             }
 
-            context.setState(ApplicationState.STOPPED);
-            logger.info("[{}] Application stopped successfully", applicationId);
+            if (context.getState() != ApplicationState.RUNNING) {
+                logger.warn("[{}] Application is not running, current state: {}", applicationId, context.getState());
+                return;
+            }
 
-        } catch (Exception e) {
-            context.setState(ApplicationState.FAILED);
-            logger.error("[{}] Failed to stop application", applicationId, e);
-            throw new Exception("Failed to stop application: " + applicationId, e);
+            logger.info("[{}] Stopping application", applicationId);
+            context.setState(ApplicationState.STOPPING);
+
+            try {
+                Object instance = context.getApplicationInstance();
+
+                if (instance instanceof Application) {
+                    ((Application) instance).stop();
+                }
+
+                context.setState(ApplicationState.STOPPED);
+                logger.info("[{}] Application stopped successfully", applicationId);
+
+            } catch (Exception e) {
+                context.setState(ApplicationState.FAILED);
+                logger.error("[{}] Failed to stop application", applicationId, e);
+                throw new Exception("Failed to stop application: " + applicationId, e);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -367,20 +401,27 @@ public class ApplicationManager implements PlatformManager {
      * @throws Exception if undeployment fails
      * @throws IllegalStateException if application is not deployed
      */
-    public synchronized void undeploy(String applicationId) throws Exception {
-        ApplicationContextImpl context = applications.get(applicationId);
-
-        if (context == null) {
+    public void undeploy(String applicationId) throws Exception {
+        ReentrantLock lock = applicationLocks.get(applicationId);
+        if (lock == null) {
             throw new IllegalStateException("Application not deployed: " + applicationId);
         }
 
-        logger.info("[{}] Undeploying application", applicationId);
-
+        lock.lock();
         try {
-            // Stop if running
-            if (context.getState() == ApplicationState.RUNNING) {
-                stop(applicationId);
+            ApplicationContextImpl context = applications.get(applicationId);
+
+            if (context == null) {
+                throw new IllegalStateException("Application not deployed: " + applicationId);
             }
+
+            logger.info("[{}] Undeploying application", applicationId);
+
+            try {
+                // Stop if running (stop() will reacquire the lock, but ReentrantLock allows this)
+                if (context.getState() == ApplicationState.RUNNING) {
+                    stop(applicationId);
+                }
 
             // Shutdown thread pool
             context.getThreadPool().shutdown();
@@ -445,11 +486,16 @@ public class ApplicationManager implements PlatformManager {
             // Clear reload history
             reloader.clearHistory(applicationId);
 
-            logger.info("[{}] Application undeployed successfully", applicationId);
+                logger.info("[{}] Application undeployed successfully", applicationId);
 
-        } catch (Exception e) {
-            logger.error("[{}] Failed to undeploy application", applicationId, e);
-            throw new Exception("Failed to undeploy application: " + applicationId, e);
+            } catch (Exception e) {
+                logger.error("[{}] Failed to undeploy application", applicationId, e);
+                throw new Exception("Failed to undeploy application: " + applicationId, e);
+            }
+        } finally {
+            lock.unlock();
+            // Remove lock after undeployment
+            applicationLocks.remove(applicationId);
         }
     }
 
@@ -470,28 +516,38 @@ public class ApplicationManager implements PlatformManager {
      * @throws Exception if reload fails
      * @throws IllegalStateException if application is not deployed
      */
-    public synchronized void reload(String applicationId, ApplicationDescriptor newDescriptor) throws Exception {
-        ApplicationContextImpl context = applications.get(applicationId);
-
-        if (context == null) {
+    public void reload(String applicationId, ApplicationDescriptor newDescriptor) throws Exception {
+        ReentrantLock lock = applicationLocks.get(applicationId);
+        if (lock == null) {
             throw new IllegalStateException("Application not deployed: " + applicationId);
         }
 
-        logger.info("[{}] Initiating hot code reload", applicationId);
-
+        lock.lock();
         try {
-            reloader.reload(applicationId, newDescriptor, context, this);
+            ApplicationContextImpl context = applications.get(applicationId);
 
-            // Update dependency resolver with new descriptor
-            dependencyResolver.removeApplication(applicationId);
-            dependencyResolver.addApplication(applicationId, newDescriptor);
+            if (context == null) {
+                throw new IllegalStateException("Application not deployed: " + applicationId);
+            }
 
-            logger.info("[{}] Hot reload successful - now on version {}",
-                    applicationId, reloader.getCurrentVersion(applicationId));
+            logger.info("[{}] Initiating hot code reload", applicationId);
 
-        } catch (Exception e) {
-            logger.error("[{}] Hot reload failed", applicationId, e);
-            throw new Exception("Failed to reload application: " + applicationId, e);
+            try {
+                reloader.reload(applicationId, newDescriptor, context, this);
+
+                // Update dependency resolver with new descriptor
+                dependencyResolver.removeApplication(applicationId);
+                dependencyResolver.addApplication(applicationId, newDescriptor);
+
+                logger.info("[{}] Hot reload successful - now on version {}",
+                        applicationId, reloader.getCurrentVersion(applicationId));
+
+            } catch (Exception e) {
+                logger.error("[{}] Hot reload failed", applicationId, e);
+                throw new Exception("Failed to reload application: " + applicationId, e);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -523,9 +579,12 @@ public class ApplicationManager implements PlatformManager {
      * that depend on them. If any application fails to start, its dependent applications
      * will not be started.</p>
      *
+     * <p>Note: Each application is locked individually during its start operation.
+     * This allows parallel starts when dependency ordering permits.</p>
+     *
      * @throws Exception if startup order cannot be determined (circular dependencies)
      */
-    public synchronized void startAll() throws Exception {
+    public void startAll() throws Exception {
         logger.info("Starting all applications in dependency order");
 
         List<String> startupOrder = dependencyResolver.getStartupOrder();
@@ -553,6 +612,7 @@ public class ApplicationManager implements PlatformManager {
             }
 
             try {
+                // start() method now handles its own locking
                 start(appId);
                 runningApps.add(appId);
                 logger.info("[{}] Started successfully", appId);
@@ -588,12 +648,18 @@ public class ApplicationManager implements PlatformManager {
     /**
      * Shuts down the platform by undeploying all applications.
      * Errors during individual application undeployment are logged but do not stop the shutdown process.
+     *
+     * <p>Note: Each application is locked individually during its undeploy operation.</p>
      */
-    public synchronized void shutdown() {
+    public void shutdown() {
         logger.info("Shutting down platform");
 
-        for (String appId : applications.keySet()) {
+        // Get a snapshot of application IDs to avoid concurrent modification
+        List<String> appIds = new ArrayList<>(applications.keySet());
+
+        for (String appId : appIds) {
             try {
+                // undeploy() method now handles its own locking
                 undeploy(appId);
             } catch (Exception e) {
                 logger.error("Error undeploying application during shutdown: {}", appId, e);
