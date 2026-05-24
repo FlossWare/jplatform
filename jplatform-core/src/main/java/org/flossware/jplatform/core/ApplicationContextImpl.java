@@ -30,6 +30,7 @@ public class ApplicationContextImpl implements ApplicationContext {
     private final Map<String, String> properties;
     private volatile Object applicationInstance;
     private volatile Process nativeProcess;  // Non-null for native image applications
+    private volatile ContainerLauncher.ContainerInfo containerInfo;  // Non-null for containerized applications
     private final Instant deployedAt;  // Timestamp when application was deployed
 
     private ApplicationContextImpl(Builder builder) {
@@ -146,6 +147,26 @@ public class ApplicationContextImpl implements ApplicationContext {
      */
     void setNativeProcess(Process process) {
         this.nativeProcess = process;
+    }
+
+    /**
+     * Returns the container info for containerized applications.
+     * Package-private for use by ApplicationManager.
+     *
+     * @return Optional containing the container info, or empty if this is not a containerized application
+     */
+    Optional<ContainerLauncher.ContainerInfo> getContainerInfo() {
+        return Optional.ofNullable(containerInfo);
+    }
+
+    /**
+     * Sets the container info for containerized applications.
+     * Package-private for use by ApplicationManager.
+     *
+     * @param containerInfo the container information
+     */
+    void setContainerInfo(ContainerLauncher.ContainerInfo containerInfo) {
+        this.containerInfo = containerInfo;
     }
 
     /**

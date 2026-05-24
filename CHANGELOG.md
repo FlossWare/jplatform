@@ -18,6 +18,14 @@ and this project adheres to X.Y semantic versioning.
   - Native process lifecycle management (start, stop with graceful shutdown)
   - Output redirection from native processes to platform logging
   - Support for GraalVM native images and other compiled executables
+- Container orchestration support (Docker/Podman/LXC)
+  - ContainerLauncher for managing containerized applications
+  - Support for Docker, Podman, and LXC container runtimes
+  - Automatic image pulling for Docker/Podman
+  - Container lifecycle management (launch, stop, remove)
+  - Port mappings, volume mounts, environment variables, network configuration
+  - Container output redirection to platform logging
+  - Configuration via properties: container.runtime, container.image, container.ports, container.volumes
 
 ### Fixed
 - ThreadPoolConfig.Builder missing parameter validation (issue #44)

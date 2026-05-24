@@ -37,6 +37,7 @@ public class ApplicationManager implements PlatformManager {
     private final DependencyResolver dependencyResolver;
     private final ApplicationReloader reloader;
     private final NativeProcessLauncher nativeProcessLauncher;
+    private final ContainerLauncher containerLauncher;
 
     /**
      * Creates a new application manager without messaging support.
@@ -60,7 +61,8 @@ public class ApplicationManager implements PlatformManager {
         this.dependencyResolver = new DependencyResolver(serviceRegistry);
         this.reloader = new ApplicationReloader(platformSharedLoader);
         this.nativeProcessLauncher = new NativeProcessLauncher();
-        logger.info("ApplicationManager initialized with fine-grained locking, dependency resolution, hot reload, and native process support");
+        this.containerLauncher = new ContainerLauncher();
+        logger.info("ApplicationManager initialized with fine-grained locking, dependency resolution, hot reload, native process, and container support");
     }
 
     /**
@@ -248,9 +250,20 @@ public class ApplicationManager implements PlatformManager {
             context.setState(ApplicationState.STARTING);
 
             try {
-                // Check if this is a native image application
                 ApplicationDescriptor descriptor = context.getDescriptor();
-                if (descriptor.isNativeImage()) {
+
+                // Check if this is a containerized application
+                if (isContainerized(descriptor)) {
+                    // Launch as container
+                    logger.info("[{}] Launching as container", applicationId);
+                    ContainerLauncher.ContainerInfo containerInfo = containerLauncher.launch(applicationId, descriptor);
+                    context.setContainerInfo(containerInfo);
+
+                    context.setState(ApplicationState.RUNNING);
+                    logger.info("[{}] Container started successfully (ID: {})", applicationId, containerInfo.getContainerId());
+                }
+                // Check if this is a native image application
+                else if (descriptor.isNativeImage()) {
                     // Launch as native process
                     logger.info("[{}] Launching as native process", applicationId);
                     java.nio.file.Path workingDir = java.nio.file.Paths.get(
@@ -340,19 +353,29 @@ public class ApplicationManager implements PlatformManager {
             context.setState(ApplicationState.STOPPING);
 
             try {
+                // Check if this is a containerized application
+                Optional<ContainerLauncher.ContainerInfo> containerInfo = context.getContainerInfo();
+                if (containerInfo.isPresent()) {
+                    // Stop container
+                    logger.info("[{}] Stopping container", applicationId);
+                    containerLauncher.stop(applicationId, containerInfo.get(), 10000); // 10 second grace period
+                    context.setContainerInfo(null);
+                }
                 // Check if this is a native process
-                Optional<Process> nativeProcess = context.getNativeProcess();
-                if (nativeProcess.isPresent()) {
-                    // Stop native process
-                    logger.info("[{}] Stopping native process", applicationId);
-                    nativeProcessLauncher.stop(applicationId, nativeProcess.get(), 10000); // 10 second grace period
-                    context.setNativeProcess(null);
-                } else {
-                    // Stop JVM application
-                    Object instance = context.getApplicationInstance();
+                else {
+                    Optional<Process> nativeProcess = context.getNativeProcess();
+                    if (nativeProcess.isPresent()) {
+                        // Stop native process
+                        logger.info("[{}] Stopping native process", applicationId);
+                        nativeProcessLauncher.stop(applicationId, nativeProcess.get(), 10000); // 10 second grace period
+                        context.setNativeProcess(null);
+                    } else {
+                        // Stop JVM application
+                        Object instance = context.getApplicationInstance();
 
-                    if (instance instanceof Application) {
-                        ((Application) instance).stop();
+                        if (instance instanceof Application) {
+                            ((Application) instance).stop();
+                        }
                     }
                 }
 
@@ -706,5 +729,16 @@ public class ApplicationManager implements PlatformManager {
             throw new IllegalStateException("Application not found: " + applicationId);
         }
         return context.getDescriptor().getMainClass();
+    }
+
+    /**
+     * Checks if an application descriptor specifies containerized deployment.
+     *
+     * @param descriptor the application descriptor
+     * @return true if the application should run in a container
+     */
+    private boolean isContainerized(ApplicationDescriptor descriptor) {
+        Map<String, String> properties = descriptor.getProperties();
+        return properties.containsKey("container.runtime") || properties.containsKey("container.image");
     }
 }
