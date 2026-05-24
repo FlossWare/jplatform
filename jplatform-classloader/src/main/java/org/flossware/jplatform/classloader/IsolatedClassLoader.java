@@ -8,6 +8,7 @@ import org.flossware.jplatform.api.ApplicationDescriptor;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Platform-specific class loader for isolated application execution.
@@ -43,6 +44,9 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
     public static IsolatedClassLoader create(String applicationId,
                                              ApplicationDescriptor descriptor,
                                              ClassLoader platformSharedLoader) {
+        Objects.requireNonNull(applicationId, "applicationId cannot be null");
+        Objects.requireNonNull(descriptor, "descriptor cannot be null");
+        Objects.requireNonNull(platformSharedLoader, "platformSharedLoader cannot be null");
 
         ResourceTrackingListener tracker = new ResourceTrackingListener();
 

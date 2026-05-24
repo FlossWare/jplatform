@@ -200,18 +200,33 @@ public class ApplicationDescriptorDTO {
 
             if (filePermissions != null) {
                 for (FilePermissionDTO fp : filePermissions) {
+                    if (fp.path == null || fp.path.trim().isEmpty()) {
+                        throw new IllegalArgumentException("File permission path cannot be null or empty");
+                    }
+                    if (fp.actions == null || fp.actions.trim().isEmpty()) {
+                        throw new IllegalArgumentException("File permission actions cannot be null or empty");
+                    }
                     builder.addFilePermission(new FilePermission(fp.path, fp.actions));
                 }
             }
 
             if (socketPermissions != null) {
                 for (SocketPermissionDTO sp : socketPermissions) {
+                    if (sp.host == null || sp.host.trim().isEmpty()) {
+                        throw new IllegalArgumentException("Socket permission host cannot be null or empty");
+                    }
+                    if (sp.actions == null || sp.actions.trim().isEmpty()) {
+                        throw new IllegalArgumentException("Socket permission actions cannot be null or empty");
+                    }
                     builder.addSocketPermission(new SocketPermission(sp.host, sp.actions));
                 }
             }
 
             if (runtimePermissions != null) {
                 for (String rp : runtimePermissions) {
+                    if (rp == null || rp.trim().isEmpty()) {
+                        throw new IllegalArgumentException("Runtime permission name cannot be null or empty");
+                    }
                     builder.addRuntimePermission(new RuntimePermission(rp));
                 }
             }

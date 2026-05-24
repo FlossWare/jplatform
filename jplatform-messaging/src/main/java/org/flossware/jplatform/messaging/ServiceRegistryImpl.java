@@ -101,6 +101,8 @@ public class ServiceRegistryImpl implements ServiceRegistry {
      */
     @Override
     public <T> Optional<T> getService(Class<T> serviceInterface) {
+        Objects.requireNonNull(serviceInterface, "serviceInterface cannot be null");
+
         List<ServiceEntry> entries = services.get(serviceInterface);
 
         if (entries == null || entries.isEmpty()) {
@@ -125,6 +127,8 @@ public class ServiceRegistryImpl implements ServiceRegistry {
      */
     @Override
     public <T> List<T> getAllServices(Class<T> serviceInterface) {
+        Objects.requireNonNull(serviceInterface, "serviceInterface cannot be null");
+
         List<ServiceEntry> entries = services.get(serviceInterface);
 
         if (entries == null || entries.isEmpty()) {
@@ -154,6 +158,9 @@ public class ServiceRegistryImpl implements ServiceRegistry {
      */
     @Override
     public void unregisterService(Class<?> serviceInterface, Object implementation) {
+        Objects.requireNonNull(serviceInterface, "serviceInterface cannot be null");
+        Objects.requireNonNull(implementation, "implementation cannot be null");
+
         List<ServiceEntry> entries = services.get(serviceInterface);
 
         if (entries != null) {
