@@ -1,14 +1,300 @@
 package org.flossware.jplatform.storage.s3;
 
-import org.junit.jupiter.api.Test;
 import org.flossware.jplatform.api.VolumeMount;
-import java.util.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class S3VolumeManagerTest {
+
+    @Mock
+    private S3Client s3Client;
+
+    private S3StorageConfig config;
+    private List<VolumeMount> volumeMounts;
+
+    @TempDir
+    Path tempDir;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        config = S3StorageConfig.builder()
+            .accessKey("test-key")
+            .secretKey("test-secret")
+            .bucketName("test-bucket")
+            .build();
+
+        volumeMounts = Arrays.asList(
+            new VolumeMount("data", "/app/data", true, 1024),
+            new VolumeMount("cache", "/app/cache", false, 512),
+            new VolumeMount("logs", "/app/logs", true, 0)
+        );
+    }
+
     @Test
-    void testBasicFunctionality() {
-        S3VolumeManager manager = new S3VolumeManager("test-app", new ArrayList<>());
-        assertNotNull(manager);
+    void testConstructorNullConfig() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            new S3VolumeManager(null, volumeMounts);
+        });
+        assertTrue(exception.getMessage().contains("Config"));
+    }
+
+    @Test
+    void testConstructorNullVolumeMounts() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            new S3VolumeManager(config, null);
+        });
+        assertTrue(exception.getMessage().contains("Volume mounts"));
+    }
+
+    @Test
+    void testGetVolumesReturnsAllMounts() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        List<VolumeMount> volumes = manager.getVolumes();
+        assertEquals(3, volumes.size());
+        assertTrue(volumes.stream().anyMatch(v -> v.getName().equals("data")));
+        assertTrue(volumes.stream().anyMatch(v -> v.getName().equals("cache")));
+        assertTrue(volumes.stream().anyMatch(v -> v.getName().equals("logs")));
+    }
+
+    @Test
+    void testVolumeExists() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        assertTrue(manager.volumeExists("data"));
+        assertTrue(manager.volumeExists("cache"));
+        assertTrue(manager.volumeExists("logs"));
+        assertFalse(manager.volumeExists("nonexistent"));
+    }
+
+    @Test
+    void testGetVolumePathCreatesDirectory() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        Path volumePath = manager.getVolumePath("data");
+        assertNotNull(volumePath);
+        assertTrue(Files.exists(volumePath));
+        assertTrue(Files.isDirectory(volumePath));
+    }
+
+    @Test
+    void testGetVolumePathUndefinedVolume() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            manager.getVolumePath("undefined");
+        });
+        assertTrue(exception.getMessage().contains("not defined"));
+    }
+
+    @Test
+    void testGetVolumeSizeLimit() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        assertEquals(1024 * 1024 * 1024, manager.getVolumeSizeLimit("data"));
+        assertEquals(512 * 1024 * 1024, manager.getVolumeSizeLimit("cache"));
+        assertEquals(0, manager.getVolumeSizeLimit("logs"));
+    }
+
+    @Test
+    void testGetVolumeSizeLimitUndefined() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            manager.getVolumeSizeLimit("undefined");
+        });
+        assertTrue(exception.getMessage().contains("not defined"));
+    }
+
+    @Test
+    void testIsPersistent() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        assertTrue(manager.isPersistent("data"));
+        assertFalse(manager.isPersistent("cache"));
+        assertTrue(manager.isPersistent("logs"));
+    }
+
+    @Test
+    void testIsPersistentUndefined() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            manager.isPersistent("undefined");
+        });
+        assertTrue(exception.getMessage().contains("not defined"));
+    }
+
+    @Test
+    void testGetVolumeUsageBytesEmpty() throws IOException {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class)))
+            .thenReturn(ListObjectsV2Response.builder()
+                .isTruncated(false)
+                .contents(List.of())
+                .build());
+
+        long usage = manager.getVolumeUsageBytes("data");
+        assertEquals(0, usage);
+    }
+
+    @Test
+    void testGetVolumeUsageBytesWithObjects() throws IOException {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class)))
+            .thenReturn(ListObjectsV2Response.builder()
+                .isTruncated(false)
+                .contents(Arrays.asList(
+                    S3Object.builder().key("data/file1.txt").size(100L).build(),
+                    S3Object.builder().key("data/file2.txt").size(200L).build(),
+                    S3Object.builder().key("data/file3.txt").size(300L).build()
+                ))
+                .build());
+
+        long usage = manager.getVolumeUsageBytes("data");
+        assertEquals(600, usage);
+    }
+
+    @Test
+    void testGetVolumeUsageBytesUndefined() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            manager.getVolumeUsageBytes("undefined");
+        });
+        assertTrue(exception.getMessage().contains("not defined"));
+    }
+
+    @Test
+    void testUploadFileNotInitialized() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts);
+
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            manager.uploadFile("data", "test.txt");
+        });
+        assertTrue(exception.getMessage().contains("not initialized"));
+    }
+
+    @Test
+    void testUploadFileSuccess() throws IOException {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        Path volumePath = manager.getVolumePath("data");
+        Path testFile = volumePath.resolve("test.txt");
+        Files.writeString(testFile, "test content");
+
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+            .thenReturn(PutObjectResponse.builder().build());
+
+        manager.uploadFile("data", "test.txt");
+
+        verify(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+    }
+
+    @Test
+    void testUploadFileNotFound() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        Exception exception = assertThrows(IOException.class, () -> {
+            manager.uploadFile("data", "nonexistent.txt");
+        });
+        assertTrue(exception.getMessage().contains("not found"));
+    }
+
+    @Test
+    void testDownloadFileNotInitialized() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts);
+
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            manager.downloadFile("data", "test.txt");
+        });
+        assertTrue(exception.getMessage().contains("not initialized"));
+    }
+
+    @Test
+    void testClose() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        manager.close();
+        verify(s3Client).close();
+    }
+
+    @Test
+    void testGetS3Client() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        assertSame(s3Client, manager.getS3Client());
+    }
+
+    @Test
+    void testEmptyVolumeMounts() {
+        S3VolumeManager manager = new S3VolumeManager(config, List.of(), s3Client);
+
+        assertEquals(0, manager.getVolumes().size());
+        assertFalse(manager.volumeExists("any"));
+    }
+
+    @Test
+    void testMultipleVolumesIndependent() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        Path dataPath = manager.getVolumePath("data");
+        Path cachePath = manager.getVolumePath("cache");
+
+        assertNotEquals(dataPath, cachePath);
+    }
+
+    @Test
+    void testVolumeSizeLimitZeroMeansUnlimited() {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        assertEquals(0, manager.getVolumeSizeLimit("logs"));
+    }
+
+    @Test
+    void testGetVolumeUsagePagination() throws IOException {
+        S3VolumeManager manager = new S3VolumeManager(config, volumeMounts, s3Client);
+
+        when(s3Client.listObjectsV2(any(ListObjectsV2Request.class)))
+            .thenReturn(ListObjectsV2Response.builder()
+                .isTruncated(true)
+                .nextContinuationToken("token1")
+                .contents(Arrays.asList(
+                    S3Object.builder().key("data/file1.txt").size(100L).build()
+                ))
+                .build())
+            .thenReturn(ListObjectsV2Response.builder()
+                .isTruncated(false)
+                .contents(Arrays.asList(
+                    S3Object.builder().key("data/file2.txt").size(200L).build()
+                ))
+                .build());
+
+        long usage = manager.getVolumeUsageBytes("data");
+        assertEquals(300, usage);
+
+        verify(s3Client, times(2)).listObjectsV2(any(ListObjectsV2Request.class));
     }
 }
