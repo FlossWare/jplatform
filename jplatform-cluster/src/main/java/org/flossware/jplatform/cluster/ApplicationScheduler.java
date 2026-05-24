@@ -86,15 +86,17 @@ public class ApplicationScheduler {
      * @param hazelcast the Hazelcast instance for distributed storage
      * @param clusterManager the cluster manager for node information
      * @param strategy the scheduling strategy to use
+     * @throws NullPointerException if any parameter is null
      */
     public ApplicationScheduler(HazelcastInstance hazelcast,
                                 ClusterManager clusterManager,
                                 SchedulingStrategy strategy) {
-        this.hazelcast = hazelcast;
-        this.clusterManager = clusterManager;
+        this.hazelcast = Objects.requireNonNull(hazelcast, "hazelcast cannot be null");
+        this.clusterManager = Objects.requireNonNull(clusterManager, "clusterManager cannot be null");
+        this.strategy = Objects.requireNonNull(strategy, "strategy cannot be null");
+
         this.assignmentMap = hazelcast.getMap(ASSIGNMENT_MAP_NAME);
         this.nodeLoadMap = hazelcast.getMap(NODE_LOAD_MAP_NAME);
-        this.strategy = strategy;
         this.roundRobinIndex = new AtomicInteger(0);
 
         logger.info("ApplicationScheduler initialized with strategy: {}", strategy);
@@ -108,8 +110,11 @@ public class ApplicationScheduler {
      * @param applicationId the application identifier
      * @return the node ID where the application was assigned
      * @throws IllegalStateException if not called on the leader node
+     * @throws NullPointerException if applicationId is null
      */
     public String assignApplication(String applicationId) {
+        Objects.requireNonNull(applicationId, "applicationId cannot be null");
+
         if (!clusterManager.isLeader()) {
             throw new IllegalStateException("Only the leader can assign applications");
         }

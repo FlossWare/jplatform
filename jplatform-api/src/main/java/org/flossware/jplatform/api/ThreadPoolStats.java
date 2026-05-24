@@ -37,9 +37,34 @@ public class ThreadPoolStats {
      * @param poolSize the current number of threads in the pool
      * @param corePoolSize the core pool size configuration
      * @param maximumPoolSize the maximum pool size configuration
+     * @throws IllegalArgumentException if any parameter is negative, or if maximumPoolSize < corePoolSize
      */
     public ThreadPoolStats(int activeThreads, long completedTasks, int queuedTasks,
                           int poolSize, int corePoolSize, int maximumPoolSize) {
+        if (activeThreads < 0) {
+            throw new IllegalArgumentException("activeThreads cannot be negative: " + activeThreads);
+        }
+        if (completedTasks < 0) {
+            throw new IllegalArgumentException("completedTasks cannot be negative: " + completedTasks);
+        }
+        if (queuedTasks < 0) {
+            throw new IllegalArgumentException("queuedTasks cannot be negative: " + queuedTasks);
+        }
+        if (poolSize < 0) {
+            throw new IllegalArgumentException("poolSize cannot be negative: " + poolSize);
+        }
+        if (corePoolSize < 0) {
+            throw new IllegalArgumentException("corePoolSize cannot be negative: " + corePoolSize);
+        }
+        if (maximumPoolSize < 0) {
+            throw new IllegalArgumentException("maximumPoolSize cannot be negative: " + maximumPoolSize);
+        }
+        if (maximumPoolSize < corePoolSize) {
+            throw new IllegalArgumentException(
+                "maximumPoolSize (" + maximumPoolSize +
+                ") cannot be less than corePoolSize (" + corePoolSize + ")");
+        }
+
         this.activeThreads = activeThreads;
         this.completedTasks = completedTasks;
         this.queuedTasks = queuedTasks;

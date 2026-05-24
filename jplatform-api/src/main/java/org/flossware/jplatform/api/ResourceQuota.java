@@ -1,5 +1,6 @@
 package org.flossware.jplatform.api;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -71,8 +72,11 @@ public class ResourceQuota {
      *
      * @param snapshot the resource usage to check
      * @throws ResourceQuotaExceededException if any configured quota is exceeded
+     * @throws NullPointerException if snapshot is null
      */
     public void enforce(ResourceSnapshot snapshot) throws ResourceQuotaExceededException {
+        Objects.requireNonNull(snapshot, "snapshot cannot be null");
+
         maxHeapBytes.ifPresent(max -> {
             if (snapshot.getHeapUsedBytes() > max) {
                 throw new ResourceQuotaExceededException(
