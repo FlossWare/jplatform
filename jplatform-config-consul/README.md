@@ -4,11 +4,14 @@ HashiCorp Consul KV configuration source for JPlatform. Dynamic, distributed con
 
 ## Features
 
-- Consul KV store integration
-- ACL token support
-- Configuration change watching
-- Thread-safe operations
-- Dynamic configuration updates
+- **Consul KV Store**: Store and retrieve configuration from Consul KV
+- **Dynamic Updates**: Watch for configuration changes in real-time
+- **ACL Support**: Token-based authentication for secure access
+- **Hierarchical Keys**: Support for hierarchical configuration structure  
+- **Thread-Safe**: Concurrent access to configuration
+- **Datacenter Support**: Connect to specific Consul datacenters
+- **Caching**: Local configuration caching for performance
+- **Event Listeners**: Notification of configuration changes
 
 ## Maven Dependency
 
@@ -22,6 +25,8 @@ HashiCorp Consul KV configuration source for JPlatform. Dynamic, distributed con
 
 ## Quick Start
 
+### Basic Usage
+
 ```java
 ConsulConfigSourceConfig config = ConsulConfigSourceConfig.builder()
     .host("localhost")
@@ -32,9 +37,261 @@ ConsulConfigSourceConfig config = ConsulConfigSourceConfig.builder()
 ConsulConfigSource source = new ConsulConfigSource(config);
 source.start();
 
+// Set configuration
 source.setConfig("database.host", "localhost");
-String host = source.getConfig("database.host");
+source.setConfig("database.port", "5432");
+
+// Get configuration
+String dbHost = source.getConfig("database.host");
+
+// Load all configuration
+Map<String, String> allConfig = source.loadConfig();
 ```
+
+### With ACL Token
+
+```java
+ConsulConfigSourceConfig config = ConsulConfigSourceConfig.builder()
+    .host("consul.example.com")
+    .port(8500)
+    .aclToken("your-acl-token-here")
+    .keyPrefix("config/myapp")
+    .build();
+```
+
+### With Datacenter
+
+```java
+ConsulConfigSourceConfig config = ConsulConfigSourceConfig.builder()
+    .host("consul.example.com")
+    .port(8500)
+    .datacenter("dc1")
+    .keyPrefix("config/myapp")
+    .build();
+```
+
+### Configuration Change Listeners
+
+```java
+ConsulConfigSourceConfig config = ConsulConfigSourceConfig.builder()
+    .host("localhost")
+    .port(8500)
+    .keyPrefix("config/myapp")
+    .watchEnabled(true)
+    .build();
+
+ConsulConfigSource source = new ConsulConfigSource(config);
+source.start();
+
+// Register listener for configuration changes
+source.addListener(updatedConfig -> {
+    System.out.println("Configuration updated:");
+    updatedConfig.forEach((key, value) -> 
+        System.out.println(key + " = " + value));
+});
+
+// Configuration changes will trigger the listener
+```
+
+### Environment-Specific Configuration
+
+```java
+// Development
+ConsulConfigSourceConfig devConfig = ConsulConfigSourceConfig.builder()
+    .host("localhost")
+    .keyPrefix("config/myapp/dev")
+    .build();
+
+// Production
+ConsulConfigSourceConfig prodConfig = ConsulConfigSourceConfig.builder()
+    .host("consul.prod.example.com")
+    .aclToken(System.getenv("CONSUL_TOKEN"))
+    .keyPrefix("config/myapp/prod")
+    .datacenter("us-east-1")
+    .build();
+```
+
+## Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `host` | String | `localhost` | Consul agent hostname |
+| `port` | int | `8500` | Consul HTTP API port |
+| `aclToken` | String | `null` | ACL token for authentication |
+| `datacenter` | String | `null` | Datacenter name (uses agent's DC if null) |
+| `keyPrefix` | String | required | Key prefix for configuration hierarchy |
+| `watchEnabled` | boolean | `false` | Enable configuration change watching |
+| `watchIntervalSeconds` | long | `30` | Interval for polling configuration changes |
+
+## Architecture
+
+### Key Structure
+
+Consul KV uses a hierarchical key structure:
+
+```
+{keyPrefix}/database/host   -> "localhost"
+{keyPrefix}/database/port   -> "5432"
+{keyPrefix}/app/name        -> "My Application"
+```
+
+Example with prefix `config/myapp`:
+```
+config/myapp/database/host  -> "localhost"
+config/myapp/database/port  -> "5432"
+config/myapp/app/name       -> "My Application"
+```
+
+### Watch Mechanism
+
+When `watchEnabled` is true, the configuration source:
+
+1. Polls Consul KV at configured interval
+2. Compares with cached configuration
+3. If changed, notifies registered listeners
+4. Updates local cache
+
+### Caching
+
+- Configuration is cached locally for performance
+- Cache is updated on each `getConfig()` call
+- Watch mechanism updates cache automatically
+- Cache is cleared on `close()`
+
+## Consul Setup
+
+### Docker (Development)
+
+```bash
+docker run -d \
+  --name consul \
+  -p 8500:8500 \
+  consul:latest \
+  agent -dev -ui -client=0.0.0.0
+```
+
+### Docker (Production Mode)
+
+```bash
+docker run -d \
+  --name consul \
+  -p 8500:8500 \
+  -p 8600:8600/udp \
+  consul:latest \
+  agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+```
+
+### Kubernetes
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul
+spec:
+  selector:
+    app: consul
+  ports:
+    - port: 8500
+      name: http
+    - port: 8600
+      protocol: UDP
+      name: dns
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: consul
+spec:
+  serviceName: consul
+  replicas: 3
+  selector:
+    matchLabels:
+      app: consul
+  template:
+    metadata:
+      labels:
+        app: consul
+    spec:
+      containers:
+      - name: consul
+        image: consul:latest
+        ports:
+        - containerPort: 8500
+        - containerPort: 8600
+        args:
+        - "agent"
+        - "-server"
+        - "-bootstrap-expect=3"
+        - "-ui"
+```
+
+### Setting Configuration via Consul CLI
+
+```bash
+# Set values
+consul kv put config/myapp/database/host localhost
+consul kv put config/myapp/database/port 5432
+
+# Get values
+consul kv get config/myapp/database/host
+
+# List all keys
+consul kv get -keys config/myapp/
+
+# Delete values
+consul kv delete config/myapp/database/host
+```
+
+## ACL Setup (Production)
+
+### Enable ACLs
+
+```bash
+# In consul config
+acl {
+  enabled = true
+  default_policy = "deny"
+  enable_token_persistence = true
+}
+```
+
+### Create Token for Application
+
+```bash
+# Create policy
+consul acl policy create \
+  -name "myapp-config" \
+  -description "Policy for myapp configuration" \
+  -rules 'key_prefix "config/myapp/" { policy = "write" }'
+
+# Create token
+consul acl token create \
+  -description "Token for myapp" \
+  -policy-name "myapp-config"
+```
+
+## Comparison with Alternatives
+
+| Feature | Consul | Etcd | Vault | ZooKeeper |
+|---------|--------|------|-------|-----------|
+| KV Store | Yes | Yes | Yes (v2) | Yes |
+| Watch Support | Yes | Yes | No | Yes |
+| ACL Support | Yes | Yes | Yes | Yes |
+| UI | Yes | Limited | Yes | No |
+| Service Mesh | Yes | No | No | No |
+| Setup | Medium | Low | Medium | Medium |
+
+**Use Consul when:**
+- You need service discovery beyond configuration
+- You want built-in ACLs and UI
+- You're building a microservices architecture
+- You need service mesh capabilities
+
+**Prefer alternatives when:**
+- **Etcd**: You're using Kubernetes (etcd is native)
+- **Vault**: You need secrets management with rotation
+- **ZooKeeper**: You have existing ZooKeeper infrastructure
 
 ## Testing
 
@@ -51,25 +308,52 @@ This module has comprehensive unit tests covering all business logic and API met
 - ✅ Thread safety (concurrent operations)
 - ✅ Edge cases and null checks
 
-**What is NOT Tested (and why):**
-- ❌ **Consul client connection/bootstrap** - Requires real Consul server or extremely complex mocking of the Consul client library internals
-- ❌ **Watch polling mechanism** - Background thread scheduling that requires integration testing with actual Consul server
-- ❌ **Network I/O and retry logic** - Deep within the Consul client library, not our code
+**What is NOT Tested:**
+- ❌ Consul client connection/bootstrap - Requires real Consul server
+- ❌ Watch polling mechanism - Background thread integration testing
+- ❌ Network I/O and retry logic - Deep within Consul client library
 
-**Why Not 100%?**
+### Running Tests
 
-This module integrates with HashiCorp Consul, an external distributed service. The untested code paths involve:
-1. Creating and configuring the Consul client connection
-2. Background watch threads and polling mechanisms
-3. Network communication handled by the Consul client library
+```bash
+mvn test -pl jplatform-config-consul
+```
 
-Testing these paths would require:
-- Integration tests with TestContainers running real Consul
-- Complex mocking of third-party library internals (anti-pattern)
-- Refactoring to inject more dependencies (over-engineering for testing)
+### Integration Tests (Optional)
 
-The current test suite validates all critical business logic and ensures the module works correctly when integrated with Consul. The untested paths are primarily framework/library initialization code that is better validated through integration testing.
+```bash
+# Start Consul
+docker run -d -p 8500:8500 --name consul-test consul agent -dev
 
-## Status
+# Run integration tests
+mvn verify -pl jplatform-config-consul
 
-Production-ready Consul configuration implementation with comprehensive unit test coverage of all business logic.
+# Stop Consul
+docker stop consul-test && docker rm consul-test
+```
+
+## Thread Safety
+
+- All public methods are thread-safe
+- CopyOnWriteArrayList for listener collections
+- ConcurrentHashMap for configuration caching
+- Synchronized access to Consul client
+
+## Best Practices
+
+1. **Use Key Prefixes**: Isolate environments with different prefixes
+2. **Enable ACLs**: Use tokens for production deployments
+3. **Watch Selectively**: Only enable watching when needed
+4. **Handle Failures**: Consul may be unavailable during deployment
+5. **Cache Appropriately**: Balance freshness vs. Consul load
+
+## Dependencies
+
+This module requires:
+
+- `com.orbitz.consul:consul-client:1.5.3` - Consul Java client
+- `org.slf4j:slf4j-api` - Logging facade
+
+## License
+
+Part of JPlatform - see main project for license details.
