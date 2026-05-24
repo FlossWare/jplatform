@@ -532,7 +532,6 @@ public class ApplicationManager implements PlatformManager {
             }
 
             context.setState(ApplicationState.UNDEPLOYED);
-            applications.remove(applicationId);
 
             // Remove from dependency resolver
             dependencyResolver.removeApplication(applicationId);
@@ -548,7 +547,8 @@ public class ApplicationManager implements PlatformManager {
             }
         } finally {
             lock.unlock();
-            // Remove lock after undeployment
+            // Remove application and lock after unlock to ensure proper cleanup ordering
+            applications.remove(applicationId);
             applicationLocks.remove(applicationId);
         }
     }
