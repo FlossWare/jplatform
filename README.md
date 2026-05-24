@@ -109,6 +109,20 @@ jplatform/
 ├── jplatform-storage/          # Persistent volume management ✅ **COMPLETE (2.0)**
 ├── jplatform-otel/             # OpenTelemetry integration ✅ **COMPLETE (2.0)**
 ├── jplatform-cluster/          # Multi-node clustering (Hazelcast) ✅ **COMPLETE**
+├── jplatform-cluster-consul/   # Consul clustering plugin ⚠️ **STUB**
+├── jplatform-cluster-etcd/     # etcd clustering plugin ⚠️ **STUB**
+├── jplatform-cluster-redis/    # Redis clustering plugin ⚠️ **STUB**
+├── jplatform-cluster-zookeeper/ # ZooKeeper clustering plugin ⚠️ **STUB**
+├── jplatform-registry-consul/  # Consul service registry ⚠️ **STUB**
+├── jplatform-registry-etcd/    # etcd service registry ⚠️ **STUB**
+├── jplatform-registry-eureka/  # Eureka service registry ⚠️ **STUB**
+├── jplatform-storage-s3/       # S3 volume storage ⚠️ **STUB**
+├── jplatform-storage-database/ # Database volume storage ⚠️ **STUB**
+├── jplatform-storage-redis/    # Redis volume storage ⚠️ **STUB**
+├── jplatform-config-consul/    # Consul config source ⚠️ **STUB**
+├── jplatform-config-etcd/      # etcd config source ⚠️ **STUB**
+├── jplatform-config-vault/     # Vault config source ⚠️ **STUB**
+├── jplatform-rest-api-netty/   # Netty API server ⚠️ **STUB**
 ├── jplatform-deployment/       # Deployment mechanisms
 ├── jplatform-launcher/         # Platform bootstrap and main entry point
 └── jplatform-samples/          # Sample applications

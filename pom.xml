@@ -52,6 +52,30 @@
         <module>jplatform-cluster</module>
         <module>jplatform-otel</module>
 
+        <!-- Clustering plugins -->
+        <module>jplatform-cluster-consul</module>
+        <module>jplatform-cluster-etcd</module>
+        <module>jplatform-cluster-redis</module>
+        <module>jplatform-cluster-zookeeper</module>
+
+        <!-- Service registry plugins -->
+        <module>jplatform-registry-consul</module>
+        <module>jplatform-registry-etcd</module>
+        <module>jplatform-registry-eureka</module>
+
+        <!-- Storage plugins -->
+        <module>jplatform-storage-s3</module>
+        <module>jplatform-storage-database</module>
+        <module>jplatform-storage-redis</module>
+
+        <!-- Config source plugins -->
+        <module>jplatform-config-consul</module>
+        <module>jplatform-config-etcd</module>
+        <module>jplatform-config-vault</module>
+
+        <!-- API server plugins -->
+        <module>jplatform-rest-api-netty</module>
+
         <module>jplatform-launcher</module>
         <module>jplatform-samples</module>
     </modules>
