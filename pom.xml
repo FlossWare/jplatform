@@ -72,6 +72,7 @@
         <module>jplatform-config-consul</module>
         <module>jplatform-config-etcd</module>
         <module>jplatform-config-vault</module>
+        <module>jplatform-config-zookeeper</module>
 
         <!-- API server plugins -->
         <module>jplatform-rest-api-netty</module>

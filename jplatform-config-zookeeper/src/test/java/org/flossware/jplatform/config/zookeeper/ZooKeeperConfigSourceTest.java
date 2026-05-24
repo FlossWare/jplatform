@@ -1,0 +1,246 @@
+package org.flossware.jplatform.config.zookeeper;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.test.TestingServer;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class ZooKeeperConfigSourceTest {
+
+    private TestingServer zkServer;
+    private ZooKeeperConfigSourceConfig config;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        zkServer = new TestingServer();
+
+        config = ZooKeeperConfigSourceConfig.builder()
+            .connectString(zkServer.getConnectString())
+            .basePath("/test-config")
+            .sessionTimeoutMs(10000)
+            .connectionTimeoutMs(5000)
+            .build();
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        if (zkServer != null) {
+            zkServer.close();
+        }
+    }
+
+    @Test
+    void testConstructorNullConfig() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            new ZooKeeperConfigSource(null);
+        });
+        assertTrue(exception.getMessage().contains("Config"));
+    }
+
+    @Test
+    void testStartAndClose() {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+
+        source.start();
+        assertNotNull(source.getClient());
+
+        source.close();
+    }
+
+    @Test
+    void testSetAndGetConfig() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        source.setConfig("app.name", "test-app");
+        source.setConfig("app.version", "1.0.0");
+
+        assertEquals("test-app", source.getConfig("app.name"));
+        assertEquals("1.0.0", source.getConfig("app.version"));
+
+        source.close();
+    }
+
+    @Test
+    void testLoadConfig() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        source.setConfig("key1", "value1");
+        source.setConfig("key2", "value2");
+
+        Map<String, String> allConfig = source.loadConfig();
+        assertTrue(allConfig.size() >= 2);
+        assertEquals("value1", allConfig.get("key1"));
+        assertEquals("value2", allConfig.get("key2"));
+
+        source.close();
+    }
+
+    @Test
+    void testDeleteConfig() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        source.setConfig("temp.key", "temp-value");
+        assertEquals("temp-value", source.getConfig("temp.key"));
+
+        source.deleteConfig("temp.key");
+        assertNull(source.getConfig("temp.key"));
+
+        source.close();
+    }
+
+    @Test
+    void testUpdateConfig() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        source.setConfig("update.key", "original");
+        assertEquals("original", source.getConfig("update.key"));
+
+        source.setConfig("update.key", "updated");
+        assertEquals("updated", source.getConfig("update.key"));
+
+        source.close();
+    }
+
+    @Test
+    void testConfigListener() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        // Give time for watchers to initialize
+        Thread.sleep(500);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Map<String, String>> receivedConfig = new AtomicReference<>();
+
+        source.addListener("test-listener", cfg -> {
+            receivedConfig.set(cfg);
+            latch.countDown();
+        });
+
+        source.setConfig("listener.test", "value");
+
+        assertTrue(latch.await(10, TimeUnit.SECONDS));
+        assertNotNull(receivedConfig.get());
+        assertTrue(receivedConfig.get().containsKey("listener.test"));
+
+        source.close();
+    }
+
+    @Test
+    void testRemoveListener() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        source.addListener("test-listener", config -> latch.countDown());
+        source.removeListener("test-listener");
+
+        source.setConfig("test.key", "value");
+
+        assertFalse(latch.await(1, TimeUnit.SECONDS));
+
+        source.close();
+    }
+
+    @Test
+    void testGetConfigNonExistent() {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        assertNull(source.getConfig("non.existent.key"));
+
+        source.close();
+    }
+
+    @Test
+    void testLoadConfigBeforeStart() {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+
+        Map<String, String> config = source.loadConfig();
+        assertTrue(config.isEmpty());
+    }
+
+    @Test
+    void testSetConfigNotStarted() {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            source.setConfig("key", "value");
+        });
+        assertTrue(exception.getMessage().contains("not started"));
+    }
+
+    @Test
+    void testDeleteConfigNotStarted() {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            source.deleteConfig("key");
+        });
+        assertTrue(exception.getMessage().contains("not started"));
+    }
+
+    @Test
+    void testHierarchicalKeys() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        source.setConfig("app.database.host", "localhost");
+        source.setConfig("app.database.port", "5432");
+        source.setConfig("app.server.port", "8080");
+
+        assertEquals("localhost", source.getConfig("app.database.host"));
+        assertEquals("5432", source.getConfig("app.database.port"));
+        assertEquals("8080", source.getConfig("app.server.port"));
+
+        source.close();
+    }
+
+    @Test
+    void testStartIdempotent() {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+
+        source.start();
+        source.start();
+
+        source.close();
+    }
+
+    @Test
+    void testMultipleListeners() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        CountDownLatch latch = new CountDownLatch(2);
+
+        source.addListener("listener1", config -> latch.countDown());
+        source.addListener("listener2", config -> latch.countDown());
+
+        source.setConfig("multi.test", "value");
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+        source.close();
+    }
+
+    @Test
+    void testGetConfigCache() {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+
+        Map<String, String> cache = source.getConfigCache();
+        assertNotNull(cache);
+    }
+}
