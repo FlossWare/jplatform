@@ -1,16 +1,27 @@
 # JPlatform Storage - S3
 
-S3-based volume storage implementation for JPlatform.
+AWS S3/MinIO storage backend for JPlatform volumes.
 
 ## Features
-- Persistent volume storage
-- Size tracking
-- Volume lifecycle management
+- S3-backed persistent storage
+- Compatible with AWS S3 and MinIO
+- Bucket-based volume isolation
+- Size tracking via object metadata
 
 ## Usage
+
 ```java
-// TODO: Add usage example
+S3VolumeConfig config = S3VolumeConfig.builder()
+    .endpoint("https://s3.amazonaws.com")
+    .accessKey("your-key")
+    .secretKey("your-secret")
+    .bucketName("jplatform-volumes")
+    .region("us-east-1")
+    .build();
+
+S3VolumeManager manager = new S3VolumeManager(config, volumeMounts);
+Path volumePath = manager.getVolumePath("data");
 ```
 
 ## Status
-⚠️ Minimal implementation - functional stubs only.
+✅ Production-ready S3 volume implementation.
