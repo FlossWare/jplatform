@@ -70,13 +70,13 @@ import java.util.*;
  * jplatform> exit
  * }</pre>
  *
- * @see ApplicationManager
+ * @see PlatformManager
  */
 public class PlatformLauncher {
 
     private static final Logger logger = LoggerFactory.getLogger(PlatformLauncher.class);
 
-    private final ApplicationManager applicationManager;
+    private final PlatformManager applicationManager;
     private final InMemoryMessageBus messageBus;
     private final ServiceRegistryImpl serviceRegistry;
     private final YamlDescriptorParser yamlParser;

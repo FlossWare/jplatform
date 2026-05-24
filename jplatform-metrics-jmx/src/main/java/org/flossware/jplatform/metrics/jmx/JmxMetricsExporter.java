@@ -3,7 +3,7 @@ package org.flossware.jplatform.metrics.jmx;
 import org.flossware.jplatform.api.ApplicationContext;
 import org.flossware.jplatform.api.JmxExporterConfig;
 import org.flossware.jplatform.api.MetricsExporter;
-import org.flossware.jplatform.core.ApplicationManager;
+import org.flossware.jplatform.api.PlatformManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +65,7 @@ public class JmxMetricsExporter implements MetricsExporter {
     private static final Logger logger = LoggerFactory.getLogger(JmxMetricsExporter.class);
 
     private final JmxExporterConfig config;
-    private final ApplicationManager manager;
+    private final PlatformManager manager;
     private final MBeanServer mBeanServer;
     private final Map<String, ObjectName> registeredMBeans;
     private volatile boolean running;
@@ -75,15 +75,15 @@ public class JmxMetricsExporter implements MetricsExporter {
      * Uses the platform MBean server for MBean registration.
      *
      * @param config the JMX exporter configuration
-     * @param manager the application manager for lifecycle operations
+     * @param manager the platform manager for lifecycle operations
      * @throws IllegalArgumentException if config or manager is null
      */
-    public JmxMetricsExporter(JmxExporterConfig config, ApplicationManager manager) {
+    public JmxMetricsExporter(JmxExporterConfig config, PlatformManager manager) {
         if (config == null) {
             throw new IllegalArgumentException("JmxExporterConfig cannot be null");
         }
         if (manager == null) {
-            throw new IllegalArgumentException("ApplicationManager cannot be null");
+            throw new IllegalArgumentException("PlatformManager cannot be null");
         }
 
         this.config = config;

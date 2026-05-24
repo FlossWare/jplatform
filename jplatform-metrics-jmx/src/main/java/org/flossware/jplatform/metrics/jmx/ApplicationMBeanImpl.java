@@ -2,12 +2,12 @@ package org.flossware.jplatform.metrics.jmx;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.flossware.jplatform.api.ApplicationContext;
+import org.flossware.jplatform.api.PlatformManager;
 import org.flossware.jplatform.api.ResourceMonitor;
 import org.flossware.jplatform.api.ResourceSnapshot;
 import org.flossware.jplatform.api.ResourceUsageHistory;
 import org.flossware.jplatform.api.ThreadPoolExecutor;
 import org.flossware.jplatform.api.ThreadPoolStats;
-import org.flossware.jplatform.core.ApplicationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  *
  * @see ApplicationMBean
  * @see org.flossware.jplatform.api.ApplicationContext
- * @see org.flossware.jplatform.core.ApplicationManager
+ * @see org.flossware.jplatform.api.PlatformManager
  */
 public class ApplicationMBeanImpl implements ApplicationMBean {
 
@@ -55,7 +55,7 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
 
     private final String applicationId;
     private final ApplicationContext context;
-    private final ApplicationManager manager;
+    private final PlatformManager manager;
     private final ObjectMapper objectMapper;
 
     /**
@@ -63,10 +63,10 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
      *
      * @param applicationId the unique identifier for the application
      * @param context the application context containing metrics and resources
-     * @param manager the application manager for lifecycle operations
+     * @param manager the platform manager for lifecycle operations
      * @throws IllegalArgumentException if any parameter is null
      */
-    public ApplicationMBeanImpl(String applicationId, ApplicationContext context, ApplicationManager manager) {
+    public ApplicationMBeanImpl(String applicationId, ApplicationContext context, PlatformManager manager) {
         if (applicationId == null || applicationId.isEmpty()) {
             throw new IllegalArgumentException("Application ID cannot be null or empty");
         }
@@ -74,7 +74,7 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
             throw new IllegalArgumentException("ApplicationContext cannot be null");
         }
         if (manager == null) {
-            throw new IllegalArgumentException("ApplicationManager cannot be null");
+            throw new IllegalArgumentException("PlatformManager cannot be null");
         }
 
         this.applicationId = applicationId;

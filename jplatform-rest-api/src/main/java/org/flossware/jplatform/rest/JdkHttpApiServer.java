@@ -5,9 +5,9 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.flossware.jplatform.api.ApiServerConfig;
 import org.flossware.jplatform.api.PlatformApiServer;
+import org.flossware.jplatform.api.PlatformManager;
 import org.flossware.jplatform.api.ServerShutdownException;
 import org.flossware.jplatform.api.ServerStartupException;
-import org.flossware.jplatform.core.ApplicationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,14 +68,14 @@ import java.util.concurrent.TimeUnit;
  *
  * @see PlatformApiServer
  * @see ApiServerConfig
- * @see ApplicationManager
+ * @see PlatformManager
  */
 public class JdkHttpApiServer implements PlatformApiServer {
 
     private static final Logger logger = LoggerFactory.getLogger(JdkHttpApiServer.class);
 
     private final ApiServerConfig config;
-    private final ApplicationManager manager;
+    private final PlatformManager manager;
     private HttpServer server;
     private ExecutorService executor;
     private volatile boolean running;
@@ -84,12 +84,12 @@ public class JdkHttpApiServer implements PlatformApiServer {
      * Constructs a new JDK HTTP API server.
      *
      * @param config the server configuration
-     * @param manager the application manager for handling application operations
+     * @param manager the platform manager for handling application operations
      * @throws NullPointerException if config or manager is null
      */
-    public JdkHttpApiServer(ApiServerConfig config, ApplicationManager manager) {
+    public JdkHttpApiServer(ApiServerConfig config, PlatformManager manager) {
         this.config = Objects.requireNonNull(config, "ApiServerConfig is required");
-        this.manager = Objects.requireNonNull(manager, "ApplicationManager is required");
+        this.manager = Objects.requireNonNull(manager, "PlatformManager is required");
         this.running = false;
     }
 

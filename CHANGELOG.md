@@ -16,6 +16,7 @@ and this project adheres to X.Y semantic versioning.
 - ThreadPoolConfig.Builder missing parameter validation (issue #44)
 - ApplicationResponseDTO returns actual deployment time instead of current time (issue #45)
 - Tight coupling - ApplicationManager now implements PlatformManager interface (issue #36)
+- Updated all dependent modules to use PlatformManager interface instead of concrete ApplicationManager (issue #36)
 
 ### Changed
 - CI/CD pipeline now active with automated version bumping and artifact publishing

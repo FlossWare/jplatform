@@ -4,8 +4,8 @@ import org.flossware.jplatform.api.ApplicationDescriptor;
 import org.flossware.jplatform.api.ApplicationDescriptorParser;
 import org.flossware.jplatform.api.DeploymentEventListener;
 import org.flossware.jplatform.api.ParseException;
+import org.flossware.jplatform.api.PlatformManager;
 import org.flossware.jplatform.api.WatcherConfig;
-import org.flossware.jplatform.core.ApplicationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ import java.util.Map;
  * operations.</p>
  *
  * @see DeploymentEventListener
- * @see ApplicationManager
+ * @see PlatformManager
  * @see ApplicationDescriptorParser
  * @see DescriptorRegistry
  */
@@ -61,7 +61,7 @@ public class AutoDeploymentHandler implements DeploymentEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(AutoDeploymentHandler.class);
 
-    private final ApplicationManager applicationManager;
+    private final PlatformManager applicationManager;
     private final Map<String, ApplicationDescriptorParser> parsers;
     private final WatcherConfig config;
     private final DescriptorRegistry registry;
@@ -69,18 +69,18 @@ public class AutoDeploymentHandler implements DeploymentEventListener {
     /**
      * Creates a new auto-deployment handler.
      *
-     * @param applicationManager the application manager for lifecycle operations
+     * @param applicationManager the platform manager for lifecycle operations
      * @param parsers map of file extensions to their corresponding parsers
      * @param config the watcher configuration
      * @throws NullPointerException if applicationManager or parsers is null
      */
     public AutoDeploymentHandler(
-            ApplicationManager applicationManager,
+            PlatformManager applicationManager,
             Map<String, ApplicationDescriptorParser> parsers,
             WatcherConfig config) {
 
         if (applicationManager == null) {
-            throw new NullPointerException("applicationManager cannot be null");
+            throw new NullPointerException("platformManager cannot be null");
         }
         if (parsers == null) {
             throw new NullPointerException("parsers cannot be null");

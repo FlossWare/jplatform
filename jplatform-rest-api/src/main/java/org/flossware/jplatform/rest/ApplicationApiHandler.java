@@ -5,7 +5,6 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.flossware.jplatform.api.*;
-import org.flossware.jplatform.core.ApplicationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,7 @@ import java.util.regex.Pattern;
  * }
  * }</pre>
  *
- * @see ApplicationManager
+ * @see PlatformManager
  * @see JdkHttpApiServer
  */
 public class ApplicationApiHandler implements HttpHandler {
@@ -58,15 +57,15 @@ public class ApplicationApiHandler implements HttpHandler {
     private static final Pattern APP_STOP_PATTERN = Pattern.compile("/api/applications/([^/]+)/stop$");
     private static final Pattern APP_METRICS_PATTERN = Pattern.compile("/api/applications/([^/]+)/metrics$");
 
-    private final ApplicationManager manager;
+    private final PlatformManager manager;
 
     /**
      * Constructs a new application API handler.
      *
-     * @param manager the application manager to delegate operations to
+     * @param manager the platform manager to delegate operations to
      */
-    public ApplicationApiHandler(ApplicationManager manager) {
-        this.manager = Objects.requireNonNull(manager, "ApplicationManager is required");
+    public ApplicationApiHandler(PlatformManager manager) {
+        this.manager = Objects.requireNonNull(manager, "PlatformManager is required");
     }
 
     /**
