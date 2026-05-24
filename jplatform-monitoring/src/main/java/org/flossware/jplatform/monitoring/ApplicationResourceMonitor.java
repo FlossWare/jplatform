@@ -85,8 +85,8 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
      * @throws NullPointerException if applicationId or threadGroup is null
      */
     public ApplicationResourceMonitor(String applicationId, ThreadGroup threadGroup) {
-        this.applicationId = applicationId;
-        this.applicationThreadGroup = threadGroup;
+        this.applicationId = Objects.requireNonNull(applicationId, "applicationId cannot be null");
+        this.applicationThreadGroup = Objects.requireNonNull(threadGroup, "threadGroup cannot be null");
         this.history = new CopyOnWriteArrayList<>();
         this.listeners = new CopyOnWriteArrayList<>();
 
@@ -207,6 +207,8 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
      */
     @Override
     public ResourceUsageHistory getHistory(Duration duration) {
+        Objects.requireNonNull(duration, "duration cannot be null");
+
         long cutoffTime = System.currentTimeMillis() - duration.toMillis();
         List<ResourceSnapshot> filtered = new ArrayList<>();
 
@@ -279,6 +281,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
      */
     @Override
     public void addListener(ResourceEventListener listener) {
+        Objects.requireNonNull(listener, "listener cannot be null");
         listeners.add(listener);
     }
 

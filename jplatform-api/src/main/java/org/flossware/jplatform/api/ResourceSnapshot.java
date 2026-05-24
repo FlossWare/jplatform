@@ -43,10 +43,30 @@ public class ResourceSnapshot {
      * @param bytesRead the cumulative bytes read
      * @param bytesWritten the cumulative bytes written
      * @param customMetrics application-specific metrics, or null for none
+     * @throws IllegalArgumentException if any metric value is negative
      */
     public ResourceSnapshot(long timestamp, long cpuTimeNanos, long heapUsedBytes,
                           int threadCount, long bytesRead, long bytesWritten,
                           Map<String, Object> customMetrics) {
+        if (timestamp < 0) {
+            throw new IllegalArgumentException("timestamp cannot be negative: " + timestamp);
+        }
+        if (cpuTimeNanos < 0) {
+            throw new IllegalArgumentException("cpuTimeNanos cannot be negative: " + cpuTimeNanos);
+        }
+        if (heapUsedBytes < 0) {
+            throw new IllegalArgumentException("heapUsedBytes cannot be negative: " + heapUsedBytes);
+        }
+        if (threadCount < 0) {
+            throw new IllegalArgumentException("threadCount cannot be negative: " + threadCount);
+        }
+        if (bytesRead < 0) {
+            throw new IllegalArgumentException("bytesRead cannot be negative: " + bytesRead);
+        }
+        if (bytesWritten < 0) {
+            throw new IllegalArgumentException("bytesWritten cannot be negative: " + bytesWritten);
+        }
+
         this.timestamp = timestamp;
         this.cpuTimeNanos = cpuTimeNanos;
         this.heapUsedBytes = heapUsedBytes;
