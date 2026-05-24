@@ -118,8 +118,12 @@ public class ResourceQuota {
          *
          * @param bytes the maximum heap size in bytes
          * @return this builder
+         * @throws IllegalArgumentException if bytes is negative
          */
         public Builder maxHeapBytes(long bytes) {
+            if (bytes < 0) {
+                throw new IllegalArgumentException("maxHeapBytes must be >= 0, got: " + bytes);
+            }
             this.maxHeapBytes = Optional.of(bytes);
             return this;
         }
@@ -129,8 +133,12 @@ public class ResourceQuota {
          *
          * @param count the maximum thread count
          * @return this builder
+         * @throws IllegalArgumentException if count is negative
          */
         public Builder maxThreadCount(int count) {
+            if (count < 0) {
+                throw new IllegalArgumentException("maxThreadCount must be >= 0, got: " + count);
+            }
             this.maxThreadCount = Optional.of(count);
             return this;
         }
@@ -140,8 +148,12 @@ public class ResourceQuota {
          *
          * @param nanos the maximum CPU time in nanoseconds
          * @return this builder
+         * @throws IllegalArgumentException if nanos is negative
          */
         public Builder maxCpuTimeNanos(long nanos) {
+            if (nanos < 0) {
+                throw new IllegalArgumentException("maxCpuTimeNanos must be >= 0, got: " + nanos);
+            }
             this.maxCpuTimeNanos = Optional.of(nanos);
             return this;
         }

@@ -158,10 +158,9 @@ public class DependencyResolver {
         }
 
         // Check for circular dependencies
-        try {
-            graph.detectCycle();
-        } catch (Exception e) {
-            errors.add("Circular dependency detected: " + e.getMessage());
+        List<String> cycle = graph.detectCycle();
+        if (!cycle.isEmpty()) {
+            errors.add("Circular dependency detected: " + String.join(" -> ", cycle));
         }
 
         return errors;

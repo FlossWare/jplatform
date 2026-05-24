@@ -116,4 +116,93 @@ class DependencyResolverTest {
         assertNotNull(errors);
         assertTrue(errors.isEmpty());
     }
+
+    @Test
+    void testValidateDependenciesDetectsCircularDependency() {
+        // Create circular dependency: app-a -> app-b -> app-c -> app-a
+        // Note: Dependencies are service-based, not application ID-based
+
+        ApplicationDescriptor appA = ApplicationDescriptor.builder()
+                .applicationId("app-a")
+                .mainClass("com.example.AppA")
+                .addClasspathEntry(URI.create("file:///app-a.jar"))
+                .addDependency(new ApplicationDependency("ServiceB", ApplicationDependency.DependencyType.REQUIRED, "1.0.0"))
+                .build();
+
+        ApplicationDescriptor appB = ApplicationDescriptor.builder()
+                .applicationId("app-b")
+                .mainClass("com.example.AppB")
+                .addClasspathEntry(URI.create("file:///app-b.jar"))
+                .addDependency(new ApplicationDependency("ServiceC", ApplicationDependency.DependencyType.REQUIRED, "1.0.0"))
+                .build();
+
+        ApplicationDescriptor appC = ApplicationDescriptor.builder()
+                .applicationId("app-c")
+                .mainClass("com.example.AppC")
+                .addClasspathEntry(URI.create("file:///app-c.jar"))
+                .addDependency(new ApplicationDependency("ServiceA", ApplicationDependency.DependencyType.REQUIRED, "1.0.0"))
+                .build();
+
+        // Register service providers
+        resolver.registerServiceProvider("app-a", "ServiceA");
+        resolver.registerServiceProvider("app-b", "ServiceB");
+        resolver.registerServiceProvider("app-c", "ServiceC");
+
+        // Add applications
+        resolver.addApplication("app-a", appA);
+        resolver.addApplication("app-b", appB);
+        resolver.addApplication("app-c", appC);
+
+        // Validate app-a - should detect circular dependency
+        List<String> errors = resolver.validateDependencies("app-a");
+
+        assertNotNull(errors);
+        assertFalse(errors.isEmpty(), "Should detect circular dependency");
+        assertTrue(errors.stream().anyMatch(err -> err.contains("Circular dependency detected")),
+                "Error should mention circular dependency");
+    }
+
+    @Test
+    void testGetStartupOrderThrowsExceptionForCircularDependency() {
+        // Create circular dependency: app-a -> app-b -> app-c -> app-a
+
+        ApplicationDescriptor appA = ApplicationDescriptor.builder()
+                .applicationId("app-a")
+                .mainClass("com.example.AppA")
+                .addClasspathEntry(URI.create("file:///app-a.jar"))
+                .addDependency(new ApplicationDependency("ServiceB", ApplicationDependency.DependencyType.REQUIRED, "1.0.0"))
+                .build();
+
+        ApplicationDescriptor appB = ApplicationDescriptor.builder()
+                .applicationId("app-b")
+                .mainClass("com.example.AppB")
+                .addClasspathEntry(URI.create("file:///app-b.jar"))
+                .addDependency(new ApplicationDependency("ServiceC", ApplicationDependency.DependencyType.REQUIRED, "1.0.0"))
+                .build();
+
+        ApplicationDescriptor appC = ApplicationDescriptor.builder()
+                .applicationId("app-c")
+                .mainClass("com.example.AppC")
+                .addClasspathEntry(URI.create("file:///app-c.jar"))
+                .addDependency(new ApplicationDependency("ServiceA", ApplicationDependency.DependencyType.REQUIRED, "1.0.0"))
+                .build();
+
+        // Register service providers
+        resolver.registerServiceProvider("app-a", "ServiceA");
+        resolver.registerServiceProvider("app-b", "ServiceB");
+        resolver.registerServiceProvider("app-c", "ServiceC");
+
+        // Add applications
+        resolver.addApplication("app-a", appA);
+        resolver.addApplication("app-b", appB);
+        resolver.addApplication("app-c", appC);
+
+        // getStartupOrder should throw for circular dependencies
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            resolver.getStartupOrder();
+        });
+
+        assertTrue(exception.getMessage().contains("Circular dependency detected"),
+                "Exception should mention circular dependency");
+    }
 }
