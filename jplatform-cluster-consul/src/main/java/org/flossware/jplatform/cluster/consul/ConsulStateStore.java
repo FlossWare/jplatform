@@ -93,6 +93,12 @@ public class ConsulStateStore implements ClusterStateStore {
      */
     @Override
     public void putApplicationState(String applicationId, ApplicationState state) {
+        if (applicationId == null) {
+            throw new IllegalArgumentException("applicationId cannot be null");
+        }
+        if (state == null) {
+            throw new IllegalArgumentException("state cannot be null");
+        }
         logger.debug("Storing application state: {} -> {}", applicationId, state);
         String key = STATE_KEY_PREFIX + applicationId;
         kvClient.putValue(key, state.name());
@@ -154,6 +160,12 @@ public class ConsulStateStore implements ClusterStateStore {
      */
     @Override
     public void putApplicationDescriptor(String applicationId, ApplicationDescriptor descriptor) {
+        if (applicationId == null) {
+            throw new IllegalArgumentException("applicationId cannot be null");
+        }
+        if (descriptor == null) {
+            throw new IllegalArgumentException("descriptor cannot be null");
+        }
         try {
             String json = objectMapper.writeValueAsString(descriptor);
             logger.debug("Storing application descriptor: {} (size: {} bytes)",

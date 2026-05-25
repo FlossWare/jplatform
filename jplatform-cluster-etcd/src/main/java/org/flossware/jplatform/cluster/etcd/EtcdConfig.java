@@ -162,6 +162,10 @@ public class EtcdConfig {
             if (leaseTtl < 5) {
                 throw new IllegalArgumentException("Lease TTL must be at least 5 seconds");
             }
+            // Prevent overflow when converted to milliseconds and ensure reasonable values
+            if (leaseTtl > 86400) {  // 24 hours
+                throw new IllegalArgumentException("Lease TTL too large (max 86400 seconds / 24 hours): " + leaseTtl);
+            }
             this.leaseTtl = leaseTtl;
             return this;
         }
