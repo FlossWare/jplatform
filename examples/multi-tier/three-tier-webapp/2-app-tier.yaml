@@ -1,0 +1,85 @@
+# Application Tier - Spring Boot Java Application
+# This Java app provides the business logic and REST API
+# Deploy second: jplatform deploy 2-app-tier.yaml
+
+applicationId: spring-app
+name: Spring Boot Application Server
+description: Application tier running Spring Boot with REST API
+
+# Java Application Configuration
+mainClass: "com.example.app.Application"
+
+classpath:
+  - "/var/lib/jplatform/apps/spring-app/app.jar"
+
+# Application Properties
+properties:
+  # Database connection (points to VM from tier 1)
+  spring.datasource.url: "jdbc:postgresql://192.168.122.10:5432/appdb"
+  spring.datasource.username: "appuser"
+  spring.datasource.password: "${DB_PASSWORD}"  # Set via environment
+  
+  # Application server
+  server.port: "8081"
+  server.address: "0.0.0.0"
+  
+  # JPlatform messaging
+  jplatform.messaging.enabled: "true"
+  jplatform.service.register: "true"
+  jplatform.service.name: "app-server"
+  jplatform.service.port: "8081"
+
+# Resource Quotas (moderate for application tier)
+resources:
+  cpu: 4
+  memory: 8192      # 8GB heap
+  maxThreads: 200
+
+# Thread Pool Configuration
+threadPoolConfig:
+  corePoolSize: 20
+  maxPoolSize: 100
+  queueCapacity: 500
+
+# Dependencies - App depends on database
+dependencies:
+  - postgres-db  # Wait for database VM to start
+
+# Health Check
+healthCheck:
+  enabled: true
+  interval: 30
+  timeout: 5
+  retries: 3
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus: true
+  interval: 30
+
+# Tags
+tags:
+  tier: application
+  environment: production
+  workload-type: java
+  framework: spring-boot
+  version: "3.2"
+
+# Notes:
+# 1. Build your Spring Boot app:
+#    mvn clean package
+#
+# 2. Copy JAR to JPlatform:
+#    mkdir -p /var/lib/jplatform/apps/spring-app
+#    cp target/app.jar /var/lib/jplatform/apps/spring-app/
+#
+# 3. Set database password:
+#    export DB_PASSWORD=secretpassword
+#
+# 4. The app will wait for postgres-db to be RUNNING before starting
+#
+# 5. REST API endpoints:
+#    GET  http://localhost:8081/api/users
+#    POST http://localhost:8081/api/users
+#    GET  http://localhost:8081/actuator/health

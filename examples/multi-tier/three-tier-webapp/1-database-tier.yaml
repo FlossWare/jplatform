@@ -1,0 +1,68 @@
+# Database Tier - PostgreSQL Virtual Machine
+# This VM runs the database for our three-tier application
+# Deploy first: jplatform deploy 1-database-tier.yaml
+
+applicationId: postgres-db
+name: PostgreSQL Database Server
+description: Database tier running PostgreSQL 15 in a VM
+
+# VM Configuration
+properties:
+  vm.name: postgres-prod
+  vm.vcpu: "8"
+  vm.memory: "32768"  # 32GB RAM for database workloads
+  vm.disk: "/var/lib/jplatform/vms/postgres-db.qcow2"
+  vm.disk.format: "qcow2"
+  vm.network: "bridge"
+  vm.bridge: "virbr0"
+  vm.vnc.enabled: "true"
+  vm.vnc.port: "5900"
+
+# Resource Quotas
+resources:
+  cpu: 8          # Max 8 vCPUs
+  memory: 32768   # Max 32GB RAM
+  disk: 524288    # Max 500GB disk
+
+# Dependencies - None (database is the foundation)
+dependencies: []
+
+# Health Check
+healthCheck:
+  enabled: true
+  interval: 30
+  timeout: 5
+  retries: 3
+  # For VMs, health check verifies the VM is running and responsive
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus: true
+  interval: 30
+
+# Tags
+tags:
+  tier: database
+  environment: production
+  workload-type: vm
+  database: postgresql
+  version: "15"
+
+# Notes:
+# 1. Create disk image before deploying:
+#    qemu-img create -f qcow2 /var/lib/jplatform/vms/postgres-db.qcow2 500G
+#
+# 2. Optionally, use a pre-configured cloud image:
+#    wget https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img
+#    cp ubuntu-22.04-server-cloudimg-amd64.img /var/lib/jplatform/vms/postgres-db.qcow2
+#    qemu-img resize /var/lib/jplatform/vms/postgres-db.qcow2 500G
+#
+# 3. Connect via VNC to install PostgreSQL:
+#    vncviewer localhost:5900
+#
+# 4. PostgreSQL connection from app tier:
+#    Host: 192.168.122.x (check with: virsh domifaddr postgres-prod)
+#    Port: 5432
+#    Database: appdb
+#    User: appuser
