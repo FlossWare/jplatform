@@ -68,6 +68,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
             notifyListeners(id, state);
         } catch (Exception e) {
             logger.error("Failed to put application state for " + id, e);
+            throw new RuntimeException("Failed to persist application state to ZooKeeper", e);
         }
     }
 
@@ -125,6 +126,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
             }
         } catch (Exception e) {
             logger.error("Failed to put application descriptor for " + id, e);
+            throw new RuntimeException("Failed to persist application descriptor to ZooKeeper", e);
         }
     }
 

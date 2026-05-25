@@ -60,6 +60,7 @@ public class RedisStateStore implements ClusterStateStore {
             notifyListeners(id, state);
         } catch (Exception e) {
             logger.error("Failed to put application state for " + id, e);
+            throw new RuntimeException("Failed to persist application state to Redis", e);
         }
     }
 
@@ -68,10 +69,15 @@ public class RedisStateStore implements ClusterStateStore {
         try (Jedis jedis = pool.getResource()) {
             String json = jedis.hget(STATE_KEY, id);
             if (json == null) return null;
-            return mapper.readValue(json, ApplicationState.class);
+
+            try {
+                return mapper.readValue(json, ApplicationState.class);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize state for " + id, e);
+            }
         } catch (Exception e) {
             logger.error("Failed to get application state for " + id, e);
-            return null;
+            throw new RuntimeException("Redis error getting application state", e);
         }
     }
 
@@ -101,6 +107,7 @@ public class RedisStateStore implements ClusterStateStore {
             jedis.hset(DESCRIPTOR_KEY, id, json);
         } catch (Exception e) {
             logger.error("Failed to put application descriptor for " + id, e);
+            throw new RuntimeException("Failed to persist application descriptor to Redis", e);
         }
     }
 
@@ -109,10 +116,15 @@ public class RedisStateStore implements ClusterStateStore {
         try (Jedis jedis = pool.getResource()) {
             String json = jedis.hget(DESCRIPTOR_KEY, id);
             if (json == null) return null;
-            return mapper.readValue(json, ApplicationDescriptor.class);
+
+            try {
+                return mapper.readValue(json, ApplicationDescriptor.class);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize descriptor for " + id, e);
+            }
         } catch (Exception e) {
             logger.error("Failed to get application descriptor for " + id, e);
-            return null;
+            throw new RuntimeException("Redis error getting application descriptor", e);
         }
     }
 
@@ -170,6 +182,7 @@ public class RedisStateStore implements ClusterStateStore {
             jedis.del(STATE_KEY, DESCRIPTOR_KEY);
         } catch (Exception e) {
             logger.error("Failed to clear state store", e);
+            throw new RuntimeException("Failed to clear state store", e);
         }
     }
 }
