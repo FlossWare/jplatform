@@ -127,11 +127,12 @@ public class PlatformApiHandler implements HttpHandler {
      */
     private void sendJsonResponse(HttpExchange exchange, int statusCode, Object data) throws IOException {
         String json = mapper.writeValueAsString(data);
+        byte[] jsonBytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
         Headers headers = exchange.getResponseHeaders();
-        headers.set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(statusCode, json.length());
+        headers.set("Content-Type", "application/json; charset=UTF-8");
+        exchange.sendResponseHeaders(statusCode, jsonBytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
-            os.write(json.getBytes());
+            os.write(jsonBytes);
         }
     }
 

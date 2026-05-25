@@ -90,10 +90,11 @@ public class ApiAuthFilter extends Filter {
      */
     private void sendUnauthorized(HttpExchange exchange) throws IOException {
         String response = "{\"error\":\"Unauthorized\",\"message\":\"Invalid or missing API key\",\"status\":401}";
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(401, response.length());
+        byte[] responseBytes = response.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+        exchange.sendResponseHeaders(401, responseBytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
-            os.write(response.getBytes());
+            os.write(responseBytes);
         }
     }
 
