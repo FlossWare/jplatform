@@ -122,7 +122,7 @@ public class ConsulStateStore implements ClusterStateStore {
                 return ApplicationState.valueOf(stateName);
             } catch (IllegalArgumentException e) {
                 logger.error("Invalid state value for {}: {}", applicationId, stateName);
-                return null;
+                throw new RuntimeException("Failed to deserialize application state", e);
             }
         }
 
@@ -196,7 +196,7 @@ public class ConsulStateStore implements ClusterStateStore {
                 return objectMapper.readValue(json, ApplicationDescriptor.class);
             } catch (Exception e) {
                 logger.error("Failed to deserialize application descriptor: {}", applicationId, e);
-                return null;
+                throw new RuntimeException("Failed to deserialize application descriptor", e);
             }
         }
 
