@@ -79,7 +79,7 @@ public class EtcdClusterManager implements ClusterManager {
             lockClient = etcdClient.getLockClient();
             leaseClient = etcdClient.getLeaseClient();
 
-            leaseId = leaseClient.grant(this.config.getLeaseTtl()).get().getID();
+            leaseId = leaseClient.grant(this.config.getLeaseTtl()).get(10, TimeUnit.SECONDS).getID();
             scheduler = Executors.newScheduledThreadPool(1);
             long renewalPeriod = Math.max(1, this.config.getLeaseTtl() / 2);
             scheduler.scheduleAtFixedRate(this::keepAlive, 0, renewalPeriod, TimeUnit.SECONDS);
@@ -94,20 +94,44 @@ public class EtcdClusterManager implements ClusterManager {
     @Override
     public void leave() throws ClusterLeaveException {
         if (!joined) return;
-        try {
-            if (scheduler != null) {
+
+        Exception firstException = null;
+
+        // Shutdown scheduler
+        if (scheduler != null) {
+            try {
                 scheduler.shutdown();
+            } catch (Exception e) {
+                logger.error("Failed to shutdown scheduler", e);
+                firstException = e;
             }
-            if (leaseClient != null && leaseId > 0) {
-                leaseClient.revoke(leaseId).get();
+        }
+
+        // Revoke lease
+        if (leaseClient != null && leaseId > 0) {
+            try {
+                leaseClient.revoke(leaseId).get(5, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                logger.error("Failed to revoke lease", e);
+                if (firstException == null) firstException = e;
             }
-            if (etcdClient != null) {
+        }
+
+        // Close client
+        if (etcdClient != null) {
+            try {
                 etcdClient.close();
+            } catch (Exception e) {
+                logger.error("Failed to close client", e);
+                if (firstException == null) firstException = e;
             }
-            joined = false;
-            isLeader = false;
-        } catch (Exception e) {
-            throw new ClusterLeaveException("Failed to leave", e);
+        }
+
+        joined = false;
+        isLeader = false;
+
+        if (firstException != null) {
+            throw new ClusterLeaveException("Failed to leave", firstException);
         }
     }
 
@@ -166,7 +190,7 @@ public class EtcdClusterManager implements ClusterManager {
     private void keepAlive() {
         if (leaseId > 0) {
             try {
-                leaseClient.keepAliveOnce(leaseId).get();
+                leaseClient.keepAliveOnce(leaseId).get(5, TimeUnit.SECONDS);
             } catch (Exception e) {
                 logger.error("Failed to keep alive", e);
             }
