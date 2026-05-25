@@ -1,0 +1,35 @@
+# Example: Lightweight web server VM
+# Deploy with: jplatform deploy web-server-vm.yaml
+
+applicationId: web-server-vm
+name: NGINX Web Server VM
+description: Web server VM running NGINX
+
+properties:
+  vm.name: web-1
+  vm.vcpu: "2"
+  vm.memory: "4096"  # 4GB RAM
+  vm.disk: /var/lib/jplatform/vms/web-1.qcow2
+  vm.disk.format: qcow2
+  vm.network: nat  # Use NAT networking
+
+# Resource limits
+resources:
+  cpu: 2
+  memory: 4096
+  disk: 51200  # 50GB
+
+# This VM depends on database VM being running
+dependencies:
+  - database-vm
+
+# Health check
+healthCheck:
+  enabled: true
+  interval: 30
+  timeout: 5
+  retries: 3
+
+tags:
+  tier: web
+  environment: production

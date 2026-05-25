@@ -98,6 +98,16 @@ JPlatform provides runtime platform features comparable to Kubernetes/YARN for J
 - Configurable via `container.*` properties
 - [Documentation](CONTAINER_DEPLOYMENT.md)
 
+#### Virtual Machine Management ✅ **NEW**
+- Deploy and manage KVM/QEMU virtual machines via libvirt
+- Same API as other JPlatform workloads (containers, Java apps, native binaries)
+- Unified orchestration across ALL workload types (VMs, containers, Java apps, native binaries)
+- VM resource quotas and monitoring (vCPU, memory, disk)
+- Cross-workload dependencies (VMs can depend on containers, Java apps, etc.)
+- VNC console access for VM management
+- Configurable via `vm.*` properties
+- [Documentation](jplatform-vm-management/README.md)
+
 #### Enhanced Observability
 - OpenTelemetry integration for metrics export via OTLP protocol
 - Distributed tracing support (future enhancement)
@@ -129,6 +139,7 @@ jplatform/
 ├── jplatform-metrics-jmx/      # JMX metrics exporter ✅ **COMPLETE**
 ├── jplatform-metrics-prometheus/ # Prometheus metrics exporter ✅ **COMPLETE**
 ├── jplatform-storage/          # Persistent volume management ✅ **COMPLETE (2.0)**
+├── jplatform-vm-management/    # Virtual machine management via libvirt/KVM/QEMU ✅ **NEW**
 ├── jplatform-otel/             # OpenTelemetry integration ✅ **COMPLETE (2.0)**
 ├── jplatform-cluster/          # Multi-node clustering (Hazelcast) ✅ **COMPLETE**
 ├── jplatform-cluster-consul/   # Consul clustering plugin ✅

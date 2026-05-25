@@ -32,6 +32,7 @@ public class ApplicationContextImpl implements ApplicationContext {
     private volatile Object applicationInstance;
     private volatile Process nativeProcess;  // Non-null for native image applications
     private volatile ContainerLauncher.ContainerInfo containerInfo;  // Non-null for containerized applications
+    private volatile org.flossware.jplatform.vm.VmLauncher.VmInfo vmInfo;  // Non-null for VM applications
     private final Instant deployedAt;  // Timestamp when application was deployed
 
     private ApplicationContextImpl(Builder builder) {
@@ -168,6 +169,26 @@ public class ApplicationContextImpl implements ApplicationContext {
      */
     void setContainerInfo(ContainerLauncher.ContainerInfo containerInfo) {
         this.containerInfo = containerInfo;
+    }
+
+    /**
+     * Returns the VM info for virtual machine applications.
+     * Package-private for use by ApplicationManager.
+     *
+     * @return Optional containing the VM info, or empty if this is not a VM application
+     */
+    Optional<org.flossware.jplatform.vm.VmLauncher.VmInfo> getVmInfo() {
+        return Optional.ofNullable(vmInfo);
+    }
+
+    /**
+     * Sets the VM info for virtual machine applications.
+     * Package-private for use by ApplicationManager.
+     *
+     * @param vmInfo the VM information
+     */
+    void setVmInfo(org.flossware.jplatform.vm.VmLauncher.VmInfo vmInfo) {
+        this.vmInfo = vmInfo;
     }
 
     /**

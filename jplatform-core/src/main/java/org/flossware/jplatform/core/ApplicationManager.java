@@ -38,6 +38,7 @@ public class ApplicationManager implements PlatformManager {
     private final ApplicationReloader reloader;
     private final NativeProcessLauncher nativeProcessLauncher;
     private final ContainerLauncher containerLauncher;
+    private final org.flossware.jplatform.vm.VmLauncher vmLauncher;
 
     /**
      * Creates a new application manager without messaging support.
@@ -62,7 +63,18 @@ public class ApplicationManager implements PlatformManager {
         this.reloader = new ApplicationReloader(platformSharedLoader);
         this.nativeProcessLauncher = new NativeProcessLauncher();
         this.containerLauncher = new ContainerLauncher();
-        logger.info("ApplicationManager initialized with fine-grained locking, dependency resolution, hot reload, native process, and container support");
+
+        // Initialize VM launcher
+        org.flossware.jplatform.vm.VmLauncher tempVmLauncher = null;
+        try {
+            tempVmLauncher = new org.flossware.jplatform.vm.VmLauncher();
+            logger.info("VM management initialized (libvirt connection established)");
+        } catch (Exception e) {
+            logger.warn("VM management not available (libvirt not accessible): {}", e.getMessage());
+        }
+        this.vmLauncher = tempVmLauncher;
+
+        logger.info("ApplicationManager initialized with fine-grained locking, dependency resolution, hot reload, native process, container, and VM support");
     }
 
     /**
@@ -252,8 +264,22 @@ public class ApplicationManager implements PlatformManager {
             try {
                 ApplicationDescriptor descriptor = context.getDescriptor();
 
+                // Check if this is a virtual machine
+                if (isVirtualMachine(descriptor)) {
+                    if (vmLauncher == null) {
+                        throw new IllegalStateException("VM management not available (libvirt not accessible)");
+                    }
+
+                    // Launch as VM
+                    logger.info("[{}] Launching as virtual machine", applicationId);
+                    org.flossware.jplatform.vm.VmLauncher.VmInfo vmInfo = vmLauncher.launch(applicationId, descriptor);
+                    context.setVmInfo(vmInfo);
+
+                    context.setState(ApplicationState.RUNNING);
+                    logger.info("[{}] VM started successfully (UUID: {})", applicationId, vmInfo.getUuid());
+                }
                 // Check if this is a containerized application
-                if (isContainerized(descriptor)) {
+                else if (isContainerized(descriptor)) {
                     // Launch as container
                     logger.info("[{}] Launching as container", applicationId);
                     ContainerLauncher.ContainerInfo containerInfo = containerLauncher.launch(applicationId, descriptor);
@@ -353,28 +379,41 @@ public class ApplicationManager implements PlatformManager {
             context.setState(ApplicationState.STOPPING);
 
             try {
-                // Check if this is a containerized application
-                Optional<ContainerLauncher.ContainerInfo> containerInfo = context.getContainerInfo();
-                if (containerInfo.isPresent()) {
-                    // Stop container
-                    logger.info("[{}] Stopping container", applicationId);
-                    containerLauncher.stop(applicationId, containerInfo.get(), 10000); // 10 second grace period
-                    context.setContainerInfo(null);
+                // Check if this is a virtual machine
+                Optional<org.flossware.jplatform.vm.VmLauncher.VmInfo> vmInfo = context.getVmInfo();
+                if (vmInfo.isPresent()) {
+                    if (vmLauncher == null) {
+                        throw new IllegalStateException("VM management not available (libvirt not accessible)");
+                    }
+                    // Stop VM (graceful shutdown)
+                    logger.info("[{}] Stopping virtual machine", applicationId);
+                    vmLauncher.stop(applicationId, vmInfo.get(), true);
+                    context.setVmInfo(null);
                 }
-                // Check if this is a native process
+                // Check if this is a containerized application
                 else {
-                    Optional<Process> nativeProcess = context.getNativeProcess();
-                    if (nativeProcess.isPresent()) {
-                        // Stop native process
-                        logger.info("[{}] Stopping native process", applicationId);
-                        nativeProcessLauncher.stop(applicationId, nativeProcess.get(), 10000); // 10 second grace period
-                        context.setNativeProcess(null);
-                    } else {
-                        // Stop JVM application
-                        Object instance = context.getApplicationInstance();
+                    Optional<ContainerLauncher.ContainerInfo> containerInfo = context.getContainerInfo();
+                    if (containerInfo.isPresent()) {
+                        // Stop container
+                        logger.info("[{}] Stopping container", applicationId);
+                        containerLauncher.stop(applicationId, containerInfo.get(), 10000); // 10 second grace period
+                        context.setContainerInfo(null);
+                    }
+                    // Check if this is a native process
+                    else {
+                        Optional<Process> nativeProcess = context.getNativeProcess();
+                        if (nativeProcess.isPresent()) {
+                            // Stop native process
+                            logger.info("[{}] Stopping native process", applicationId);
+                            nativeProcessLauncher.stop(applicationId, nativeProcess.get(), 10000); // 10 second grace period
+                            context.setNativeProcess(null);
+                        } else {
+                            // Stop JVM application
+                            Object instance = context.getApplicationInstance();
 
-                        if (instance instanceof Application) {
-                            ((Application) instance).stop();
+                            if (instance instanceof Application) {
+                                ((Application) instance).stop();
+                            }
                         }
                     }
                 }
@@ -740,5 +779,16 @@ public class ApplicationManager implements PlatformManager {
     private boolean isContainerized(ApplicationDescriptor descriptor) {
         Map<String, String> properties = descriptor.getProperties();
         return properties.containsKey("container.runtime") || properties.containsKey("container.image");
+    }
+
+    /**
+     * Checks if an application descriptor specifies VM deployment.
+     *
+     * @param descriptor the application descriptor
+     * @return true if the application should run as a virtual machine
+     */
+    private boolean isVirtualMachine(ApplicationDescriptor descriptor) {
+        Map<String, String> properties = descriptor.getProperties();
+        return properties.containsKey("vm.disk") || properties.containsKey("vm.vcpu") || properties.containsKey("vm.memory");
     }
 }

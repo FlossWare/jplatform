@@ -1,0 +1,50 @@
+# Example VM deployment descriptor for JPlatform
+# Deploy with: jplatform deploy database-vm.yaml
+
+applicationId: database-vm
+name: PostgreSQL Database VM
+description: Primary database server running PostgreSQL in a VM
+
+# VM configuration
+properties:
+  # VM name (defaults to applicationId if not specified)
+  vm.name: db-primary
+
+  # vCPU and memory
+  vm.vcpu: "8"
+  vm.memory: "32768"  # 32GB RAM in MB
+
+  # Disk configuration
+  vm.disk: /var/lib/jplatform/vms/db-primary.qcow2
+  vm.disk.format: qcow2  # or 'raw'
+
+  # Network configuration
+  vm.network: bridge
+  vm.bridge: virbr0
+
+  # VNC console access (optional)
+  vm.vnc.enabled: "true"
+  vm.vnc.port: "5900"  # or -1 for auto
+
+# Resource quotas (JPlatform enforces these)
+resources:
+  cpu: 8          # Max 8 cores
+  memory: 32768   # Max 32GB
+  disk: 524288    # Max 500GB (in MB)
+
+# Dependencies (VM starts after these)
+dependencies:
+  - storage-vm
+  - network-setup
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus: true
+  interval: 30  # seconds
+
+# Tags for organization
+tags:
+  tier: database
+  environment: production
+  team: platform

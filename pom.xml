@@ -85,6 +85,9 @@
         <module>jplatform-storage-database</module>
         <module>jplatform-storage-redis</module>
 
+        <!-- VM Management -->
+        <module>jplatform-vm-management</module>
+
         <!-- Config source plugins -->
         <module>jplatform-config-consul</module>
         <module>jplatform-config-etcd</module>
@@ -180,6 +183,13 @@
             <dependency>
                 <groupId>org.flossware.jplatform</groupId>
                 <artifactId>jplatform-metrics-prometheus</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- VM Management -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>jplatform-vm-management</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
