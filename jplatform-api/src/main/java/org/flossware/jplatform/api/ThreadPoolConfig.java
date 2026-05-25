@@ -104,8 +104,12 @@ public class ThreadPoolConfig {
          *
          * @param corePoolSize the minimum number of threads to keep in the pool
          * @return this builder
+         * @throws IllegalArgumentException if corePoolSize is negative
          */
         public Builder corePoolSize(int corePoolSize) {
+            if (corePoolSize < 0) {
+                throw new IllegalArgumentException("corePoolSize must be >= 0, got: " + corePoolSize);
+            }
             this.corePoolSize = corePoolSize;
             return this;
         }
@@ -115,8 +119,12 @@ public class ThreadPoolConfig {
          *
          * @param maxPoolSize the maximum number of threads allowed in the pool
          * @return this builder
+         * @throws IllegalArgumentException if maxPoolSize is <= 0
          */
         public Builder maxPoolSize(int maxPoolSize) {
+            if (maxPoolSize <= 0) {
+                throw new IllegalArgumentException("maxPoolSize must be > 0, got: " + maxPoolSize);
+            }
             this.maxPoolSize = maxPoolSize;
             return this;
         }
@@ -126,8 +134,12 @@ public class ThreadPoolConfig {
          *
          * @param keepAliveTimeSeconds the time in seconds that excess idle threads wait before terminating
          * @return this builder
+         * @throws IllegalArgumentException if keepAliveTimeSeconds is negative
          */
         public Builder keepAliveTimeSeconds(long keepAliveTimeSeconds) {
+            if (keepAliveTimeSeconds < 0) {
+                throw new IllegalArgumentException("keepAliveTimeSeconds must be >= 0, got: " + keepAliveTimeSeconds);
+            }
             this.keepAliveTimeSeconds = keepAliveTimeSeconds;
             return this;
         }
@@ -137,8 +149,12 @@ public class ThreadPoolConfig {
          *
          * @param queueCapacity the maximum number of tasks that can be queued
          * @return this builder
+         * @throws IllegalArgumentException if queueCapacity is negative
          */
         public Builder queueCapacity(int queueCapacity) {
+            if (queueCapacity < 0) {
+                throw new IllegalArgumentException("queueCapacity must be >= 0, got: " + queueCapacity);
+            }
             this.queueCapacity = queueCapacity;
             return this;
         }

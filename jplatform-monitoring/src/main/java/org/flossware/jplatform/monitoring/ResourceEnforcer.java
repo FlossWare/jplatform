@@ -77,7 +77,8 @@ public class ResourceEnforcer {
      * @param threadGroup the application's thread group (for throttling)
      * @param shutdownAction callback to gracefully stop the application
      * @param killAction callback to forcefully terminate the application
-     * @param throttleAction callback to throttle thread group execution
+     * @param throttleAction callback to throttle thread group execution (optional, can be null)
+     * @throws NullPointerException if applicationId, config, threadGroup, shutdownAction, or killAction is null
      */
     public ResourceEnforcer(String applicationId,
                             ResourceConfig config,
@@ -85,11 +86,12 @@ public class ResourceEnforcer {
                             Consumer<String> shutdownAction,
                             Consumer<String> killAction,
                             Consumer<ThreadGroup> throttleAction) {
-        this.applicationId = applicationId;
-        this.config = config;
-        this.threadGroup = threadGroup;
-        this.shutdownAction = shutdownAction;
-        this.killAction = killAction;
+        this.applicationId = Objects.requireNonNull(applicationId, "applicationId cannot be null");
+        this.config = Objects.requireNonNull(config, "config cannot be null");
+        this.threadGroup = Objects.requireNonNull(threadGroup, "threadGroup cannot be null");
+        this.shutdownAction = Objects.requireNonNull(shutdownAction, "shutdownAction cannot be null");
+        this.killAction = Objects.requireNonNull(killAction, "killAction cannot be null");
+        // throttleAction is optional, can be null
         this.throttleAction = throttleAction;
         this.policy = new EnforcementPolicy(applicationId, config.getViolationGracePeriod());
 

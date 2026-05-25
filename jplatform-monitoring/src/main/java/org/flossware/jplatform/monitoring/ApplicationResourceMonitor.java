@@ -65,19 +65,22 @@ import java.util.concurrent.*;
 public class ApplicationResourceMonitor implements ResourceMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationResourceMonitor.class);
+    private static final long DEFAULT_POLL_INTERVAL_SECONDS = 5;
+    private static final int DEFAULT_HISTORY_SIZE = 720; // 1 hour at 5s intervals
 
     private final String applicationId;
     private final ThreadGroup applicationThreadGroup;
     private final ScheduledExecutorService scheduler;
     private final List<ResourceSnapshot> history;
     private final List<ResourceEventListener> listeners;
+    private final int maxHistorySize;
     private volatile ResourceQuota quota;
     private volatile ResourceEnforcer enforcer;  // Optional enforcer for quota violations
 
     /**
-     * Creates a new resource monitor for the specified application.
+     * Creates a new resource monitor with default configuration.
      * <p>
-     * Starts a background scheduler that collects metrics every 5 seconds.
+     * Uses default polling interval of 5 seconds and history size of 720 snapshots (1 hour).
      * The scheduler runs in a daemon thread to not prevent JVM shutdown.
      *
      * @param applicationId the unique identifier for the application
@@ -85,20 +88,47 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
      * @throws NullPointerException if applicationId or threadGroup is null
      */
     public ApplicationResourceMonitor(String applicationId, ThreadGroup threadGroup) {
+        this(applicationId, threadGroup, DEFAULT_POLL_INTERVAL_SECONDS, DEFAULT_HISTORY_SIZE);
+    }
+
+    /**
+     * Creates a new resource monitor with custom configuration.
+     * <p>
+     * The scheduler runs in a daemon thread to not prevent JVM shutdown.
+     *
+     * @param applicationId the unique identifier for the application
+     * @param threadGroup the thread group containing the application's threads
+     * @param pollIntervalSeconds the interval in seconds between metric collections (must be > 0)
+     * @param maxHistorySize the maximum number of snapshots to retain in history (must be > 0)
+     * @throws NullPointerException if applicationId or threadGroup is null
+     * @throws IllegalArgumentException if pollIntervalSeconds or maxHistorySize is <= 0
+     */
+    public ApplicationResourceMonitor(String applicationId, ThreadGroup threadGroup,
+                                     long pollIntervalSeconds, int maxHistorySize) {
         this.applicationId = Objects.requireNonNull(applicationId, "applicationId cannot be null");
         this.applicationThreadGroup = Objects.requireNonNull(threadGroup, "threadGroup cannot be null");
+
+        if (pollIntervalSeconds <= 0) {
+            throw new IllegalArgumentException("pollIntervalSeconds must be > 0, got: " + pollIntervalSeconds);
+        }
+        if (maxHistorySize <= 0) {
+            throw new IllegalArgumentException("maxHistorySize must be > 0, got: " + maxHistorySize);
+        }
+
+        this.maxHistorySize = maxHistorySize;
         this.history = new CopyOnWriteArrayList<>();
         this.listeners = new CopyOnWriteArrayList<>();
 
-        // Poll metrics every 5 seconds
+        // Poll metrics at configured interval
         this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, applicationId + "-monitor");
             t.setDaemon(true);
             return t;
         });
 
-        scheduler.scheduleAtFixedRate(this::collectMetrics, 0, 5, TimeUnit.SECONDS);
-        logger.info("[{}] Started resource monitor", applicationId);
+        scheduler.scheduleAtFixedRate(this::collectMetrics, 0, pollIntervalSeconds, TimeUnit.SECONDS);
+        logger.info("[{}] Started resource monitor (poll interval: {}s, history size: {})",
+                   applicationId, pollIntervalSeconds, maxHistorySize);
     }
 
     private void collectMetrics() {
@@ -133,8 +163,8 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
 
             history.add(snapshot);
 
-            // Keep only last hour of data
-            while (history.size() > 720) { // 5s intervals for 1 hour
+            // Keep only configured history size
+            while (history.size() > maxHistorySize) {
                 history.remove(0);
             }
 
@@ -158,12 +188,40 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
     }
 
     private Thread[] getApplicationThreads() {
-        Thread[] threads = new Thread[applicationThreadGroup.activeCount() * 2];
+        // Cap at reasonable maximum to prevent overflow and excessive memory use
+        final int MAX_THREADS = 100_000;
+        final int MAX_RETRIES = 5;
+
+        int initialSize = applicationThreadGroup.activeCount();
+        if (initialSize < 0) {
+            initialSize = 0;
+        }
+        // Prevent overflow: activeCount() * 2 must fit in int
+        if (initialSize > MAX_THREADS / 2) {
+            initialSize = MAX_THREADS / 2;
+            logger.warn("[{}] Thread count {} exceeds reasonable limit, capping at {}",
+                       applicationId, applicationThreadGroup.activeCount(), initialSize * 2);
+        }
+
+        Thread[] threads = new Thread[initialSize * 2];
         int count;
+        int retries = 0;
 
         // Retry with larger array if needed (count == length means array was full, some threads missed)
         while ((count = applicationThreadGroup.enumerate(threads, true)) == threads.length) {
-            threads = new Thread[threads.length * 2];
+            if (++retries > MAX_RETRIES) {
+                logger.warn("[{}] Thread enumeration retry limit reached after {} attempts, may miss some threads",
+                           applicationId, retries);
+                break;
+            }
+
+            // Prevent overflow: threads.length * 2 must fit in int and not exceed MAX_THREADS
+            int newSize = threads.length * 2;
+            if (newSize < 0 || newSize > MAX_THREADS) {
+                newSize = MAX_THREADS;
+                logger.warn("[{}] Thread array size capped at {}", applicationId, MAX_THREADS);
+            }
+            threads = new Thread[newSize];
         }
 
         return Arrays.copyOf(threads, count);
