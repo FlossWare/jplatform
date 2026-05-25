@@ -375,6 +375,16 @@ public class ApplicationContextImpl implements ApplicationContext {
          * @return this builder
          */
         public Builder properties(Map<String, String> properties) {
+            if (properties != null) {
+                for (Map.Entry<String, String> entry : properties.entrySet()) {
+                    if (entry.getKey() == null) {
+                        throw new IllegalArgumentException("Properties map cannot contain null keys");
+                    }
+                    if (entry.getValue() == null) {
+                        throw new IllegalArgumentException("Properties map cannot contain null values");
+                    }
+                }
+            }
             this.properties = properties;
             return this;
         }
