@@ -164,9 +164,20 @@ public class ServiceRegistryImpl implements ServiceRegistry {
         List<ServiceEntry> entries = services.get(serviceInterface);
 
         if (entries != null) {
-            entries.removeIf(entry -> entry.getImplementation() == implementation);
-            logger.info("Unregistered service: {} -> {}", serviceInterface.getName(),
-                    implementation.getClass().getName());
+            // Remove only first matching registration to maintain symmetry with register
+            Iterator<ServiceEntry> iter = entries.iterator();
+            boolean removed = false;
+            while (iter.hasNext() && !removed) {
+                if (iter.next().getImplementation() == implementation) {
+                    iter.remove();
+                    removed = true;
+                }
+            }
+
+            if (removed) {
+                logger.info("Unregistered service: {} -> {}", serviceInterface.getName(),
+                        implementation.getClass().getName());
+            }
 
             if (entries.isEmpty()) {
                 services.remove(serviceInterface);

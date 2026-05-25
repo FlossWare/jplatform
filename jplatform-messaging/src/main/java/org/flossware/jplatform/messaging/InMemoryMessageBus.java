@@ -131,13 +131,18 @@ public class InMemoryMessageBus implements MessageBus {
 
         for (SubscriptionImpl subscription : topicSubscribers) {
             if (subscription.isActive()) {
-                dispatchExecutor.submit(() -> {
-                    try {
-                        subscription.getHandler().onMessage(message);
-                    } catch (Exception e) {
-                        logger.error("Error delivering message to subscriber on topic '{}'", topic, e);
-                    }
-                });
+                try {
+                    dispatchExecutor.submit(() -> {
+                        try {
+                            subscription.getHandler().onMessage(message);
+                        } catch (Exception e) {
+                            logger.error("Error delivering message to subscriber on topic '{}'", topic, e);
+                        }
+                    });
+                } catch (RejectedExecutionException e) {
+                    logger.debug("Message bus is shut down, cannot deliver message to topic '{}'", topic);
+                    // Don't propagate - gracefully skip delivery during shutdown
+                }
             }
         }
     }
