@@ -35,14 +35,35 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ManagedThreadPool implements org.flossware.jplatform.api.ThreadPoolExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(ManagedThreadPool.class);
+    private static final long DEFAULT_SHUTDOWN_TIMEOUT_SECONDS = 30;
 
     private final String applicationId;
     private final java.util.concurrent.ThreadPoolExecutor executor;
     private final ThreadFactory threadFactory;
     private final AtomicInteger threadCounter = new AtomicInteger(0);
+    private final long shutdownTimeoutSeconds;
 
     /**
-     * Creates a new managed thread pool for the specified application.
+     * Creates a new managed thread pool for the specified application with default shutdown timeout.
+     * <p>
+     * Threads are created with names in the format: {applicationId}-thread-{N}
+     * and configured with an uncaught exception handler that logs errors.
+     * The rejection policy is CallerRunsPolicy, which runs rejected tasks
+     * in the calling thread.
+     * <p>
+     * Uses default shutdown timeout of 30 seconds.
+     *
+     * @param applicationId the unique identifier for the application
+     * @param config the thread pool configuration specifying core size, max size,
+     *               keep-alive time, and queue capacity
+     * @throws NullPointerException if applicationId or config is null
+     */
+    public ManagedThreadPool(String applicationId, ThreadPoolConfig config) {
+        this(applicationId, config, DEFAULT_SHUTDOWN_TIMEOUT_SECONDS);
+    }
+
+    /**
+     * Creates a new managed thread pool for the specified application with custom shutdown timeout.
      * <p>
      * Threads are created with names in the format: {applicationId}-thread-{N}
      * and configured with an uncaught exception handler that logs errors.
@@ -52,21 +73,22 @@ public class ManagedThreadPool implements org.flossware.jplatform.api.ThreadPool
      * @param applicationId the unique identifier for the application
      * @param config the thread pool configuration specifying core size, max size,
      *               keep-alive time, and queue capacity
+     * @param shutdownTimeoutSeconds the timeout in seconds to wait for tasks to complete during shutdown
      * @throws NullPointerException if applicationId or config is null
-     * @throws IllegalArgumentException if config contains invalid values
+     * @throws IllegalArgumentException if shutdownTimeoutSeconds is negative
      */
-    public ManagedThreadPool(String applicationId, ThreadPoolConfig config) {
+    public ManagedThreadPool(String applicationId, ThreadPoolConfig config, long shutdownTimeoutSeconds) {
         this.applicationId = Objects.requireNonNull(applicationId, "applicationId cannot be null");
         Objects.requireNonNull(config, "config cannot be null");
 
-        if (config.getQueueCapacity() < 0) {
-            throw new IllegalArgumentException("Queue capacity cannot be negative: " + config.getQueueCapacity());
+        if (shutdownTimeoutSeconds < 0) {
+            throw new IllegalArgumentException("shutdownTimeoutSeconds must be >= 0, got: " + shutdownTimeoutSeconds);
         }
-        if (config.getCorePoolSize() > config.getMaxPoolSize()) {
-            throw new IllegalArgumentException(
-                "Core pool size (" + config.getCorePoolSize() +
-                ") cannot exceed max pool size (" + config.getMaxPoolSize() + ")");
-        }
+
+        this.shutdownTimeoutSeconds = shutdownTimeoutSeconds;
+
+        // ThreadPoolConfig.Builder.build() already validates all constraints,
+        // so we can trust the config values are valid
 
         this.threadFactory = r -> {
             Thread t = new Thread(r, applicationId + "-thread-" + threadCounter.incrementAndGet());
@@ -87,8 +109,9 @@ public class ManagedThreadPool implements org.flossware.jplatform.api.ThreadPool
                 new ThreadPoolExecutor.CallerRunsPolicy()
         );
 
-        logger.info("[{}] Created thread pool: core={}, max={}, queue={}",
-                applicationId, config.getCorePoolSize(), config.getMaxPoolSize(), config.getQueueCapacity());
+        logger.info("[{}] Created thread pool: core={}, max={}, queue={}, shutdownTimeout={}s",
+                applicationId, config.getCorePoolSize(), config.getMaxPoolSize(),
+                config.getQueueCapacity(), shutdownTimeoutSeconds);
     }
 
     /**
@@ -143,8 +166,9 @@ public class ManagedThreadPool implements org.flossware.jplatform.api.ThreadPool
         logger.info("[{}] Shutting down thread pool", applicationId);
         executor.shutdown();
         try {
-            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                logger.warn("[{}] Thread pool did not terminate in 30 seconds, forcing shutdown", applicationId);
+            if (!executor.awaitTermination(shutdownTimeoutSeconds, TimeUnit.SECONDS)) {
+                logger.warn("[{}] Thread pool did not terminate in {} seconds, forcing shutdown",
+                        applicationId, shutdownTimeoutSeconds);
                 executor.shutdownNow();
             }
         } catch (InterruptedException e) {
