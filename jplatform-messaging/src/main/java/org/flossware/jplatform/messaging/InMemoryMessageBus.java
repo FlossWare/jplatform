@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * In-memory message bus for inter-application communication.
@@ -58,24 +59,49 @@ public class InMemoryMessageBus implements MessageBus {
 
     private static final Logger logger = LoggerFactory.getLogger(InMemoryMessageBus.class);
     private static final List<SubscriptionImpl> EMPTY_SUBSCRIBERS = Collections.emptyList();
+    private static final int DEFAULT_THREAD_POOL_SIZE = 4;
+    private static final int DEFAULT_SHUTDOWN_TIMEOUT_SECONDS = 10;
 
     private final Map<String, CopyOnWriteArrayList<SubscriptionImpl>> subscribers;
     private final ExecutorService dispatchExecutor;
+    private final int shutdownTimeoutSeconds;
+    private final AtomicInteger threadCounter = new AtomicInteger(0);
 
     /**
-     * Creates a new in-memory message bus.
+     * Creates a new in-memory message bus with default configuration.
      * <p>
-     * Initializes a fixed thread pool with 4 threads for asynchronous message dispatch.
+     * Uses 4 dispatcher threads and 10 second shutdown timeout.
      * Dispatcher threads are daemon threads to not prevent JVM shutdown.
      */
     public InMemoryMessageBus() {
+        this(DEFAULT_THREAD_POOL_SIZE, DEFAULT_SHUTDOWN_TIMEOUT_SECONDS);
+    }
+
+    /**
+     * Creates a new in-memory message bus with custom configuration.
+     * <p>
+     * Dispatcher threads are daemon threads to not prevent JVM shutdown.
+     *
+     * @param threadPoolSize number of dispatcher threads (must be at least 1)
+     * @param shutdownTimeoutSeconds seconds to wait for pending messages during shutdown
+     * @throws IllegalArgumentException if threadPoolSize < 1 or shutdownTimeoutSeconds < 0
+     */
+    public InMemoryMessageBus(int threadPoolSize, int shutdownTimeoutSeconds) {
+        if (threadPoolSize < 1) {
+            throw new IllegalArgumentException("threadPoolSize must be at least 1, got: " + threadPoolSize);
+        }
+        if (shutdownTimeoutSeconds < 0) {
+            throw new IllegalArgumentException("shutdownTimeoutSeconds cannot be negative, got: " + shutdownTimeoutSeconds);
+        }
+
+        this.shutdownTimeoutSeconds = shutdownTimeoutSeconds;
         this.subscribers = new ConcurrentHashMap<>();
-        this.dispatchExecutor = Executors.newFixedThreadPool(4, r -> {
-            Thread t = new Thread(r, "message-bus-dispatcher");
+        this.dispatchExecutor = Executors.newFixedThreadPool(threadPoolSize, r -> {
+            Thread t = new Thread(r, "message-bus-dispatcher-" + threadCounter.incrementAndGet());
             t.setDaemon(true);
             return t;
         });
-        logger.info("InMemoryMessageBus started");
+        logger.info("InMemoryMessageBus started with {} dispatcher threads", threadPoolSize);
     }
 
     /**
@@ -167,6 +193,11 @@ public class InMemoryMessageBus implements MessageBus {
      * @param subscription the subscription to remove
      */
     void removeSubscription(SubscriptionImpl subscription) {
+        if (subscription == null) {
+            logger.warn("Attempted to remove null subscription");
+            return;
+        }
+
         CopyOnWriteArrayList<SubscriptionImpl> topicSubscribers =
                 subscribers.get(subscription.getTopic());
 
@@ -180,18 +211,20 @@ public class InMemoryMessageBus implements MessageBus {
     /**
      * Shuts down the message bus.
      * <p>
-     * Initiates an orderly shutdown of the dispatch executor, waiting up to 10 seconds
-     * for pending message deliveries to complete. If the executor does not terminate
-     * within 10 seconds, a forced shutdown is initiated.
+     * Initiates an orderly shutdown of the dispatch executor, waiting for the configured
+     * timeout for pending message deliveries to complete. If the executor does not terminate
+     * within the timeout, a forced shutdown is initiated.
      */
     public void shutdown() {
         logger.info("Shutting down message bus");
         dispatchExecutor.shutdown();
         try {
-            if (!dispatchExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+            if (!dispatchExecutor.awaitTermination(shutdownTimeoutSeconds, TimeUnit.SECONDS)) {
+                logger.warn("Message bus did not terminate within {} seconds, forcing shutdown", shutdownTimeoutSeconds);
                 dispatchExecutor.shutdownNow();
             }
         } catch (InterruptedException e) {
+            logger.warn("Shutdown interrupted, forcing shutdown");
             dispatchExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }

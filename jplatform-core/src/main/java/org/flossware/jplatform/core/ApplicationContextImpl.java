@@ -116,9 +116,10 @@ public class ApplicationContextImpl implements ApplicationContext {
      * Package-private for use by ApplicationManager.
      *
      * @param state the new application state
+     * @throws NullPointerException if state is null
      */
     void setState(ApplicationState state) {
-        this.state = state;
+        this.state = Objects.requireNonNull(state, "state cannot be null");
     }
 
     /**
@@ -206,9 +207,10 @@ public class ApplicationContextImpl implements ApplicationContext {
      * Package-private for use by ApplicationReloader during hot reload.
      *
      * @param classLoader the new classloader
+     * @throws NullPointerException if classLoader is null
      */
     void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+        this.classLoader = Objects.requireNonNull(classLoader, "classLoader cannot be null");
     }
 
     /**
@@ -216,9 +218,10 @@ public class ApplicationContextImpl implements ApplicationContext {
      * Package-private for use by ApplicationReloader during hot reload.
      *
      * @param descriptor the new descriptor
+     * @throws NullPointerException if descriptor is null
      */
     void setDescriptor(ApplicationDescriptor descriptor) {
-        this.descriptor = descriptor;
+        this.descriptor = Objects.requireNonNull(descriptor, "descriptor cannot be null");
     }
 
     /**
@@ -227,10 +230,11 @@ public class ApplicationContextImpl implements ApplicationContext {
      *
      * @param classLoader the new classloader
      * @param descriptor the new descriptor
+     * @throws NullPointerException if classLoader or descriptor is null
      */
     synchronized void setClassLoaderAndDescriptor(ClassLoader classLoader, ApplicationDescriptor descriptor) {
-        this.classLoader = classLoader;
-        this.descriptor = descriptor;
+        this.classLoader = Objects.requireNonNull(classLoader, "classLoader cannot be null");
+        this.descriptor = Objects.requireNonNull(descriptor, "descriptor cannot be null");
     }
 
     /**
