@@ -66,8 +66,15 @@ public class DependencyResolver {
      *
      * @param applicationId the application identifier
      * @param descriptor the application descriptor containing dependencies
+     * @throws IllegalArgumentException if applicationId is null or empty
+     * @throws NullPointerException if descriptor is null
      */
     public void addApplication(String applicationId, ApplicationDescriptor descriptor) {
+        if (applicationId == null || applicationId.trim().isEmpty()) {
+            throw new IllegalArgumentException("applicationId cannot be null or empty");
+        }
+        Objects.requireNonNull(descriptor, "descriptor cannot be null");
+
         applications.put(applicationId, descriptor);
         graph.addNode(applicationId);
 
@@ -95,8 +102,16 @@ public class DependencyResolver {
      *
      * @param applicationId the application providing the service
      * @param serviceInterface the service interface class name
+     * @throws IllegalArgumentException if applicationId or serviceInterface is null or empty
      */
     public void registerServiceProvider(String applicationId, String serviceInterface) {
+        if (applicationId == null || applicationId.trim().isEmpty()) {
+            throw new IllegalArgumentException("applicationId cannot be null or empty");
+        }
+        if (serviceInterface == null || serviceInterface.trim().isEmpty()) {
+            throw new IllegalArgumentException("serviceInterface cannot be null or empty");
+        }
+
         serviceProviders.put(serviceInterface, applicationId);
         logger.debug("[{}] Registered as provider of {}", applicationId, serviceInterface);
     }

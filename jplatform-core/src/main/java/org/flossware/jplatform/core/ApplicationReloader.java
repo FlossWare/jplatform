@@ -48,11 +48,13 @@ public class ApplicationReloader {
      * Creates a new application reloader.
      *
      * @param platformSharedLoader the platform's shared classloader
+     * @throws NullPointerException if platformSharedLoader is null
      */
     public ApplicationReloader(ClassLoader platformSharedLoader) {
+        this.platformSharedLoader = Objects.requireNonNull(
+            platformSharedLoader, "platformSharedLoader cannot be null");
         this.versionHistory = new ConcurrentHashMap<>();
         this.currentVersions = new ConcurrentHashMap<>();
-        this.platformSharedLoader = platformSharedLoader;
     }
 
     /**
@@ -141,7 +143,13 @@ public class ApplicationReloader {
             Class<?> mainClass = Class.forName(mainClassName, true, newClassLoader);
 
             // Step 6: Create new instance
-            Object newInstance = mainClass.getDeclaredConstructor().newInstance();
+            Object newInstance;
+            try {
+                newInstance = mainClass.getDeclaredConstructor().newInstance();
+            } catch (NoSuchMethodException e) {
+                throw new Exception(
+                    "Main class " + mainClassName + " must have a public no-arg constructor for hot reload", e);
+            }
             currentContext.setApplicationInstance(newInstance);
 
             logger.info("[{}] Created new application instance from updated code", applicationId);

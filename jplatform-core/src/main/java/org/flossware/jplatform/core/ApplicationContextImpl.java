@@ -267,9 +267,10 @@ public class ApplicationContextImpl implements ApplicationContext {
          *
          * @param applicationId the application ID
          * @return this builder
+         * @throws NullPointerException if applicationId is null
          */
         public Builder applicationId(String applicationId) {
-            this.applicationId = applicationId;
+            this.applicationId = Objects.requireNonNull(applicationId, "applicationId cannot be null");
             return this;
         }
 
@@ -278,9 +279,10 @@ public class ApplicationContextImpl implements ApplicationContext {
          *
          * @param descriptor the application descriptor
          * @return this builder
+         * @throws NullPointerException if descriptor is null
          */
         public Builder descriptor(ApplicationDescriptor descriptor) {
-            this.descriptor = descriptor;
+            this.descriptor = Objects.requireNonNull(descriptor, "descriptor cannot be null");
             return this;
         }
 
@@ -289,9 +291,10 @@ public class ApplicationContextImpl implements ApplicationContext {
          *
          * @param classLoader the application's classloader
          * @return this builder
+         * @throws NullPointerException if classLoader is null
          */
         public Builder classLoader(ClassLoader classLoader) {
-            this.classLoader = classLoader;
+            this.classLoader = Objects.requireNonNull(classLoader, "classLoader cannot be null");
             return this;
         }
 
@@ -300,9 +303,10 @@ public class ApplicationContextImpl implements ApplicationContext {
          *
          * @param threadPool the application's thread pool
          * @return this builder
+         * @throws NullPointerException if threadPool is null
          */
         public Builder threadPool(ThreadPoolExecutor threadPool) {
-            this.threadPool = threadPool;
+            this.threadPool = Objects.requireNonNull(threadPool, "threadPool cannot be null");
             return this;
         }
 
@@ -311,9 +315,10 @@ public class ApplicationContextImpl implements ApplicationContext {
          *
          * @param securityPolicy the application's security policy
          * @return this builder
+         * @throws NullPointerException if securityPolicy is null
          */
         public Builder securityPolicy(SecurityPolicy securityPolicy) {
-            this.securityPolicy = securityPolicy;
+            this.securityPolicy = Objects.requireNonNull(securityPolicy, "securityPolicy cannot be null");
             return this;
         }
 
@@ -322,9 +327,10 @@ public class ApplicationContextImpl implements ApplicationContext {
          *
          * @param resourceMonitor the application's resource monitor
          * @return this builder
+         * @throws NullPointerException if resourceMonitor is null
          */
         public Builder resourceMonitor(ResourceMonitor resourceMonitor) {
-            this.resourceMonitor = resourceMonitor;
+            this.resourceMonitor = Objects.requireNonNull(resourceMonitor, "resourceMonitor cannot be null");
             return this;
         }
 

@@ -170,7 +170,10 @@ public class NativeLibraryLoader {
 
         // Make executable on Unix-like systems
         if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-            targetFile.toFile().setExecutable(true);
+            if (!targetFile.toFile().setExecutable(true)) {
+                logger.warn("[{}] Failed to set executable permission on {}",
+                            applicationId, targetFile);
+            }
         }
     }
 
