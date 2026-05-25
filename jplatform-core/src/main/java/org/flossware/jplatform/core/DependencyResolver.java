@@ -320,7 +320,16 @@ public class DependencyResolver {
         for (ApplicationDependency dep : descriptor.getDependencies()) {
             if (dep.isRequired()) {
                 String providerAppId = findServiceProvider(dep.getServiceInterface());
-                if (providerAppId != null && !runningApplications.contains(providerAppId)) {
+
+                if (providerAppId == null) {
+                    // Required service has no provider at all
+                    logger.debug("[{}] Cannot start: required service {} has no provider",
+                            applicationId, dep.getServiceInterface());
+                    return false;
+                }
+
+                if (!runningApplications.contains(providerAppId)) {
+                    // Provider exists but not running
                     logger.debug("[{}] Cannot start: dependency {} not running",
                             applicationId, providerAppId);
                     return false;
