@@ -30,9 +30,11 @@ class VmLauncherTest {
             // If we get here, libvirt is actually available
             assertTrue(true, "Libvirt is available on this system");
         } catch (Exception e) {
-            // Expected when libvirt is not available
-            assertTrue(e.getMessage().contains("libvirt") || e.getMessage().contains("connection"),
-                "Exception message should mention libvirt or connection: " + e.getMessage());
+            // Expected when libvirt is not available or access is denied
+            String msg = e.getMessage().toLowerCase();
+            assertTrue(msg.contains("libvirt") || msg.contains("connection") ||
+                       msg.contains("authentication") || msg.contains("access denied"),
+                "Exception message should mention libvirt, connection, or access: " + e.getMessage());
         }
     }
 

@@ -84,14 +84,14 @@ public class JmxExporterConfig {
         /**
          * Sets the RMI registry port.
          *
-         * @param port the port number
+         * @param port the port number (0 = auto-assign)
          * @return this builder
-         * @throws IllegalArgumentException if port is not in valid range (1-65535)
+         * @throws IllegalArgumentException if port is not in valid range (0-65535)
          */
         public Builder port(int port) {
-            if (port < 1 || port > 65535) {
+            if (port < 0 || port > 65535) {
                 throw new IllegalArgumentException(
-                    "Port must be between 1 and 65535, got: " + port);
+                    "Port must be between 0 and 65535, got: " + port);
             }
             this.port = port;
             return this;

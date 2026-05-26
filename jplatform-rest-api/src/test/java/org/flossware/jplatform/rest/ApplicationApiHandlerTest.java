@@ -459,6 +459,7 @@ class ApplicationApiHandlerTest {
 
         when(context.getApplicationId()).thenReturn(appId);
         when(context.getState()).thenReturn(state);
+        when(context.getDeployedAt()).thenReturn(java.time.Instant.now());
 
         Map<String, String> properties = new HashMap<>();
         properties.put("name", appId + " Application");
