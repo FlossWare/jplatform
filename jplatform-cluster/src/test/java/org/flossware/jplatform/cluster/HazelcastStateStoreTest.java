@@ -206,7 +206,7 @@ class HazelcastStateStoreTest {
     }
 
     @Test
-    @DisplayName("Should skip invalid descriptors in getAllApplicationDescriptors")
+    @DisplayName("Should throw RuntimeException when encountering invalid JSON")
     void testGetAllApplicationDescriptorsWithInvalid() {
         // Given
         Map<String, String> jsonMap = new HashMap<>();
@@ -216,13 +216,12 @@ class HazelcastStateStoreTest {
 
         when(mockDescriptorMap.entrySet()).thenReturn(jsonMap.entrySet());
 
-        // When
-        Map<String, ApplicationDescriptor> descriptors = stateStore.getAllApplicationDescriptors();
+        // When / Then
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> stateStore.getAllApplicationDescriptors());
 
-        // Then
-        assertEquals(1, descriptors.size());
-        assertTrue(descriptors.containsKey("app1"));
-        assertFalse(descriptors.containsKey("app2"));
+        assertTrue(exception.getMessage().contains("Failed to deserialize application descriptor"));
+        assertTrue(exception.getMessage().contains("cluster state may be corrupted"));
     }
 
     @Test

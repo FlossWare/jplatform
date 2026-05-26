@@ -171,6 +171,7 @@ public class HazelcastStateStore implements ClusterStateStore {
      * Creates a local snapshot and deserializes all descriptors.
      *
      * @return a map of application ID to descriptor
+     * @throws RuntimeException if any descriptor fails to deserialize
      */
     @Override
     public Map<String, ApplicationDescriptor> getAllApplicationDescriptors() {
@@ -183,6 +184,9 @@ public class HazelcastStateStore implements ClusterStateStore {
                 result.put(entry.getKey(), descriptor);
             } catch (Exception e) {
                 logger.error("Failed to deserialize descriptor for: {}", entry.getKey(), e);
+                throw new RuntimeException(
+                    "Failed to deserialize application descriptor for " + entry.getKey() +
+                    " - cluster state may be corrupted", e);
             }
         }
 
