@@ -59,6 +59,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
     private final ClusterManager clusterManager;
     private final ClusterStateStore stateStore;
     private final ApplicationScheduler scheduler;
+    private final ClusterEventListener clusterListener;
 
     /**
      * Constructs a new clustered application manager.
@@ -90,7 +91,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
 
         // Subscribe to cluster events (only if cluster manager is present)
         if (clusterManager != null) {
-            clusterManager.addListener(new ClusterEventListener() {
+            this.clusterListener = new ClusterEventListener() {
                 @Override
                 public void onNodeJoined(ClusterNode node) {
                     logger.info("Node joined cluster: {}", node.getNodeId());
@@ -106,7 +107,10 @@ public class ClusteredApplicationManager extends ApplicationManager {
                 public void onLeaderChanged(ClusterNode newLeader) {
                     logger.info("New cluster leader: {}", newLeader.getNodeId());
                 }
-            });
+            };
+            clusterManager.addListener(clusterListener);
+        } else {
+            this.clusterListener = null;
         }
 
         logger.info("ClusteredApplicationManager initialized in {} mode",
@@ -133,24 +137,29 @@ public class ClusteredApplicationManager extends ApplicationManager {
             stateStore.putApplicationDescriptor(appId, descriptor);
             stateStore.putApplicationState(appId, ApplicationState.DEPLOYED);
 
-            // If leader, assign to a node
-            if (clusterManager.isLeader() && scheduler != null) {
-                String assignedNode = scheduler.assignApplication(appId);
-                logger.info("[{}] Leader assigned application to node: {}", appId, assignedNode);
-
-                // If assigned to local node, deploy locally
-                if (scheduler.isAssignedToLocalNode(appId)) {
-                    logger.info("[{}] Application assigned to local node, deploying locally", appId);
-                    super.deploy(descriptor);
+            // If leader, try to assign to a node
+            if (scheduler != null) {
+                try {
+                    if (clusterManager.isLeader()) {
+                        String assignedNode = scheduler.assignApplication(appId);
+                        logger.info("[{}] Leader assigned application to node: {}", appId, assignedNode);
+                    }
+                } catch (IllegalStateException e) {
+                    // Lost leadership during assignment, log and continue
+                    logger.debug("[{}] Lost leadership during assignment: {}", appId, e.getMessage());
                 }
-            } else if (scheduler != null) {
-                // Non-leader node: check if assigned to us
+
+                // Check if assigned to local node regardless of leadership
                 if (scheduler.isAssignedToLocalNode(appId)) {
                     logger.info("[{}] Application assigned to local node, deploying locally", appId);
                     super.deploy(descriptor);
                 } else {
                     logger.info("[{}] Application assigned to another node, skipping local deployment", appId);
                 }
+            } else if (scheduler == null) {
+                // No scheduler available, deploy locally
+                logger.info("[{}] No scheduler available, deploying locally", appId);
+                super.deploy(descriptor);
             }
         } else {
             // Standalone mode
@@ -308,5 +317,19 @@ public class ClusteredApplicationManager extends ApplicationManager {
                 logger.error("Error reassigning applications from failed node", e);
             }
         }
+    }
+
+    /**
+     * Shuts down the clustered application manager.
+     * Removes cluster event listener before delegating to parent shutdown.
+     */
+    @Override
+    public void shutdown() {
+        // Remove cluster event listener to prevent resource leak
+        if (clusterManager != null && clusterListener != null) {
+            clusterManager.removeListener(clusterListener);
+            logger.debug("Removed cluster event listener");
+        }
+        super.shutdown();
     }
 }
