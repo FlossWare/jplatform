@@ -704,4 +704,108 @@ class JmsMessageBusTest {
         assertDoesNotThrow(() -> messageBus.close());
         assertTrue(messageBus.isClosed());
     }
+
+    @Test
+    void testSubscribe_withNonBytesMessage() throws JMSException, InterruptedException {
+        messageBus = new JmsMessageBus(config, connectionFactory);
+
+        when(subscribeSession.createTopic("test-topic")).thenReturn(topic);
+        when(subscribeSession.createConsumer(topic)).thenReturn(consumer);
+
+        // Create a TextMessage instead of BytesMessage
+        TextMessage textMessage = mock(TextMessage.class);
+        when(textMessage.getStringProperty(anyString())).thenReturn("test-id");
+        when(textMessage.getLongProperty(anyString())).thenReturn(12345L);
+
+        AtomicReference<Message> receivedMessage = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        messageBus.subscribe("test-topic", message -> {
+            receivedMessage.set(message);
+            latch.countDown();
+        });
+
+        // Capture the message listener
+        ArgumentCaptor<jakarta.jms.MessageListener> listenerCaptor =
+                ArgumentCaptor.forClass(jakarta.jms.MessageListener.class);
+        verify(consumer).setMessageListener(listenerCaptor.capture());
+
+        // Trigger the listener with a TextMessage - exception is caught and logged, handler not called
+        listenerCaptor.getValue().onMessage(textMessage);
+
+        // Handler should NOT have been called due to wrong message type
+        // Wait a bit to ensure async processing completes
+        assertFalse(latch.await(500, TimeUnit.MILLISECONDS));
+        assertNull(receivedMessage.get());
+    }
+
+    @Test
+    void testPublishAndSubscribe_withHeaders() throws JMSException, InterruptedException {
+        messageBus = new JmsMessageBus(config, connectionFactory);
+
+        when(subscribeSession.createTopic("test-topic")).thenReturn(topic);
+        when(subscribeSession.createConsumer(topic)).thenReturn(consumer);
+        when(publishSession.createTopic("test-topic")).thenReturn(topic);
+        when(publishSession.createBytesMessage()).thenReturn(bytesMessage);
+        when(publishSession.createProducer(topic)).thenReturn(producer);
+
+        // Create message with headers
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("header1", "value1");
+        headers.put("header2", 42);
+
+        Message messageWithHeaders = Message.builder()
+                .id("test-id")
+                .topic("test-topic")
+                .timestamp(System.currentTimeMillis())
+                .sourceApplicationId("test-app")
+                .payload("test payload".getBytes())
+                .headers(headers)
+                .build();
+
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Message> receivedMessage = new AtomicReference<>();
+
+        messageBus.subscribe("test-topic", message -> {
+            receivedMessage.set(message);
+            latch.countDown();
+        });
+
+        // Publish the message with headers
+        messageBus.publish("test-topic", messageWithHeaders);
+
+        // Verify headers were serialized and set on JMS message
+        ArgumentCaptor<byte[]> headersCaptor = ArgumentCaptor.forClass(byte[].class);
+        verify(bytesMessage).setObjectProperty(eq("platformHeaders"), headersCaptor.capture());
+
+        byte[] serializedHeaders = headersCaptor.getValue();
+        assertNotNull(serializedHeaders);
+        assertTrue(serializedHeaders.length > 0);
+
+        // Now simulate receiving a message with headers
+        BytesMessage receivedBytesMessage = mock(BytesMessage.class);
+        when(receivedBytesMessage.getStringProperty("platformMessageId")).thenReturn("test-id");
+        when(receivedBytesMessage.getLongProperty("platformTimestamp")).thenReturn(12345L);
+        when(receivedBytesMessage.getStringProperty("sourceApplicationId")).thenReturn("test-app");
+        when(receivedBytesMessage.getObjectProperty("platformHeaders")).thenReturn(serializedHeaders);
+        when(receivedBytesMessage.getBodyLength()).thenReturn(5L);
+
+        // Capture the message listener
+        ArgumentCaptor<jakarta.jms.MessageListener> listenerCaptor =
+                ArgumentCaptor.forClass(jakarta.jms.MessageListener.class);
+        verify(consumer).setMessageListener(listenerCaptor.capture());
+
+        // Trigger the listener with message containing headers
+        listenerCaptor.getValue().onMessage(receivedBytesMessage);
+
+        // Wait for message to be processed
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+        // Verify the received message has headers
+        Message received = receivedMessage.get();
+        assertNotNull(received);
+        assertNotNull(received.getHeaders());
+        assertEquals("value1", received.getHeaders().get("header1"));
+        assertEquals(42, received.getHeaders().get("header2"));
+    }
 }
