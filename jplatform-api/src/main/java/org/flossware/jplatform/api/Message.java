@@ -44,8 +44,23 @@ public class Message {
         this.id = builder.id != null ? builder.id : UUID.randomUUID().toString();
         this.topic = builder.topic;
         this.sourceApplicationId = builder.sourceApplicationId;
-        this.headers = builder.headers != null ?
-                new HashMap<>(builder.headers) : Collections.emptyMap();
+
+        // Validate and copy headers
+        if (builder.headers != null) {
+            for (Map.Entry<String, Object> entry : builder.headers.entrySet()) {
+                if (entry.getKey() == null) {
+                    throw new IllegalArgumentException("Message headers cannot contain null keys");
+                }
+                if (entry.getValue() == null) {
+                    throw new IllegalArgumentException(
+                        "Message headers cannot contain null values (key: " + entry.getKey() + ")");
+                }
+            }
+            this.headers = new HashMap<>(builder.headers);
+        } else {
+            this.headers = Collections.emptyMap();
+        }
+
         this.payload = builder.payload;
         this.timestamp = builder.timestamp > 0 ? builder.timestamp : System.currentTimeMillis();
     }
