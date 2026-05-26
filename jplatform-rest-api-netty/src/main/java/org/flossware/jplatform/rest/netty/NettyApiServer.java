@@ -80,8 +80,15 @@ public class NettyApiServer implements PlatformApiServer {
      *
      * @param path the request path
      * @param handler the handler function
+     * @throws IllegalArgumentException if path or handler is null or path is empty
      */
     public void addRoute(String path, Function<String, String> handler) {
+        if (path == null || path.trim().isEmpty()) {
+            throw new IllegalArgumentException("Path must not be null or empty");
+        }
+        if (handler == null) {
+            throw new IllegalArgumentException("Handler must not be null");
+        }
         routes.put(path, handler);
     }
 
@@ -98,6 +105,17 @@ public class NettyApiServer implements PlatformApiServer {
     public void start() throws ServerStartupException {
         if (running) {
             return;
+        }
+
+        // Validate configuration before creating resources
+        String host = config.getHost();
+        int port = config.getPort();
+
+        if (host == null || host.trim().isEmpty()) {
+            throw new ServerStartupException("Host must not be null or empty", port, null);
+        }
+        if (port < 0 || port > 65535) {
+            throw new ServerStartupException("Port must be between 0 and 65535, got: " + port, port, null);
         }
 
         try {
@@ -138,24 +156,43 @@ public class NettyApiServer implements PlatformApiServer {
             return;
         }
 
+        Exception firstException = null;
+
+        // Close server channel
         try {
             if (serverChannel != null) {
                 serverChannel.close().sync();
             }
+        } catch (Exception e) {
+            logger.error("Failed to close server channel", e);
+            firstException = e;
+        }
 
+        // Shutdown worker group
+        try {
             if (workerGroup != null) {
                 workerGroup.shutdownGracefully().sync();
             }
+        } catch (Exception e) {
+            logger.error("Failed to shutdown worker group", e);
+            if (firstException == null) firstException = e;
+        }
 
+        // Shutdown boss group
+        try {
             if (bossGroup != null) {
                 bossGroup.shutdownGracefully().sync();
             }
-
-            running = false;
-            logger.info("Netty API server stopped");
         } catch (Exception e) {
-            logger.error("Failed to stop Netty API server", e);
-            throw new ServerShutdownException("Failed to stop server", e);
+            logger.error("Failed to shutdown boss group", e);
+            if (firstException == null) firstException = e;
+        }
+
+        running = false;
+        logger.info("Netty API server stopped");
+
+        if (firstException != null) {
+            throw new ServerShutdownException("Failed to stop server", firstException);
         }
     }
 
