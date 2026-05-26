@@ -77,11 +77,29 @@ public class ApplicationDescriptorJsonModule extends SimpleModule {
                 throws IOException {
             JsonNode node = parser.getCodec().readTree(parser);
 
+            // Validate required fields
+            JsonNode appIdNode = node.get("applicationId");
+            if (appIdNode == null) {
+                throw new IOException("Missing required field: applicationId");
+            }
+            JsonNode nameNode = node.get("name");
+            if (nameNode == null) {
+                throw new IOException("Missing required field: name");
+            }
+            JsonNode versionNode = node.get("version");
+            if (versionNode == null) {
+                throw new IOException("Missing required field: version");
+            }
+            JsonNode mainClassNode = node.get("mainClass");
+            if (mainClassNode == null) {
+                throw new IOException("Missing required field: mainClass");
+            }
+
             ApplicationDescriptor.Builder builder = ApplicationDescriptor.builder()
-                    .applicationId(node.get("applicationId").asText())
-                    .name(node.get("name").asText())
-                    .version(node.get("version").asText())
-                    .mainClass(node.get("mainClass").asText());
+                    .applicationId(appIdNode.asText())
+                    .name(nameNode.asText())
+                    .version(versionNode.asText())
+                    .mainClass(mainClassNode.asText());
 
             // Add classpath entries
             JsonNode classpath = node.get("classpath");
@@ -101,11 +119,22 @@ public class ApplicationDescriptorJsonModule extends SimpleModule {
             // Add thread pool config if present
             JsonNode threadPool = node.get("threadPool");
             if (threadPool != null) {
+                // Validate threadPool required fields
+                JsonNode coreSizeNode = threadPool.get("corePoolSize");
+                JsonNode maxSizeNode = threadPool.get("maxPoolSize");
+                JsonNode queueCapNode = threadPool.get("queueCapacity");
+                JsonNode keepAliveNode = threadPool.get("keepAliveTimeSeconds");
+
+                if (coreSizeNode == null || maxSizeNode == null ||
+                    queueCapNode == null || keepAliveNode == null) {
+                    throw new IOException("threadPool object is incomplete - missing required fields");
+                }
+
                 ThreadPoolConfig config = ThreadPoolConfig.builder()
-                        .corePoolSize(threadPool.get("corePoolSize").asInt())
-                        .maxPoolSize(threadPool.get("maxPoolSize").asInt())
-                        .queueCapacity(threadPool.get("queueCapacity").asInt())
-                        .keepAliveTimeSeconds(threadPool.get("keepAliveTimeSeconds").asLong())
+                        .corePoolSize(coreSizeNode.asInt())
+                        .maxPoolSize(maxSizeNode.asInt())
+                        .queueCapacity(queueCapNode.asInt())
+                        .keepAliveTimeSeconds(keepAliveNode.asLong())
                         .build();
                 builder.threadPoolConfig(config);
             }
