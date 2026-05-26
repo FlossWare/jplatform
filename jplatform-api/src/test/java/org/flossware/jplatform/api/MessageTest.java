@@ -228,6 +228,22 @@ class MessageTest {
     }
 
     @Test
+    void testBuilder_payloadDefensiveCopy() {
+        byte[] original = "Hello".getBytes();
+        Message.Builder builder = Message.builder()
+                .topic("test-topic")
+                .sourceApplicationId("app1")
+                .payload(original);
+
+        // Modify original array after passing to builder
+        original[0] = 'X';
+
+        // Builder should contain unmodified payload
+        Message msg = builder.build();
+        assertArrayEquals("Hello".getBytes(), msg.getPayload());
+    }
+
+    @Test
     void testBuilder_headersReplacement() {
         Map<String, Object> headers1 = new HashMap<>();
         headers1.put("key1", "value1");

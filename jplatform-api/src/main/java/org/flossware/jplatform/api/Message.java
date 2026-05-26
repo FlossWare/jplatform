@@ -61,7 +61,8 @@ public class Message {
             this.headers = Collections.emptyMap();
         }
 
-        this.payload = builder.payload;
+        this.payload = builder.payload != null ?
+                Arrays.copyOf(builder.payload, builder.payload.length) : null;
         this.timestamp = builder.timestamp > 0 ? builder.timestamp : System.currentTimeMillis();
     }
 
@@ -204,12 +205,13 @@ public class Message {
 
         /**
          * Sets the message payload.
+         * Makes a defensive copy to prevent external modifications.
          *
          * @param payload the binary message content
          * @return this builder
          */
         public Builder payload(byte[] payload) {
-            this.payload = payload;
+            this.payload = payload != null ? Arrays.copyOf(payload, payload.length) : null;
             return this;
         }
 
