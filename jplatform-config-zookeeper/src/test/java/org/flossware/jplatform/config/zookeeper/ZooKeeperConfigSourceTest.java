@@ -5,6 +5,7 @@ import org.apache.curator.test.TestingServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class ZooKeeperConfigSourceTest {
 
@@ -242,5 +244,82 @@ class ZooKeeperConfigSourceTest {
 
         Map<String, String> cache = source.getConfigCache();
         assertNotNull(cache);
+    }
+
+    @Test
+    void testPackagePrivateConstructor() throws Exception {
+        // Use package-private constructor with mock client
+        CuratorFramework mockClient = org.mockito.Mockito.mock(CuratorFramework.class);
+
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config, mockClient);
+
+        assertNotNull(source);
+        assertSame(mockClient, source.getClient());
+        assertNotNull(source.getConfigCache());
+    }
+
+    @Test
+    void testListenerException() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        // Add a listener that throws an exception
+        source.addListener("failing-listener", cfg -> {
+            throw new RuntimeException("Listener failure");
+        });
+
+        // Add a normal listener to verify others still get notified despite the exception
+        CountDownLatch latch = new CountDownLatch(1);
+        source.addListener("normal-listener", cfg -> latch.countDown());
+
+        // Trigger notification by setting a value
+        source.setConfig("test.key", "test-value");
+
+        // Normal listener should still be notified despite the failing listener
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+        source.close();
+    }
+
+    @Test
+    void testHierarchicalConfigNested() throws Exception {
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(config);
+        source.start();
+
+        // Set deeply nested configuration values to trigger recursive loading
+        source.setConfig("app.database.connection.host", "localhost");
+        source.setConfig("app.database.connection.port", "5432");
+        source.setConfig("app.database.pool.size", "10");
+        source.setConfig("app.cache.ttl", "300");
+
+        // Reload to trigger recursive path traversal
+        Map<String, String> loaded = source.loadConfig();
+
+        assertEquals("localhost", loaded.get("app.database.connection.host"));
+        assertEquals("5432", loaded.get("app.database.connection.port"));
+        assertEquals("10", loaded.get("app.database.pool.size"));
+        assertEquals("300", loaded.get("app.cache.ttl"));
+
+        source.close();
+    }
+
+    @Test
+    void testLoadConfigWithNonExistentBasePath() throws Exception {
+        // Configure with a base path that doesn't exist
+        ZooKeeperConfigSourceConfig configNoBasePath = ZooKeeperConfigSourceConfig.builder()
+            .connectString(zkServer.getConnectString())
+            .basePath("/nonexistent")
+            .sessionTimeoutMs(10000)
+            .connectionTimeoutMs(5000)
+            .build();
+
+        ZooKeeperConfigSource source = new ZooKeeperConfigSource(configNoBasePath);
+        source.start();
+
+        // Loading config should succeed but return empty since path doesn't exist
+        Map<String, String> loaded = source.loadConfig();
+        assertNotNull(loaded);
+
+        source.close();
     }
 }
