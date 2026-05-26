@@ -60,6 +60,27 @@ public class ClassLoaderCleanupUtil {
     }
 
     /**
+     * Checks if a ClassLoader is the target ClassLoader or a descendant of it.
+     * Handles wrapped/proxied ClassLoaders and delegation hierarchies.
+     *
+     * @param loader the ClassLoader to check
+     * @return true if loader is or descends from target ClassLoader
+     */
+    private boolean isLoadedByTargetClassLoader(ClassLoader loader) {
+        if (loader == null) {
+            return false;
+        }
+        ClassLoader current = loader;
+        while (current != null) {
+            if (current == classLoader) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+
+    /**
      * Performs all cleanup operations.
      *
      * <p>This is the main entry point for ClassLoader cleanup. It calls all
@@ -132,7 +153,7 @@ public class ClassLoaderCleanupUtil {
                             valueField.setAccessible(true);
                             Object value = valueField.get(entry);
 
-                            if (value != null && value.getClass().getClassLoader() == classLoader) {
+                            if (value != null && isLoadedByTargetClassLoader(value.getClass().getClassLoader())) {
                                 table[i] = null; // Clear the entry
                             }
                         }
@@ -140,10 +161,33 @@ public class ClassLoaderCleanupUtil {
                 }
             }
 
-            // Also clean inheritableThreadLocals
+            // Also clean inheritableThreadLocals (filtered, not wholesale destruction)
             Field inheritableThreadLocalsField = Thread.class.getDeclaredField("inheritableThreadLocals");
             inheritableThreadLocalsField.setAccessible(true);
-            inheritableThreadLocalsField.set(thread, null);
+            Object inheritableThreadLocalMap = inheritableThreadLocalsField.get(thread);
+
+            if (inheritableThreadLocalMap != null) {
+                Class<?> threadLocalMapClass = inheritableThreadLocalMap.getClass();
+                Field tableField = threadLocalMapClass.getDeclaredField("table");
+                tableField.setAccessible(true);
+                Object[] inheritableTable = (Object[]) tableField.get(inheritableThreadLocalMap);
+
+                if (inheritableTable != null) {
+                    // Clear ONLY entries loaded by our ClassLoader
+                    for (int i = 0; i < inheritableTable.length; i++) {
+                        Object entry = inheritableTable[i];
+                        if (entry != null) {
+                            Field valueField = entry.getClass().getDeclaredField("value");
+                            valueField.setAccessible(true);
+                            Object value = valueField.get(entry);
+
+                            if (value != null && isLoadedByTargetClassLoader(value.getClass().getClassLoader())) {
+                                inheritableTable[i] = null;
+                            }
+                        }
+                    }
+                }
+            }
 
             return true;
         } catch (Exception e) {
@@ -167,7 +211,7 @@ public class ClassLoaderCleanupUtil {
 
             while (drivers.hasMoreElements()) {
                 Driver driver = drivers.nextElement();
-                if (driver.getClass().getClassLoader() == classLoader) {
+                if (isLoadedByTargetClassLoader(driver.getClass().getClassLoader())) {
                     driversToDeregister.add(driver);
                 }
             }
@@ -260,25 +304,11 @@ public class ClassLoaderCleanupUtil {
      * collection. This method clears the cache using reflection.</p>
      */
     public void cleanupResourceBundles() {
-        try {
-            Class<?> bundleClass = Class.forName("java.util.ResourceBundle");
-            Field cacheListField = bundleClass.getDeclaredField("cacheList");
-            cacheListField.setAccessible(true);
-            Object cacheList = cacheListField.get(null);
-
-            if (cacheList != null) {
-                synchronized (cacheList) {
-                    // Clear the cache (implementation varies by JDK version)
-                    if (cacheList instanceof Map) {
-                        ((Map<?, ?>) cacheList).clear();
-                        logger.info("[{}] Cleared ResourceBundle cache", applicationId);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // ResourceBundle implementation details vary by JDK version
-            logger.debug("[{}] Could not clear ResourceBundle cache: {}", applicationId, e.getMessage());
-        }
+        // ResourceBundles are cached using soft references keyed by ClassLoader.
+        // When the ClassLoader becomes unreachable, the cache entries will be
+        // automatically cleared during GC. Clearing the entire JVM-wide cache
+        // would affect all applications, so we rely on automatic GC instead.
+        logger.debug("[{}] Skipping ResourceBundle cache cleanup - will be GC'd automatically when ClassLoader is collected", applicationId);
     }
 
     /**
