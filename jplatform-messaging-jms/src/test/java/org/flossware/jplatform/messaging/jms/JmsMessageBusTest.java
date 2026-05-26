@@ -629,4 +629,40 @@ class JmsMessageBusTest {
         // Handler should not have been called due to deserialization failure
         assertNull(receivedMessage.get());
     }
+
+    @Test
+    void testMessageHandling_oversizedBody() throws JMSException {
+        messageBus = new JmsMessageBus(config, connectionFactory);
+
+        when(subscribeSession.createTopic("test-topic")).thenReturn(topic);
+        when(subscribeSession.createConsumer(topic)).thenReturn(consumer);
+
+        // Setup message with body length exceeding Integer.MAX_VALUE
+        when(bytesMessage.getJMSMessageID()).thenReturn("msg-123");
+        when(bytesMessage.getJMSTimestamp()).thenReturn(System.currentTimeMillis());
+        when(bytesMessage.getStringProperty("platformMessageId")).thenReturn("msg-123");
+        when(bytesMessage.getLongProperty("platformTimestamp")).thenReturn(System.currentTimeMillis());
+        when(bytesMessage.getStringProperty("sourceApplicationId")).thenReturn("test-app");
+        when(bytesMessage.getBodyLength()).thenReturn(((long) Integer.MAX_VALUE) + 1L); // Exceeds max
+
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Message> receivedMessage = new AtomicReference<>();
+
+        MessageHandler handler = message -> {
+            receivedMessage.set(message);
+            latch.countDown();
+        };
+
+        ArgumentCaptor<MessageListener> listenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
+
+        messageBus.subscribe("test-topic", handler);
+
+        verify(consumer).setMessageListener(listenerCaptor.capture());
+
+        // Should handle the exception (logged but not thrown) and not deliver the message
+        assertDoesNotThrow(() -> listenerCaptor.getValue().onMessage(bytesMessage));
+
+        // Handler should not have been called due to oversized body
+        assertNull(receivedMessage.get());
+    }
 }

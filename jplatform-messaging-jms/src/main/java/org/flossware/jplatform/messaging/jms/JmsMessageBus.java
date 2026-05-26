@@ -384,6 +384,11 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
         byte[] payload = null;
         long bodyLength = bytesMessage.getBodyLength();
         if (bodyLength > 0) {
+            if (bodyLength > Integer.MAX_VALUE) {
+                throw new java.lang.IllegalStateException(
+                    "Message body too large: " + bodyLength + " bytes (max: " + Integer.MAX_VALUE + ")"
+                );
+            }
             payload = new byte[(int) bodyLength];
             bytesMessage.readBytes(payload);
         }
