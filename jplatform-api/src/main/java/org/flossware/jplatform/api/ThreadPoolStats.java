@@ -37,7 +37,8 @@ public class ThreadPoolStats {
      * @param poolSize the current number of threads in the pool
      * @param corePoolSize the core pool size configuration
      * @param maximumPoolSize the maximum pool size configuration
-     * @throws IllegalArgumentException if any parameter is negative, or if maximumPoolSize < corePoolSize
+     * @throws IllegalArgumentException if any parameter is negative, if maximumPoolSize < corePoolSize,
+     *         if poolSize > maximumPoolSize, or if activeThreads > poolSize
      */
     public ThreadPoolStats(int activeThreads, long completedTasks, int queuedTasks,
                           int poolSize, int corePoolSize, int maximumPoolSize) {
@@ -63,6 +64,16 @@ public class ThreadPoolStats {
             throw new IllegalArgumentException(
                 "maximumPoolSize (" + maximumPoolSize +
                 ") cannot be less than corePoolSize (" + corePoolSize + ")");
+        }
+        if (poolSize > maximumPoolSize) {
+            throw new IllegalArgumentException(
+                "poolSize (" + poolSize +
+                ") cannot exceed maximumPoolSize (" + maximumPoolSize + ")");
+        }
+        if (activeThreads > poolSize) {
+            throw new IllegalArgumentException(
+                "activeThreads (" + activeThreads +
+                ") cannot exceed poolSize (" + poolSize + ")");
         }
 
         this.activeThreads = activeThreads;
