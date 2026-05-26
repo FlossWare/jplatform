@@ -1,6 +1,7 @@
 package org.flossware.jplatform.cluster.zookeeper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.flossware.jplatform.api.*;
@@ -49,6 +50,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
         }
         this.client = client;
         this.mapper = new ObjectMapper();
+        this.mapper.registerModule(new Jdk8Module());  // Support Optional types
         this.listeners = new ConcurrentHashMap<>();
     }
 

@@ -86,7 +86,22 @@ class ZookeeperStateStoreTest {
     }
 
     @Test
-    void testPutApplicationDescriptor() {
+    void testPutApplicationDescriptor() throws Exception {
+        // Mock the checkExists chain (path doesn't exist yet)
+        ExistsBuilder existsBuilder = mock(ExistsBuilder.class);
+        when(mockClient.checkExists()).thenReturn(existsBuilder);
+        when(existsBuilder.forPath(anyString())).thenReturn(null);
+
+        // Mock the create chain - need to mock the full fluent chain
+        CreateBuilder createBuilder = mock(CreateBuilder.class);
+        ProtectACLCreateModeStatPathAndBytesable protectBuilder = mock(ProtectACLCreateModeStatPathAndBytesable.class);
+        ACLBackgroundPathAndBytesable<String> aclBuilder = mock(ACLBackgroundPathAndBytesable.class);
+
+        when(mockClient.create()).thenReturn(createBuilder);
+        when(createBuilder.creatingParentsIfNeeded()).thenReturn(protectBuilder);
+        when(protectBuilder.withMode(any())).thenReturn(aclBuilder);
+        when(aclBuilder.forPath(anyString(), any(byte[].class))).thenReturn(null);
+
         ApplicationDescriptor desc = ApplicationDescriptor.builder()
             .applicationId("app1")
             .name("Test App")
