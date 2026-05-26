@@ -196,9 +196,9 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
         if (initialSize < 0) {
             initialSize = 0;
         }
-        // Prevent overflow: activeCount() * 2 must fit in int
-        if (initialSize > MAX_THREADS / 2) {
-            initialSize = MAX_THREADS / 2;
+        // Prevent overflow: activeCount() * 2 must fit in int and leave room for retry growth
+        if (initialSize >= MAX_THREADS / 2) {
+            initialSize = MAX_THREADS / 2 - 1;
             logger.warn("[{}] Thread count {} exceeds reasonable limit, capping at {}",
                        applicationId, applicationThreadGroup.activeCount(), initialSize * 2);
         }

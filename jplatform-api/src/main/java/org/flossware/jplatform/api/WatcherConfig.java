@@ -145,10 +145,19 @@ public class WatcherConfig {
          * @return this builder
          */
         public Builder addFileExtension(String extension) {
+            if (extension == null || extension.trim().isEmpty()) {
+                throw new IllegalArgumentException(
+                    "File extension cannot be null or empty");
+            }
             if (this.fileExtensions == null) {
                 this.fileExtensions = new HashSet<>();
             }
-            this.fileExtensions.add(extension.toLowerCase());
+            // Remove leading dot if present
+            String cleaned = extension.toLowerCase().trim();
+            if (cleaned.startsWith(".")) {
+                cleaned = cleaned.substring(1);
+            }
+            this.fileExtensions.add(cleaned);
             return this;
         }
 
@@ -159,7 +168,13 @@ public class WatcherConfig {
          * @return this builder
          */
         public Builder fileExtensions(Set<String> extensions) {
-            this.fileExtensions = new HashSet<>(extensions);
+            if (extensions == null) {
+                throw new IllegalArgumentException("extensions set cannot be null");
+            }
+            this.fileExtensions = new HashSet<>();
+            for (String ext : extensions) {
+                addFileExtension(ext);  // Reuse validation
+            }
             return this;
         }
 
@@ -170,6 +185,10 @@ public class WatcherConfig {
          * @return this builder
          */
         public Builder debounceMillis(long debounceMillis) {
+            if (debounceMillis < 0) {
+                throw new IllegalArgumentException(
+                    "debounceMillis must be >= 0, got: " + debounceMillis);
+            }
             this.debounceMillis = debounceMillis;
             return this;
         }
