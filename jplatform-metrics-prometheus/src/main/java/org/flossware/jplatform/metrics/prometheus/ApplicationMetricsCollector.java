@@ -119,6 +119,11 @@ public final class ApplicationMetricsCollector {
      */
     private static void collectResourceMetrics(StringBuilder sb, Map<String, String> labels,
                                                ResourceSnapshot snapshot) {
+        if (snapshot == null) {
+            logger.warn("ResourceSnapshot is null, skipping resource metrics");
+            return;
+        }
+
         // CPU time in seconds (counter)
         sb.append(PrometheusFormatter.formatHelp("jplatform_app_cpu_time_seconds",
                 "Total CPU time used by application"));
@@ -150,6 +155,11 @@ public final class ApplicationMetricsCollector {
      */
     private static void collectThreadPoolMetrics(StringBuilder sb, Map<String, String> labels,
                                                  ThreadPoolStats stats) {
+        if (stats == null) {
+            logger.warn("ThreadPoolStats is null, skipping thread pool metrics");
+            return;
+        }
+
         // Active thread pool threads (gauge)
         sb.append(PrometheusFormatter.formatHelp("jplatform_app_threadpool_active",
                 "Number of threads actively executing tasks"));
@@ -182,6 +192,11 @@ public final class ApplicationMetricsCollector {
      */
     private static void collectStateMetrics(StringBuilder sb, Map<String, String> labels,
                                            ApplicationState currentState) {
+        if (currentState == null) {
+            logger.warn("ApplicationState is null, skipping state metrics");
+            return;
+        }
+
         sb.append(PrometheusFormatter.formatHelp("jplatform_app_state",
                 "Application lifecycle state (1 for current state, 0 for others)"));
         sb.append(PrometheusFormatter.formatType("jplatform_app_state", "gauge"));
