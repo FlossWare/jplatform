@@ -6,6 +6,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -272,5 +273,181 @@ class EurekaServiceRegistryTest {
         assertDoesNotThrow(() -> {
             registry.unregisterService(TestService.class, new TestServiceImpl());
         });
+    }
+
+    @Test
+    void testGetAllServicesNullInterface() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        // Should throw NullPointerException when accessing ConcurrentHashMap with null key
+        assertThrows(NullPointerException.class, () -> {
+            registry.getAllServices(null);
+        });
+    }
+
+    @Test
+    void testGetServiceNullInterface() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        // Should throw NullPointerException when accessing ConcurrentHashMap with null key
+        assertThrows(NullPointerException.class, () -> {
+            registry.getService(null);
+        });
+    }
+
+    @Test
+    void testUnregisterWithNullInterface() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+        TestService service = new TestServiceImpl();
+
+        registry.registerService(TestService.class, service);
+
+        // Unregister with null should be no-op
+        assertDoesNotThrow(() -> registry.unregisterService(null, service));
+
+        // Service should still be there
+        assertTrue(registry.getService(TestService.class).isPresent());
+    }
+
+    @Test
+    void testUnregisterWithNullImplementation() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+        TestService service = new TestServiceImpl();
+
+        registry.registerService(TestService.class, service);
+
+        // Unregister with null implementation should be no-op
+        assertDoesNotThrow(() -> registry.unregisterService(TestService.class, null));
+
+        // Service should still be there
+        assertTrue(registry.getService(TestService.class).isPresent());
+    }
+
+    @Test
+    void testUnregisterRemovesOnlySpecifiedInstance() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        TestService service1 = new TestServiceImpl();
+        TestService service2 = new TestServiceImpl();
+
+        registry.registerService(TestService.class, service1);
+        registry.registerService(TestService.class, service2);
+
+        assertEquals(2, registry.getAllServices(TestService.class).size());
+
+        registry.unregisterService(TestService.class, service1);
+
+        List<TestService> services = registry.getAllServices(TestService.class);
+        assertEquals(1, services.size());
+        assertSame(service2, services.get(0));
+    }
+
+    @Test
+    void testUnregisterLastInstanceCleansUpEntry() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        TestService service = new TestServiceImpl();
+        registry.registerService(TestService.class, service);
+
+        assertTrue(registry.getService(TestService.class).isPresent());
+
+        registry.unregisterService(TestService.class, service);
+
+        assertFalse(registry.getService(TestService.class).isPresent());
+    }
+
+    @Test
+    void testCloseIdempotent() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        assertDoesNotThrow(() -> {
+            registry.close();
+            registry.close();
+            registry.close();
+        });
+    }
+
+    @Test
+    void testCloseWithoutStart() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config);
+
+        assertDoesNotThrow(() -> registry.close());
+    }
+
+    @Test
+    void testStartWithRegistrationDisabled() {
+        EurekaRegistryConfig configNoReg = EurekaRegistryConfig.builder()
+            .appName("test-app")
+            .registerWithEureka(false)
+            .build();
+
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(configNoReg);
+
+        assertDoesNotThrow(() -> {
+            registry.start();
+            registry.close();
+        });
+    }
+
+    @Test
+    void testGetLocalServicesMap() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        TestService service = new TestServiceImpl();
+        registry.registerService(TestService.class, service);
+
+        Map<Class<?>, List<Object>> localServices = registry.getLocalServices();
+        assertNotNull(localServices);
+        assertTrue(localServices.containsKey(TestService.class));
+        assertEquals(1, localServices.get(TestService.class).size());
+    }
+
+    @Test
+    void testSendHeartbeatsWithNoRegisteredInstances() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        // Should not throw even with no registered instances
+        assertDoesNotThrow(() -> registry.sendHeartbeats());
+    }
+
+    @Test
+    void testRegisterSameInstanceTwice() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        TestService service = new TestServiceImpl();
+        registry.registerService(TestService.class, service);
+        registry.registerService(TestService.class, service);
+
+        // Should have both registrations (CopyOnWriteArrayList allows duplicates)
+        assertEquals(2, registry.getAllServices(TestService.class).size());
+    }
+
+    @Test
+    void testGetAllServicesReturnsCopy() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        TestService service = new TestServiceImpl();
+        registry.registerService(TestService.class, service);
+
+        List<TestService> services1 = registry.getAllServices(TestService.class);
+        List<TestService> services2 = registry.getAllServices(TestService.class);
+
+        assertNotSame(services1, services2);
+        assertEquals(services1.size(), services2.size());
+    }
+
+    @Test
+    void testCloseAfterServicesRegistered() {
+        EurekaServiceRegistry registry = new EurekaServiceRegistry(config, heartbeatExecutor);
+
+        TestService service = new TestServiceImpl();
+        registry.registerService(TestService.class, service);
+
+        assertTrue(registry.getService(TestService.class).isPresent());
+
+        registry.close();
+
+        // After close, services should be cleared
+        assertFalse(registry.getService(TestService.class).isPresent());
     }
 }
