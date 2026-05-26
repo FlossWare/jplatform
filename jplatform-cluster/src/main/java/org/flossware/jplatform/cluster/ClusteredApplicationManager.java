@@ -87,6 +87,12 @@ public class ClusteredApplicationManager extends ApplicationManager {
             );
         } else {
             this.scheduler = null;
+            if (clusterManager != null) {
+                logger.warn("Application scheduling is only supported with HazelcastClusterManager. " +
+                           "Using {} will result in local-only deployment. " +
+                           "Applications will not be scheduled across the cluster.",
+                           clusterManager.getClass().getSimpleName());
+            }
         }
 
         // Subscribe to cluster events (only if cluster manager is present)
@@ -171,8 +177,21 @@ public class ClusteredApplicationManager extends ApplicationManager {
                     // Step 3: Check if assigned to local node and deploy locally
                     if (scheduler.isAssignedToLocalNode(appId)) {
                         logger.info("[{}] Application assigned to local node, deploying locally", appId);
-                        super.deploy(descriptor);
-                        deployedLocally = true;
+
+                        // Verify assignment hasn't changed before deploying (race condition check)
+                        if (!scheduler.isAssignedToLocalNode(appId)) {
+                            logger.info("[{}] Assignment changed before deployment, skipping", appId);
+                        } else {
+                            super.deploy(descriptor);
+                            deployedLocally = true;
+
+                            // Verify assignment is still valid after deployment (race condition check)
+                            if (!scheduler.isAssignedToLocalNode(appId)) {
+                                logger.warn("[{}] Assignment changed during deployment, cleanup may be needed", appId);
+                                // Deployment happened but assignment changed - rollback will handle cleanup
+                                throw new Exception("Assignment changed during deployment");
+                            }
+                        }
                     } else {
                         logger.info("[{}] Application assigned to another node, skipping local deployment", appId);
                     }
