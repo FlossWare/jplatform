@@ -27,6 +27,8 @@ public class NettyApiServerConfig {
     private final int backlog;
     private final int globalRateLimitRps;
     private final int perIpRateLimitRps;
+    private final int readTimeoutSeconds;
+    private final int writeTimeoutSeconds;
 
     /**
      * Package-private constructor for builder.
@@ -43,6 +45,8 @@ public class NettyApiServerConfig {
         this.backlog = builder.backlog;
         this.globalRateLimitRps = builder.globalRateLimitRps;
         this.perIpRateLimitRps = builder.perIpRateLimitRps;
+        this.readTimeoutSeconds = builder.readTimeoutSeconds;
+        this.writeTimeoutSeconds = builder.writeTimeoutSeconds;
     }
 
     /**
@@ -127,6 +131,24 @@ public class NettyApiServerConfig {
     }
 
     /**
+     * Returns the read timeout in seconds.
+     *
+     * @return the read timeout (default: 30)
+     */
+    public int getReadTimeoutSeconds() {
+        return readTimeoutSeconds;
+    }
+
+    /**
+     * Returns the write timeout in seconds.
+     *
+     * @return the write timeout (default: 30)
+     */
+    public int getWriteTimeoutSeconds() {
+        return writeTimeoutSeconds;
+    }
+
+    /**
      * Creates a new builder for NettyApiServerConfig.
      *
      * @return a new builder instance
@@ -149,6 +171,8 @@ public class NettyApiServerConfig {
         private int backlog = 128;
         private int globalRateLimitRps = 1000;
         private int perIpRateLimitRps = 100;
+        private int readTimeoutSeconds = 30;
+        private int writeTimeoutSeconds = 30;
 
         /**
          * Sets the server host.
@@ -276,6 +300,34 @@ public class NettyApiServerConfig {
                 throw new IllegalArgumentException("Per-IP rate limit must be >= 0 (0 = unlimited)");
             }
             this.perIpRateLimitRps = rps;
+            return this;
+        }
+
+        /**
+         * Sets the read timeout in seconds.
+         *
+         * @param seconds timeout in seconds (must be > 0)
+         * @return this builder for chaining
+         */
+        public Builder readTimeout(int seconds) {
+            if (seconds <= 0) {
+                throw new IllegalArgumentException("Read timeout must be positive");
+            }
+            this.readTimeoutSeconds = seconds;
+            return this;
+        }
+
+        /**
+         * Sets the write timeout in seconds.
+         *
+         * @param seconds timeout in seconds (must be > 0)
+         * @return this builder for chaining
+         */
+        public Builder writeTimeout(int seconds) {
+            if (seconds <= 0) {
+                throw new IllegalArgumentException("Write timeout must be positive");
+            }
+            this.writeTimeoutSeconds = seconds;
             return this;
         }
 

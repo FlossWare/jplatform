@@ -131,6 +131,14 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
             throw new IllegalArgumentException("Service interface and implementation must not be null");
         }
 
+        // Check if already registered (prevents duplicates)
+        List<Object> existingServices = localServices.get(serviceInterface);
+        if (existingServices != null && existingServices.contains(implementation)) {
+            logger.warn("Service {} with implementation {} is already registered, ignoring duplicate",
+                       serviceInterface.getName(), implementation.getClass().getName());
+            return;
+        }
+
         // Add to local registry
         localServices.computeIfAbsent(serviceInterface, k -> new CopyOnWriteArrayList<>())
             .add(implementation);
@@ -163,7 +171,13 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
 
             logger.info("Registered service {} in etcd at key {}", serviceInterface.getName(), key);
         } catch (Exception e) {
+            // Remove from local registry if etcd registration failed
+            List<Object> services = localServices.get(serviceInterface);
+            if (services != null) {
+                services.remove(implementation);
+            }
             logger.error("Failed to register service in etcd: " + serviceInterface.getName(), e);
+            throw new RuntimeException("Failed to register service in etcd", e);
         }
     }
 
@@ -174,13 +188,31 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> List<T> getAllServices(Class<T> serviceInterface) {
+        if (serviceInterface == null) {
+            throw new IllegalArgumentException("Service interface must not be null");
+        }
+
         List<Object> services = localServices.get(serviceInterface);
         if (services == null) {
             return Collections.emptyList();
         }
-        return (List<T>) new ArrayList<>(services);
+
+        // Validate that all elements are of the correct type
+        List<T> result = new ArrayList<>(services.size());
+        for (Object service : services) {
+            if (!serviceInterface.isInstance(service)) {
+                logger.error("Service registry corruption: found {} in registry for {}",
+                            service.getClass().getName(), serviceInterface.getName());
+                throw new IllegalStateException(
+                    "Service registry corrupted: service " + service.getClass().getName() +
+                    " does not implement " + serviceInterface.getName()
+                );
+            }
+            result.add(serviceInterface.cast(service));  // Safe cast
+        }
+
+        return Collections.unmodifiableList(result);
     }
 
     @Override

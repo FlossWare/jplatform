@@ -5,6 +5,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -24,6 +25,10 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.timeout.ReadTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutException;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.CharsetUtil;
 import org.flossware.jplatform.api.PlatformApiServer;
 import org.flossware.jplatform.api.ServerShutdownException;
@@ -33,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -77,10 +83,13 @@ public class NettyApiServer implements PlatformApiServer {
 
     /**
      * Registers a route handler.
+     * <p><b>Warning:</b> This method should be called before {@link #start()}.
+     * Modifying routes while the server is running may cause race conditions.
      *
      * @param path the request path
      * @param handler the handler function
      * @throws IllegalArgumentException if path or handler is null or path is empty
+     * @throws IllegalStateException if called while server is running
      */
     public void addRoute(String path, Function<String, String> handler) {
         if (path == null || path.trim().isEmpty()) {
@@ -89,15 +98,29 @@ public class NettyApiServer implements PlatformApiServer {
         if (handler == null) {
             throw new IllegalArgumentException("Handler must not be null");
         }
+        if (running) {
+            throw new IllegalStateException(
+                "Cannot add routes while server is running. " +
+                "Add all routes before calling start()."
+            );
+        }
         routes.put(path, handler);
     }
 
     /**
      * Removes a route handler.
+     * <p><b>Warning:</b> This method should be called before {@link #start()}.
      *
      * @param path the request path
+     * @throws IllegalStateException if called while server is running
      */
     public void removeRoute(String path) {
+        if (running) {
+            throw new IllegalStateException(
+                "Cannot remove routes while server is running. " +
+                "Stop the server before modifying routes."
+            );
+        }
         routes.remove(path);
     }
 
@@ -155,6 +178,13 @@ public class NettyApiServer implements PlatformApiServer {
                     @Override
                     protected void initChannel(SocketChannel ch) {
                         ChannelPipeline pipeline = ch.pipeline();
+
+                        // Add timeout handlers
+                        pipeline.addLast(new ReadTimeoutHandler(
+                            config.getReadTimeoutSeconds(), TimeUnit.SECONDS));
+                        pipeline.addLast(new WriteTimeoutHandler(
+                            config.getWriteTimeoutSeconds(), TimeUnit.SECONDS));
+
                         pipeline.addLast(new HttpServerCodec());
                         pipeline.addLast(new HttpObjectAggregator(maxContentLength));
 
@@ -378,8 +408,23 @@ public class NettyApiServer implements PlatformApiServer {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            logger.error("Error handling request", cause);
-            ctx.close();
+            if (cause instanceof ReadTimeoutException) {
+                logger.warn("Request timeout - no data received within timeout period");
+                FullHttpResponse response = new DefaultFullHttpResponse(
+                    HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.REQUEST_TIMEOUT,
+                    Unpooled.copiedBuffer("{\"error\":\"Request timeout\"}", CharsetUtil.UTF_8)
+                );
+                response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
+                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+                ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            } else if (cause instanceof WriteTimeoutException) {
+                logger.warn("Response timeout - could not send response within timeout period");
+                ctx.close();
+            } else {
+                logger.error("Error handling request", cause);
+                ctx.close();
+            }
         }
     }
 }

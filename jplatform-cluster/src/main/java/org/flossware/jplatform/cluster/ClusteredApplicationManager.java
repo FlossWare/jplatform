@@ -68,12 +68,24 @@ public class ClusteredApplicationManager extends ApplicationManager {
      * @param serviceRegistry the shared service registry, or null to disable
      * @param clusterManager the cluster manager for distributed coordination
      * @param stateStore the cluster state store for distributed state
+     * @throws IllegalArgumentException if clusterManager and stateStore are inconsistent
      */
     public ClusteredApplicationManager(MessageBus messageBus,
                                        ServiceRegistry serviceRegistry,
                                        ClusterManager clusterManager,
                                        ClusterStateStore stateStore) {
         super(messageBus, serviceRegistry);
+
+        // Validate consistency of cluster components
+        if ((clusterManager == null) != (stateStore == null)) {
+            throw new IllegalArgumentException(
+                "ClusterManager and ClusterStateStore must both be null (standalone mode) " +
+                "or both be non-null (clustered mode). " +
+                "Provided: clusterManager=" + (clusterManager != null ? "present" : "null") +
+                ", stateStore=" + (stateStore != null ? "present" : "null")
+            );
+        }
+
         this.clusterManager = clusterManager;
         this.stateStore = stateStore;
 
@@ -415,12 +427,18 @@ public class ClusteredApplicationManager extends ApplicationManager {
     @Override
     public Map<String, ApplicationState> listApplications() {
         if (clusterManager != null && clusterManager.isJoined() && stateStore != null) {
-            // Return cluster-wide applications
-            return stateStore.getAllApplicationStates();
-        } else {
-            // Return local applications
-            return super.listApplications();
+            try {
+                // Try to return cluster-wide applications
+                return stateStore.getAllApplicationStates();
+            } catch (Exception e) {
+                logger.warn("Failed to get cluster application states, falling back to local: {}",
+                           e.getMessage());
+                // Fall through to local applications
+            }
         }
+
+        // Return local applications
+        return super.listApplications();
     }
 
     /**
