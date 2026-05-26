@@ -186,4 +186,164 @@ class PlatformConfigTest {
         // Should still process other flags
         assertTrue(config.getApi().isEnabled());
     }
+
+    @Test
+    void testEmptyCommandLineArgs() {
+        PlatformConfig config = new PlatformConfig();
+
+        String[] args = {};
+        config.mergeCommandLineArgs(args);
+
+        assertFalse(config.getApi().isEnabled());
+        assertEquals(8080, config.getApi().getPort());
+    }
+
+    @Test
+    void testNullCommandLineArgs() {
+        PlatformConfig config = new PlatformConfig();
+
+        assertThrows(NullPointerException.class, () ->
+            config.mergeCommandLineArgs(null)
+        );
+    }
+
+    @Test
+    void testMultipleFlags() {
+        PlatformConfig config = new PlatformConfig();
+
+        String[] args = {
+            "--rest-api",
+            "--port", "8888",
+            "--jmx-port", "9998",
+            "--prometheus",
+            "--prometheus-port", "9091",
+            "--watch-dir", "/apps"
+        };
+        config.mergeCommandLineArgs(args);
+
+        assertTrue(config.getApi().isEnabled());
+        assertEquals(8888, config.getApi().getPort());
+
+        assertTrue(config.getMetrics().getJmx().isEnabled());
+        assertEquals(9998, config.getMetrics().getJmx().getPort());
+
+        assertTrue(config.getMetrics().getPrometheus().isEnabled());
+        assertEquals(9091, config.getMetrics().getPrometheus().getPort());
+
+        assertTrue(config.getWatcher().isEnabled());
+        assertEquals("/apps", config.getWatcher().getWatchDirectory());
+    }
+
+    @Test
+    void testInvalidPortValue() {
+        PlatformConfig config = new PlatformConfig();
+
+        String[] args = {"--port", "invalid"};
+        assertThrows(IllegalArgumentException.class, () ->
+            config.mergeCommandLineArgs(args)
+        );
+    }
+
+    @Test
+    void testMissingPortValue() {
+        PlatformConfig config = new PlatformConfig();
+
+        String[] args = {"--port"};
+        // Missing value is ignored, no exception
+        assertDoesNotThrow(() -> config.mergeCommandLineArgs(args));
+        // Port should remain default
+        assertEquals(8080, config.getApi().getPort());
+    }
+
+    @Test
+    void testLoadNullPath() {
+        assertThrows(NullPointerException.class, () ->
+            PlatformConfig.load(null)
+        );
+    }
+
+    @Test
+    void testGetApiConfig() {
+        PlatformConfig config = new PlatformConfig();
+
+        assertNotNull(config.getApi());
+        assertSame(config.getApi(), config.getApi());
+    }
+
+    @Test
+    void testGetMetricsConfig() {
+        PlatformConfig config = new PlatformConfig();
+
+        assertNotNull(config.getMetrics());
+        assertSame(config.getMetrics(), config.getMetrics());
+    }
+
+    @Test
+    void testGetWatcherConfig() {
+        PlatformConfig config = new PlatformConfig();
+
+        assertNotNull(config.getWatcher());
+        assertSame(config.getWatcher(), config.getWatcher());
+    }
+
+    @Test
+    void testDefaultPortValues() {
+        PlatformConfig config = new PlatformConfig();
+
+        assertEquals(8080, config.getApi().getPort());
+        assertEquals(9999, config.getMetrics().getJmx().getPort());
+        assertEquals(9090, config.getMetrics().getPrometheus().getPort());
+    }
+
+    @Test
+    void testYamlWithOnlyMetrics() throws Exception {
+        String yaml = "metrics:\n" +
+            "  jmx:\n" +
+            "    enabled: true\n";
+
+        Path configFile = tempDir.resolve("metrics-only.yaml");
+        Files.writeString(configFile, yaml);
+
+        PlatformConfig config = PlatformConfig.load(configFile.toString());
+
+        assertTrue(config.getMetrics().getJmx().isEnabled());
+        assertFalse(config.getApi().isEnabled());
+    }
+
+    @Test
+    void testYamlWithOnlyWatcher() throws Exception {
+        String yaml = "watcher:\n" +
+            "  enabled: true\n" +
+            "  watchDirectory: /watch\n";
+
+        Path configFile = tempDir.resolve("watcher-only.yaml");
+        Files.writeString(configFile, yaml);
+
+        PlatformConfig config = PlatformConfig.load(configFile.toString());
+
+        assertTrue(config.getWatcher().isEnabled());
+        assertEquals("/watch", config.getWatcher().getWatchDirectory());
+        assertFalse(config.getApi().isEnabled());
+    }
+
+    @Test
+    void testDuplicateFlags() {
+        PlatformConfig config = new PlatformConfig();
+
+        String[] args = {"--port", "8000", "--port", "9000"};
+        config.mergeCommandLineArgs(args);
+
+        // Last one wins
+        assertEquals(9000, config.getApi().getPort());
+    }
+
+    @Test
+    void testUnknownFlags() {
+        PlatformConfig config = new PlatformConfig();
+
+        String[] args = {"--unknown-flag", "--rest-api"};
+        assertDoesNotThrow(() -> config.mergeCommandLineArgs(args));
+
+        assertTrue(config.getApi().isEnabled());
+    }
 }

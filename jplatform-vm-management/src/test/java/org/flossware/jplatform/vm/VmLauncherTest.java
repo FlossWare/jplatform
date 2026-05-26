@@ -457,4 +457,273 @@ class VmLauncherTest {
             launcher.close();
         }
     }
+
+    /**
+     * Tests VmLauncher constructor with null URI.
+     */
+    @Test
+    void testConstructorNullUri() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            new VmLauncher(null);
+        });
+        assertTrue(exception.getMessage().contains("null or empty"));
+    }
+
+    /**
+     * Tests VmLauncher constructor with empty URI.
+     */
+    @Test
+    void testConstructorEmptyUri() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            new VmLauncher("");
+        });
+        assertTrue(exception.getMessage().contains("null or empty"));
+    }
+
+    /**
+     * Tests VmLauncher constructor with whitespace URI.
+     */
+    @Test
+    void testConstructorWhitespaceUri() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            new VmLauncher("   ");
+        });
+        assertTrue(exception.getMessage().contains("null or empty"));
+    }
+
+    /**
+     * Tests VmStats with zero values.
+     */
+    @Test
+    void testVmStatsZeroValues() {
+        VmLauncher.VmStats stats = new VmLauncher.VmStats(
+            0,       // memoryMB
+            0,       // maxMemoryMB
+            0,       // vcpu
+            0L,      // cpuTimeNs
+            "SHUTOFF"
+        );
+
+        assertEquals(0, stats.getMemoryMB());
+        assertEquals(0, stats.getMaxMemoryMB());
+        assertEquals(0, stats.getVcpu());
+        assertEquals(0L, stats.getCpuTimeNs());
+        assertEquals("SHUTOFF", stats.getState());
+        assertEquals(0.0, stats.getCpuTimeSeconds(), 0.01);
+    }
+
+    /**
+     * Tests VmStats with large values.
+     */
+    @Test
+    void testVmStatsLargeValues() {
+        VmLauncher.VmStats stats = new VmLauncher.VmStats(
+            1048576,    // 1TB memory
+            2097152,    // 2TB max memory
+            128,        // 128 CPUs
+            3600000000000L,  // 1 hour of CPU time
+            "RUNNING"
+        );
+
+        assertEquals(1048576, stats.getMemoryMB());
+        assertEquals(2097152, stats.getMaxMemoryMB());
+        assertEquals(128, stats.getVcpu());
+        assertEquals(3600000000000L, stats.getCpuTimeNs());
+        assertEquals("RUNNING", stats.getState());
+        assertEquals(3600.0, stats.getCpuTimeSeconds(), 0.01);
+    }
+
+    /**
+     * Tests VmStats with different states.
+     */
+    @Test
+    void testVmStatsDifferentStates() {
+        String[] states = {"RUNNING", "PAUSED", "SHUTOFF", "CRASHED", "SUSPENDED"};
+
+        for (String state : states) {
+            VmLauncher.VmStats stats = new VmLauncher.VmStats(
+                4096, 8192, 2, 1000000L, state
+            );
+            assertEquals(state, stats.getState());
+        }
+    }
+
+    /**
+     * Tests VM configuration with multiple disks.
+     */
+    @Test
+    void testVmConfigurationMultipleDisks() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("vm.vcpu", "4");
+        properties.put("vm.memory", "8192");
+        properties.put("vm.disk", "/var/lib/jplatform/vms/os.qcow2");
+        properties.put("vm.disk.1", "/var/lib/jplatform/vms/data1.qcow2");
+        properties.put("vm.disk.2", "/var/lib/jplatform/vms/data2.qcow2");
+
+        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
+            .applicationId("multi-disk-vm")
+            .mainClass("vm.Launcher")
+            .name("Multi-Disk VM")
+            .properties(properties)
+            .build();
+
+        assertEquals("/var/lib/jplatform/vms/os.qcow2",
+            descriptor.getProperties().get("vm.disk"));
+        assertEquals("/var/lib/jplatform/vms/data1.qcow2",
+            descriptor.getProperties().get("vm.disk.1"));
+        assertEquals("/var/lib/jplatform/vms/data2.qcow2",
+            descriptor.getProperties().get("vm.disk.2"));
+    }
+
+    /**
+     * Tests VM configuration with NAT networking.
+     */
+    @Test
+    void testVmConfigurationNatNetwork() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("vm.vcpu", "2");
+        properties.put("vm.memory", "4096");
+        properties.put("vm.disk", "/var/lib/jplatform/vms/nat-test.qcow2");
+        properties.put("vm.network", "nat");
+
+        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
+            .applicationId("nat-test-vm")
+            .mainClass("vm.Launcher")
+            .name("NAT Test VM")
+            .properties(properties)
+            .build();
+
+        assertEquals("nat", descriptor.getProperties().get("vm.network"));
+    }
+
+    /**
+     * Tests VM configuration with no networking.
+     */
+    @Test
+    void testVmConfigurationNoNetwork() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("vm.vcpu", "2");
+        properties.put("vm.memory", "4096");
+        properties.put("vm.disk", "/var/lib/jplatform/vms/isolated-test.qcow2");
+        properties.put("vm.network", "none");
+
+        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
+            .applicationId("isolated-test-vm")
+            .mainClass("vm.Launcher")
+            .name("Isolated Test VM")
+            .properties(properties)
+            .build();
+
+        assertEquals("none", descriptor.getProperties().get("vm.network"));
+    }
+
+    /**
+     * Tests VM configuration with disk format.
+     */
+    @Test
+    void testVmConfigurationDiskFormat() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("vm.vcpu", "2");
+        properties.put("vm.memory", "4096");
+        properties.put("vm.disk", "/var/lib/jplatform/vms/raw-disk.img");
+        properties.put("vm.disk.format", "raw");
+
+        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
+            .applicationId("raw-disk-vm")
+            .mainClass("vm.Launcher")
+            .name("Raw Disk VM")
+            .properties(properties)
+            .build();
+
+        assertEquals("raw", descriptor.getProperties().get("vm.disk.format"));
+    }
+
+    /**
+     * Tests VM configuration with custom VM name.
+     */
+    @Test
+    void testVmConfigurationCustomName() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("vm.name", "my-custom-vm-name");
+        properties.put("vm.vcpu", "2");
+        properties.put("vm.memory", "4096");
+        properties.put("vm.disk", "/var/lib/jplatform/vms/custom.qcow2");
+
+        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
+            .applicationId("custom-name-vm")
+            .mainClass("vm.Launcher")
+            .name("Custom Name VM")
+            .properties(properties)
+            .build();
+
+        assertEquals("my-custom-vm-name", descriptor.getProperties().get("vm.name"));
+    }
+
+    /**
+     * Tests VM configuration with high CPU count.
+     */
+    @Test
+    void testVmConfigurationHighCpuCount() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("vm.vcpu", "64");
+        properties.put("vm.memory", "131072"); // 128GB
+        properties.put("vm.disk", "/var/lib/jplatform/vms/highend.qcow2");
+
+        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
+            .applicationId("highend-vm")
+            .mainClass("vm.Launcher")
+            .name("High-End VM")
+            .properties(properties)
+            .build();
+
+        assertEquals("64", descriptor.getProperties().get("vm.vcpu"));
+        assertEquals("131072", descriptor.getProperties().get("vm.memory"));
+    }
+
+    /**
+     * Tests VM configuration with minimal resources.
+     */
+    @Test
+    void testVmConfigurationMinimalResources() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("vm.vcpu", "1");
+        properties.put("vm.memory", "512");
+        properties.put("vm.disk", "/var/lib/jplatform/vms/minimal.qcow2");
+
+        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
+            .applicationId("minimal-vm")
+            .mainClass("vm.Launcher")
+            .name("Minimal VM")
+            .properties(properties)
+            .build();
+
+        assertEquals("1", descriptor.getProperties().get("vm.vcpu"));
+        assertEquals("512", descriptor.getProperties().get("vm.memory"));
+    }
+
+    /**
+     * Tests VmStats CPU time conversion precision.
+     */
+    @Test
+    void testVmStatsCpuTimePrecision() {
+        // 500ms = 500,000,000 nanoseconds
+        VmLauncher.VmStats stats = new VmLauncher.VmStats(
+            2048, 4096, 2, 500000000L, "RUNNING"
+        );
+
+        assertEquals(0.5, stats.getCpuTimeSeconds(), 0.001);
+    }
+
+    /**
+     * Tests VmStats with negative CPU time (should still calculate).
+     */
+    @Test
+    void testVmStatsNegativeCpuTime() {
+        // Shouldn't happen in practice, but test defensive programming
+        VmLauncher.VmStats stats = new VmLauncher.VmStats(
+            2048, 4096, 2, -1000000000L, "RUNNING"
+        );
+
+        assertEquals(-1.0, stats.getCpuTimeSeconds(), 0.01);
+    }
 }

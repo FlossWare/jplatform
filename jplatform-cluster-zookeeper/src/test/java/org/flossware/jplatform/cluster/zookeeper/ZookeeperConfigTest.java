@@ -124,4 +124,104 @@ class ZookeeperConfigTest {
             ZookeeperConfig.builder().connectionString("").build()
         );
     }
+
+    @Test
+    void testNullConnectionString() {
+        assertThrows(IllegalStateException.class, () ->
+            ZookeeperConfig.builder().connectionString(null).build()
+        );
+    }
+
+    @Test
+    void testWhitespaceConnectionString() {
+        assertThrows(IllegalStateException.class, () ->
+            ZookeeperConfig.builder().connectionString("   ").build()
+        );
+    }
+
+    @Test
+    void testNegativeSessionTimeout() {
+        assertThrows(IllegalArgumentException.class, () ->
+            ZookeeperConfig.builder().sessionTimeoutMs(-1).build()
+        );
+    }
+
+    @Test
+    void testZeroConnectionTimeout() {
+        assertThrows(IllegalArgumentException.class, () ->
+            ZookeeperConfig.builder().connectionTimeoutMs(0).build()
+        );
+    }
+
+    @Test
+    void testNegativeBaseSleepTime() {
+        assertThrows(IllegalArgumentException.class, () ->
+            ZookeeperConfig.builder().baseSleepTimeMs(-1).build()
+        );
+    }
+
+    @Test
+    void testZeroMaxRetries() {
+        ZookeeperConfig config = ZookeeperConfig.builder()
+            .maxRetries(0)
+            .build();
+
+        assertEquals(0, config.getMaxRetries());
+    }
+
+    @Test
+    void testEmptyNamespace() {
+        ZookeeperConfig config = ZookeeperConfig.builder()
+            .namespace("")
+            .build();
+
+        assertEquals("", config.getNamespace());
+    }
+
+    @Test
+    void testBuilderReuse() {
+        ZookeeperConfig.Builder builder = ZookeeperConfig.builder()
+            .connectionString("host1:2181");
+
+        ZookeeperConfig config1 = builder.build();
+        ZookeeperConfig config2 = builder
+            .sessionTimeoutMs(45000)
+            .build();
+
+        assertEquals("host1:2181", config1.getConnectionString());
+        assertEquals("host1:2181", config2.getConnectionString());
+        assertEquals(30000, config1.getSessionTimeoutMs());
+        assertEquals(45000, config2.getSessionTimeoutMs());
+    }
+
+    @Test
+    void testMultipleHosts() {
+        ZookeeperConfig config = ZookeeperConfig.builder()
+            .connectionString("host1:2181,host2:2181,host3:2181,host4:2181")
+            .build();
+
+        assertEquals("host1:2181,host2:2181,host3:2181,host4:2181", config.getConnectionString());
+    }
+
+    @Test
+    void testLargeTimeouts() {
+        ZookeeperConfig config = ZookeeperConfig.builder()
+            .sessionTimeoutMs(Integer.MAX_VALUE)
+            .connectionTimeoutMs(Integer.MAX_VALUE)
+            .baseSleepTimeMs(Integer.MAX_VALUE)
+            .build();
+
+        assertEquals(Integer.MAX_VALUE, config.getSessionTimeoutMs());
+        assertEquals(Integer.MAX_VALUE, config.getConnectionTimeoutMs());
+        assertEquals(Integer.MAX_VALUE, config.getBaseSleepTimeMs());
+    }
+
+    @Test
+    void testLargeMaxRetries() {
+        ZookeeperConfig config = ZookeeperConfig.builder()
+            .maxRetries(Integer.MAX_VALUE)
+            .build();
+
+        assertEquals(Integer.MAX_VALUE, config.getMaxRetries());
+    }
 }

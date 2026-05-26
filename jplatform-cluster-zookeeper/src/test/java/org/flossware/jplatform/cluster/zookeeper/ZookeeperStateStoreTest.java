@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -23,6 +24,7 @@ class ZookeeperStateStoreTest {
         mockClient = mock(CuratorFramework.class);
         store = new ZookeeperStateStore(mockClient);
         mapper = new ObjectMapper();
+        mapper.registerModule(new com.fasterxml.jackson.datatype.jdk8.Jdk8Module());
     }
 
     @Test
@@ -150,5 +152,75 @@ class ZookeeperStateStoreTest {
     @Test
     void testClear() {
         assertDoesNotThrow(() -> store.clear());
+    }
+
+    @Test
+    void testConstructorNullClient() {
+        assertThrows(IllegalArgumentException.class, () ->
+            new ZookeeperStateStore(null)
+        );
+    }
+
+    @Test
+    void testGetApplicationStateMultipleStates() throws Exception {
+        ApplicationState state1 = ApplicationState.RUNNING;
+        ApplicationState state2 = ApplicationState.STOPPED;
+        byte[] data1 = mapper.writeValueAsBytes(state1);
+        byte[] data2 = mapper.writeValueAsBytes(state2);
+
+        ExistsBuilder existsBuilder = mock(ExistsBuilder.class);
+        GetDataBuilder getDataBuilder = mock(GetDataBuilder.class);
+
+        when(mockClient.checkExists()).thenReturn(existsBuilder);
+        when(existsBuilder.forPath("/jplatform/states/app1")).thenReturn(new Stat());
+        when(existsBuilder.forPath("/jplatform/states/app2")).thenReturn(new Stat());
+        when(mockClient.getData()).thenReturn(getDataBuilder);
+        when(getDataBuilder.forPath("/jplatform/states/app1")).thenReturn(data1);
+        when(getDataBuilder.forPath("/jplatform/states/app2")).thenReturn(data2);
+
+        ApplicationState result1 = store.getApplicationState("app1");
+        ApplicationState result2 = store.getApplicationState("app2");
+
+        assertEquals(state1, result1);
+        assertEquals(state2, result2);
+    }
+
+    @Test
+    void testSubscribeSameListenerMultipleTimes() {
+        ClusterStateStore.StateChangeListener listener = mock(ClusterStateStore.StateChangeListener.class);
+
+        assertDoesNotThrow(() -> store.subscribe("app1", listener));
+        assertDoesNotThrow(() -> store.subscribe("app1", listener));
+    }
+
+    @Test
+    void testUnsubscribeNotSubscribed() {
+        ClusterStateStore.StateChangeListener listener = mock(ClusterStateStore.StateChangeListener.class);
+
+        assertDoesNotThrow(() -> store.unsubscribe("app1", listener));
+    }
+
+    @Test
+    void testAllApplicationStatesReturnsMap() throws Exception {
+        ExistsBuilder existsBuilder = mock(ExistsBuilder.class);
+        when(mockClient.checkExists()).thenReturn(existsBuilder);
+        when(existsBuilder.forPath(anyString())).thenReturn(null);
+
+        Map<String, ApplicationState> states = store.getAllApplicationStates();
+
+        assertNotNull(states);
+        assertTrue(states.isEmpty());
+    }
+
+    @Test
+    void testAllApplicationDescriptorsReturnsMap() throws Exception {
+        ExistsBuilder existsBuilder = mock(ExistsBuilder.class);
+        when(mockClient.checkExists()).thenReturn(existsBuilder);
+        when(existsBuilder.forPath(anyString())).thenReturn(null);
+
+        Map<String, ApplicationDescriptor> descriptors = store.getAllApplicationDescriptors();
+
+        assertNotNull(descriptors);
+        assertTrue(descriptors.isEmpty());
     }
 }

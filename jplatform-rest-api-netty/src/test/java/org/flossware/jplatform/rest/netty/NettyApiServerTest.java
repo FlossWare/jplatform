@@ -211,4 +211,168 @@ class NettyApiServerTest {
         server.addRoute("/test", input -> "response");
         assertTrue(server.getRoutes().containsKey("/test"));
     }
+
+    @Test
+    void testGetRoutesInitiallyEmpty() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        assertTrue(server.getRoutes().isEmpty());
+    }
+
+    @Test
+    void testAddNullRoute() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            server.addRoute(null, input -> "response")
+        );
+    }
+
+    @Test
+    void testAddRouteWithNullHandler() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            server.addRoute("/test", null)
+        );
+    }
+
+    @Test
+    void testRemoveNullRoute() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        assertThrows(NullPointerException.class, () ->
+            server.removeRoute(null)
+        );
+    }
+
+    @Test
+    void testAddEmptyRoute() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        assertThrows(IllegalArgumentException.class, () ->
+            server.addRoute("", input -> "response")
+        );
+    }
+
+    @Test
+    void testAddRouteWithSlashPrefix() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        server.addRoute("/api/v1/users", input -> "users");
+        assertTrue(server.getRoutes().containsKey("/api/v1/users"));
+    }
+
+    @Test
+    void testAddRouteWithoutSlashPrefix() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        server.addRoute("api/users", input -> "users");
+        assertTrue(server.getRoutes().containsKey("api/users"));
+    }
+
+    @Test
+    void testAddMultipleRoutesRemoveOne() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        server.addRoute("/route1", input -> "1");
+        server.addRoute("/route2", input -> "2");
+        server.addRoute("/route3", input -> "3");
+
+        server.removeRoute("/route2");
+
+        assertEquals(2, server.getRoutes().size());
+        assertTrue(server.getRoutes().containsKey("/route1"));
+        assertFalse(server.getRoutes().containsKey("/route2"));
+        assertTrue(server.getRoutes().containsKey("/route3"));
+    }
+
+    @Test
+    void testRouteHandlerWithComplexLogic() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        Function<String, String> complexHandler = input -> {
+            if (input == null || input.isEmpty()) {
+                return "{\"error\":\"empty\"}";
+            }
+            return "{\"processed\":\"" + input.toUpperCase() + "\"}";
+        };
+
+        server.addRoute("/api/process", complexHandler);
+
+        Function<String, String> handler = server.getRoutes().get("/api/process");
+        assertEquals("{\"processed\":\"HELLO\"}", handler.apply("hello"));
+        assertEquals("{\"error\":\"empty\"}", handler.apply(""));
+    }
+
+    @Test
+    void testGetPortDefaultValue() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        assertEquals(8080, server.getPort());
+    }
+
+    @Test
+    void testIsRunningAfterStopCall() throws Exception {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        server.stop();
+        assertFalse(server.isRunning());
+    }
+
+    @Test
+    void testCloseIdempotent() throws Exception {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        server.close();
+        server.close();
+
+        assertFalse(server.isRunning());
+    }
+
+    @Test
+    void testAddSameRouteTwice() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        server.addRoute("/test", input -> "first");
+        server.addRoute("/test", input -> "second");
+
+        assertEquals(1, server.getRoutes().size());
+    }
+
+    @Test
+    void testRemoveThenAddSameRoute() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder().build();
+        NettyApiServer server = new NettyApiServer(config);
+
+        server.addRoute("/test", input -> "first");
+        server.removeRoute("/test");
+        server.addRoute("/test", input -> "second");
+
+        Function<String, String> handler = server.getRoutes().get("/test");
+        assertEquals("second", handler.apply(""));
+    }
+
+    @Test
+    void testConfigPortRange() {
+        NettyApiServerConfig config = NettyApiServerConfig.builder()
+            .port(1024)
+            .build();
+
+        NettyApiServer server = new NettyApiServer(config);
+        assertEquals(1024, server.getPort());
+    }
 }
