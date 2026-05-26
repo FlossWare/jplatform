@@ -182,8 +182,20 @@ public class Message {
          *
          * @param headers the headers map
          * @return this builder
+         * @throws IllegalArgumentException if headers contain null keys or values
          */
         public Builder headers(Map<String, Object> headers) {
+            if (headers != null) {
+                for (Map.Entry<String, Object> entry : headers.entrySet()) {
+                    if (entry.getKey() == null) {
+                        throw new IllegalArgumentException("Message headers cannot contain null keys");
+                    }
+                    if (entry.getValue() == null) {
+                        throw new IllegalArgumentException(
+                            "Message headers cannot contain null values (key: " + entry.getKey() + ")");
+                    }
+                }
+            }
             this.headers = headers != null ? new HashMap<>(headers) : null;
             return this;
         }
@@ -195,8 +207,15 @@ public class Message {
          * @param key the header key
          * @param value the header value
          * @return this builder
+         * @throws IllegalArgumentException if key or value is null
          */
         public Builder header(String key, Object value) {
+            if (key == null) {
+                throw new IllegalArgumentException("Message header key cannot be null");
+            }
+            if (value == null) {
+                throw new IllegalArgumentException("Message header value cannot be null");
+            }
             if (this.headers == null) {
                 this.headers = new HashMap<>();
             }

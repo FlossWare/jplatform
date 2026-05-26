@@ -292,4 +292,55 @@ class MessageTest {
         assertNotNull(msg.getHeaders());
         assertTrue(msg.getHeaders().isEmpty());
     }
+
+    @Test
+    void testBuilder_headerNullKey() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> Message.builder()
+                        .topic("test-topic")
+                        .sourceApplicationId("app1")
+                        .header(null, "value"));
+
+        assertTrue(exception.getMessage().contains("header key cannot be null"));
+    }
+
+    @Test
+    void testBuilder_headerNullValue() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> Message.builder()
+                        .topic("test-topic")
+                        .sourceApplicationId("app1")
+                        .header("key", null));
+
+        assertTrue(exception.getMessage().contains("header value cannot be null"));
+    }
+
+    @Test
+    void testBuilder_headersNullKeyInMap() {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(null, "value");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> Message.builder()
+                        .topic("test-topic")
+                        .sourceApplicationId("app1")
+                        .headers(headers));
+
+        assertTrue(exception.getMessage().contains("headers cannot contain null keys"));
+    }
+
+    @Test
+    void testBuilder_headersNullValueInMap() {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("testKey", null);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> Message.builder()
+                        .topic("test-topic")
+                        .sourceApplicationId("app1")
+                        .headers(headers));
+
+        assertTrue(exception.getMessage().contains("headers cannot contain null values"));
+        assertTrue(exception.getMessage().contains("testKey"));
+    }
 }
