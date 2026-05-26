@@ -119,7 +119,7 @@ public final class PrometheusFormatter {
 
     /**
      * Escapes special characters in label values according to Prometheus format.
-     * Escapes backslashes, double quotes, and newlines.
+     * Escapes backslashes, double quotes, newlines, carriage returns, and tabs.
      *
      * @param value the label value to escape (may be null)
      * @return escaped label value, or empty string if value is null
@@ -129,9 +129,11 @@ public final class PrometheusFormatter {
             return "";  // Prometheus doesn't allow null values, use empty string
         }
         return value
-                .replace("\\", "\\\\")  // Escape backslashes first
+                .replace("\\", "\\\\")  // Escape backslashes first (must be first!)
                 .replace("\"", "\\\"")  // Escape double quotes
-                .replace("\n", "\\n");  // Escape newlines
+                .replace("\n", "\\n")   // Escape newlines
+                .replace("\r", "\\r")   // Escape carriage returns
+                .replace("\t", "\\t");  // Escape tabs
     }
 
     /**

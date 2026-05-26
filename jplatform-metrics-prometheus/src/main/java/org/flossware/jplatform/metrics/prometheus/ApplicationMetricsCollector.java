@@ -201,11 +201,13 @@ public final class ApplicationMetricsCollector {
                 "Application lifecycle state (1 for current state, 0 for others)"));
         sb.append(PrometheusFormatter.formatType("jplatform_app_state", "gauge"));
 
-        // Create a gauge for each possible state
-        for (ApplicationState state : ApplicationState.values()) {
-            Map<String, String> stateLabels = new HashMap<>(labels);
-            stateLabels.put("state", state.name().toLowerCase());
+        // Create stateLabels once and reuse to avoid repeated HashMap allocations
+        Map<String, String> stateLabels = new HashMap<>(labels.size() + 1);
+        stateLabels.putAll(labels);
 
+        // Reuse stateLabels by updating the state value
+        for (ApplicationState state : ApplicationState.values()) {
+            stateLabels.put("state", state.name().toLowerCase());
             double value = (state == currentState) ? 1.0 : 0.0;
             sb.append(PrometheusFormatter.formatGauge("jplatform_app_state", stateLabels, value));
         }
