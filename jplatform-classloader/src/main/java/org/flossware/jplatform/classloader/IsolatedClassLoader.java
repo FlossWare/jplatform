@@ -4,6 +4,8 @@ import org.flossware.jclassloader.AuthConfig;
 import org.flossware.jclassloader.JClassLoader;
 import org.flossware.jclassloader.lifecycle.ResourceTrackingListener;
 import org.flossware.jplatform.api.ApplicationDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -15,6 +17,8 @@ import java.util.Objects;
  * Wraps JClassLoader with JPlatform-specific integration and configuration.
  */
 public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
+
+    private static final Logger logger = LoggerFactory.getLogger(IsolatedClassLoader.class);
 
     private final String applicationId;
     private final ApplicationDescriptor descriptor;
@@ -69,9 +73,11 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
             cacheDirFile.mkdirs();
             try {
                 builder.cache(new org.flossware.jclassloader.cache.FileSystemCache(cacheDir));
+                logger.info("[{}] Initialized class cache at: {}", applicationId, cacheDir);
             } catch (java.io.IOException e) {
-                // Continue without cache if it fails
-                System.err.println("Failed to initialize cache for " + applicationId + ": " + e.getMessage());
+                logger.warn("[{}] Failed to initialize class cache, continuing without cache",
+                    applicationId, e);
+                // Continue without cache
             }
         }
 
@@ -145,16 +151,26 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
                     break;
 
                 case "maven":
-                    // Parse: maven:groupId:artifactId:version
+                    // Parse: maven:groupId:artifactId:version[:classifier][:packaging]
                     String coords = classpathEntry.getSchemeSpecificPart();
                     if (coords == null || coords.trim().isEmpty()) {
                         throw new IllegalArgumentException(
                                 "Maven URI must specify coordinates: maven:groupId:artifactId:version");
                     }
-                    String[] parts = coords.split(":");
+                    String[] parts = coords.split(":", -1);  // -1 to include trailing empty strings
                     if (parts.length < 3) {
                         throw new IllegalArgumentException(
                                 "Maven coordinates must have format groupId:artifactId:version, got: " + coords);
+                    }
+                    // Validate required parts are non-empty
+                    if (parts[0].trim().isEmpty()) {
+                        throw new IllegalArgumentException("Maven groupId cannot be empty in: " + coords);
+                    }
+                    if (parts[1].trim().isEmpty()) {
+                        throw new IllegalArgumentException("Maven artifactId cannot be empty in: " + coords);
+                    }
+                    if (parts[2].trim().isEmpty()) {
+                        throw new IllegalArgumentException("Maven version cannot be empty in: " + coords);
                     }
                     builder.addMavenCentral(coords);
                     break;
