@@ -183,8 +183,10 @@ class ApplicationMetricsCollectorTest {
 
         String metrics = ApplicationMetricsCollector.collectMetrics(context);
 
-        // Should return empty string on error
-        assertEquals("", metrics);
+        // Should return error metric for Prometheus alerting
+        assertTrue(metrics.contains("# ERROR: Failed to collect metrics"));
+        assertTrue(metrics.contains("jplatform_metrics_collection_errors_total"));
+        assertTrue(metrics.contains("app_id=\"test-app\""));
     }
 
     @Test

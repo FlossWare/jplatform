@@ -379,11 +379,12 @@ class PrometheusMetricsExporterTest {
 
         exporter.registerApplication("faulty-app", faultyContext);
 
-        // Metrics request should still work, just skip the faulty application
+        // Metrics request should still work and include error metric for alerting
         String metrics = fetchMetrics();
         assertNotNull(metrics);
-        // Should not contain the faulty app's metrics
-        assertFalse(metrics.contains("app_id=\"faulty-app\""));
+        // Should contain error metric for the faulty app so Prometheus can alert
+        assertTrue(metrics.contains("app_id=\"faulty-app\""));
+        assertTrue(metrics.contains("jplatform_metrics_collection_errors_total"));
     }
 
     private String fetchMetrics() throws IOException {
