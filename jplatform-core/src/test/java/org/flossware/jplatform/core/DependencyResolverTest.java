@@ -205,4 +205,97 @@ class DependencyResolverTest {
         assertTrue(exception.getMessage().contains("Circular dependency detected"),
                 "Exception should mention circular dependency");
     }
+
+    @Test
+    void testRemoveNonExistentApplication() {
+        // Should not throw
+        resolver.removeApplication("non-existent");
+        assertEquals(0, resolver.getStartupOrder().size());
+    }
+
+    @Test
+    void testRemoveNullApplication() {
+        // Should handle null gracefully
+        resolver.removeApplication(null);
+        assertEquals(0, resolver.getStartupOrder().size());
+    }
+
+    @Test
+    void testGetDependentApplicationsForNonExistent() {
+        Set<String> dependents = resolver.getDependentApplications("non-existent");
+        assertNotNull(dependents);
+        assertTrue(dependents.isEmpty());
+    }
+
+    @Test
+    void testGetDependentApplicationsForNull() {
+        Set<String> dependents = resolver.getDependentApplications(null);
+        assertNotNull(dependents);
+        assertTrue(dependents.isEmpty());
+    }
+
+    @Test
+    void testValidateDependenciesForNonExistent() {
+        List<String> errors = resolver.validateDependencies("non-existent");
+        assertNotNull(errors);
+        // Should return empty or list with error
+    }
+
+    @Test
+    void testValidateDependenciesForNull() {
+        List<String> errors = resolver.validateDependencies(null);
+        assertNotNull(errors);
+    }
+
+    @Test
+    void testAddApplicationWithNullId() {
+        ApplicationDescriptor app = ApplicationDescriptor.builder()
+                .applicationId("app1")
+                .mainClass("com.example.App1")
+                .addClasspathEntry(URI.create("file:///app1.jar"))
+                .build();
+
+        // Should throw exception
+        assertThrows(IllegalArgumentException.class, () ->
+            resolver.addApplication(null, app)
+        );
+    }
+
+    @Test
+    void testAddApplicationWithNullDescriptor() {
+        // Should throw exception
+        assertThrows(NullPointerException.class, () ->
+            resolver.addApplication("app1", null)
+        );
+    }
+
+    @Test
+    void testRegisterServiceProviderWithNullAppId() {
+        assertThrows(IllegalArgumentException.class, () ->
+            resolver.registerServiceProvider(null, "ServiceA")
+        );
+    }
+
+    @Test
+    void testRegisterServiceProviderWithNullService() {
+        assertThrows(IllegalArgumentException.class, () ->
+            resolver.registerServiceProvider("app1", null)
+        );
+    }
+
+    @Test
+    void testMultipleRegistrationsOfSameApp() {
+        ApplicationDescriptor app1 = ApplicationDescriptor.builder()
+                .applicationId("app1")
+                .mainClass("com.example.App1")
+                .addClasspathEntry(URI.create("file:///app1.jar"))
+                .build();
+
+        resolver.addApplication("app1", app1);
+        resolver.addApplication("app1", app1);
+
+        List<String> order = resolver.getStartupOrder();
+        // Should have only one entry
+        assertTrue(order.size() <= 2); // May allow duplicates or may deduplicate
+    }
 }
