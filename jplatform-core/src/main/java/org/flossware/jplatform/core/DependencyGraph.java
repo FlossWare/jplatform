@@ -96,9 +96,12 @@ class DependencyGraph {
      * @return set of dependent application IDs
      */
     public Set<String> getDependents(String applicationId) {
-        return Collections.unmodifiableSet(
-                reversedList.getOrDefault(applicationId, Collections.emptySet())
-        );
+        Set<String> dependents = reversedList.get(applicationId);
+        if (dependents == null || dependents.isEmpty()) {
+            return Collections.emptySet();
+        }
+        // Return defensive copy to prevent ConcurrentModificationException
+        return new HashSet<>(dependents);
     }
 
     /**
@@ -108,9 +111,12 @@ class DependencyGraph {
      * @return set of dependency application IDs
      */
     public Set<String> getDependencies(String applicationId) {
-        return Collections.unmodifiableSet(
-                adjacencyList.getOrDefault(applicationId, Collections.emptySet())
-        );
+        Set<String> dependencies = adjacencyList.get(applicationId);
+        if (dependencies == null || dependencies.isEmpty()) {
+            return Collections.emptySet();
+        }
+        // Return defensive copy to prevent ConcurrentModificationException
+        return new HashSet<>(dependencies);
     }
 
     /**
