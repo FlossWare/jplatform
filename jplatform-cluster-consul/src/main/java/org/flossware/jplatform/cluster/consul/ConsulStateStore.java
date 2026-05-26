@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 /**
  * Consul-based implementation of ClusterStateStore.
@@ -62,6 +62,9 @@ public class ConsulStateStore implements ClusterStateStore {
     private final KeyValueClient kvClient;
     private final ObjectMapper objectMapper;
     private final Map<String, Set<StateChangeListener>> listeners;
+    private final ScheduledExecutorService watchExecutor;
+    private final Map<String, Future<?>> watchTasks;
+    private final Map<String, Long> watchIndexes;
 
     /**
      * Constructs a new Consul state store.
@@ -79,6 +82,9 @@ public class ConsulStateStore implements ClusterStateStore {
         this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.objectMapper.registerModule(new ApplicationDescriptorJsonModule());
         this.listeners = new ConcurrentHashMap<>();
+        this.watchExecutor = Executors.newScheduledThreadPool(2);
+        this.watchTasks = new ConcurrentHashMap<>();
+        this.watchIndexes = new ConcurrentHashMap<>();
 
         logger.info("ConsulStateStore initialized with key prefixes: {}, {}",
                 STATE_KEY_PREFIX, DESCRIPTOR_KEY_PREFIX);
@@ -227,11 +233,10 @@ public class ConsulStateStore implements ClusterStateStore {
 
     /**
      * Subscribes to state changes for a specific application.
-     * The listener will be notified whenever the state changes.
+     * The listener will be notified whenever the state changes detected via Consul watch.
      *
-     * <p>Note: This implementation uses polling rather than Consul watches
-     * for simplicity. A production implementation should use Consul's
-     * blocking query API for real-time notifications.</p>
+     * <p>Implementation uses Consul polling to detect changes from other cluster nodes.
+     * A background watch task polls Consul every 5 seconds for state changes.</p>
      *
      * @param key the application ID to watch
      * @param listener the listener to notify on changes
@@ -242,14 +247,20 @@ public class ConsulStateStore implements ClusterStateStore {
             return;
         }
 
-        listeners.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet())
+        boolean firstListener = listeners.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet())
             .add(listener);
+
+        // Start watch task if this is the first listener for this key
+        if (firstListener && !watchTasks.containsKey(key)) {
+            startWatch(key);
+        }
 
         logger.debug("Subscribed to state changes for: {}", key);
     }
 
     /**
      * Unsubscribes from state changes for a specific application.
+     * Stops the watch task if this is the last listener.
      *
      * @param key the application ID to stop watching
      * @param listener the listener to remove
@@ -265,6 +276,7 @@ public class ConsulStateStore implements ClusterStateStore {
             keyListeners.remove(listener);
             if (keyListeners.isEmpty()) {
                 listeners.remove(key);
+                stopWatch(key);
             }
             logger.debug("Unsubscribed from state changes for: {}", key);
         }
@@ -287,6 +299,91 @@ public class ConsulStateStore implements ClusterStateStore {
                 }
             }
         }
+    }
+
+    /**
+     * Starts a watch task for a specific key.
+     *
+     * @param applicationId the application ID to watch
+     */
+    private void startWatch(String applicationId) {
+        Future<?> task = watchExecutor.scheduleWithFixedDelay(
+            () -> watchKey(applicationId),
+            0, 5, TimeUnit.SECONDS
+        );
+        watchTasks.put(applicationId, task);
+        watchIndexes.put(applicationId, 0L);
+        logger.debug("Started watch task for: {}", applicationId);
+    }
+
+    /**
+     * Stops the watch task for a specific key.
+     *
+     * @param applicationId the application ID to stop watching
+     */
+    private void stopWatch(String applicationId) {
+        Future<?> task = watchTasks.remove(applicationId);
+        if (task != null) {
+            task.cancel(false);
+        }
+        watchIndexes.remove(applicationId);
+        logger.debug("Stopped watch task for: {}", applicationId);
+    }
+
+    /**
+     * Watches a key for changes and notifies listeners.
+     * Uses simple polling - checks the value every execution.
+     *
+     * @param applicationId the application ID to watch
+     */
+    private void watchKey(String applicationId) {
+        try {
+            ApplicationState currentState = getApplicationState(applicationId);
+            Long lastIndex = watchIndexes.get(applicationId);
+
+            if (currentState != null) {
+                // Use a simple change detection based on value
+                // Since Consul client doesn't easily expose modify index, we compare values
+                long currentIndex = currentState.hashCode();
+
+                if (lastIndex != null && lastIndex != currentIndex) {
+                    // State changed, notify listeners
+                    notifyListeners(applicationId, currentState);
+                }
+
+                watchIndexes.put(applicationId, currentIndex);
+            }
+        } catch (Exception e) {
+            logger.error("Error watching key: " + applicationId, e);
+        }
+    }
+
+    /**
+     * Closes the state store and shuts down the watch executor.
+     */
+    public void close() {
+        logger.info("Closing ConsulStateStore");
+
+        // Cancel all watch tasks
+        for (Future<?> task : watchTasks.values()) {
+            task.cancel(false);
+        }
+        watchTasks.clear();
+        watchIndexes.clear();
+
+        // Shutdown watch executor
+        watchExecutor.shutdown();
+        try {
+            if (!watchExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                watchExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            watchExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        listeners.clear();
+        logger.info("ConsulStateStore closed");
     }
 
     /**
