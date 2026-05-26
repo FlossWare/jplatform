@@ -43,6 +43,8 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
     private final Map<Object, String> serviceToKey;  // implementation -> etcd key mapping
     private final ObjectMapper mapper;
     private ScheduledExecutorService leaseRenewalExecutor;
+    private volatile boolean started = false;
+    private final Object startLock = new Object();
 
     /**
      * Constructs a new etcd service registry.
@@ -77,39 +79,50 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
      * Must be called before using the registry.
      */
     public void start() {
-        long leaseTtl = config.getLeaseTtl();
-
-        // Warn if TTL is very large (services take long to disappear after crash)
-        if (leaseTtl > 3600) {
-            logger.warn("Lease TTL is very large ({} seconds). " +
-                       "Services may take up to {} seconds to disappear after crash.",
-                       leaseTtl, leaseTtl);
-        }
-
-        if (client == null) {
-            client = Client.builder()
-                .endpoints(config.getEndpoints().toArray(new String[0]))
-                .build();
-        }
-
-        leaseRenewalExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "etcd-lease-renewal");
-            t.setDaemon(true);
-            return t;
-        });
-
-        // Schedule renewal at 1/3 of TTL to provide safety margin
-        long renewalPeriod = leaseTtl / 3;
-        logger.info("Starting lease renewal with TTL={} seconds, renewal period={} seconds",
-                   leaseTtl, renewalPeriod);
-
-        leaseRenewalExecutor.scheduleAtFixedRate(() -> {
-            try {
-                renewLeases();
-            } catch (Exception e) {
-                logger.error("Exception during lease renewal, will retry on next cycle", e);
+        synchronized (startLock) {
+            if (started) {
+                logger.warn("EtcdServiceRegistry already started, ignoring start() call");
+                return;
             }
-        }, renewalPeriod, renewalPeriod, TimeUnit.SECONDS);
+
+            long leaseTtl = config.getLeaseTtl();
+
+            // Warn if TTL is very large (services take long to disappear after crash)
+            if (leaseTtl > 3600) {
+                logger.warn("Lease TTL is very large ({} seconds). " +
+                           "Services may take up to {} seconds to disappear after crash.",
+                           leaseTtl, leaseTtl);
+            }
+
+            if (client == null) {
+                client = Client.builder()
+                    .endpoints(config.getEndpoints().toArray(new String[0]))
+                    .build();
+                logger.info("Created etcd client with endpoints: {}", config.getEndpoints());
+            }
+
+            leaseRenewalExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "etcd-lease-renewal");
+                t.setDaemon(true);
+                return t;
+            });
+
+            // Schedule renewal at 1/3 of TTL to provide safety margin
+            long renewalPeriod = leaseTtl / 3;
+            logger.info("Starting lease renewal with TTL={} seconds, renewal period={} seconds",
+                       leaseTtl, renewalPeriod);
+
+            leaseRenewalExecutor.scheduleAtFixedRate(() -> {
+                try {
+                    renewLeases();
+                } catch (Exception e) {
+                    logger.error("Exception during lease renewal, will retry on next cycle", e);
+                }
+            }, renewalPeriod, renewalPeriod, TimeUnit.SECONDS);
+
+            started = true;
+            logger.info("EtcdServiceRegistry started");
+        }
     }
 
     @Override
@@ -127,7 +140,6 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
             String key = SERVICE_KEY_PREFIX + serviceInterface.getName() + "/" + UUID.randomUUID();
             Map<String, String> metadata = new HashMap<>();
             metadata.put("interface", serviceInterface.getName());
-            metadata.put("implementation", implementation.getClass().getName());
             metadata.put("timestamp", String.valueOf(System.currentTimeMillis()));
 
             String json = mapper.writeValueAsString(metadata);
@@ -212,40 +224,50 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
 
     @Override
     public void close() {
-        // Shutdown lease renewal executor and wait for termination
-        if (leaseRenewalExecutor != null) {
-            leaseRenewalExecutor.shutdown();
-            try {
-                if (!leaseRenewalExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                    logger.warn("Lease renewal executor did not terminate in time");
+        synchronized (startLock) {
+            if (!started) {
+                logger.debug("EtcdServiceRegistry not started, nothing to close");
+                return;
+            }
+
+            // Shutdown lease renewal executor and wait for termination
+            if (leaseRenewalExecutor != null) {
+                leaseRenewalExecutor.shutdown();
+                try {
+                    if (!leaseRenewalExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                        logger.warn("Lease renewal executor did not terminate in time");
+                        leaseRenewalExecutor.shutdownNow();
+                        if (!leaseRenewalExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                            logger.error("Lease renewal executor did not terminate");
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    logger.warn("Interrupted while waiting for executor termination");
                     leaseRenewalExecutor.shutdownNow();
-                    if (!leaseRenewalExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                        logger.error("Lease renewal executor did not terminate");
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            // Now safe to revoke all leases
+            if (client != null) {
+                Lease leaseClient = client.getLeaseClient();
+                for (Long leaseId : registeredServices.values()) {
+                    try {
+                        leaseClient.revoke(leaseId).get(5, TimeUnit.SECONDS);
+                    } catch (Exception e) {
+                        logger.error("Failed to revoke lease: " + leaseId, e);
                     }
                 }
-            } catch (InterruptedException e) {
-                logger.warn("Interrupted while waiting for executor termination");
-                leaseRenewalExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
+                client.close();
             }
-        }
 
-        // Now safe to revoke all leases
-        if (client != null) {
-            Lease leaseClient = client.getLeaseClient();
-            for (Long leaseId : registeredServices.values()) {
-                try {
-                    leaseClient.revoke(leaseId).get(5, TimeUnit.SECONDS);
-                } catch (Exception e) {
-                    logger.error("Failed to revoke lease: " + leaseId, e);
-                }
-            }
-            client.close();
-        }
+            localServices.clear();
+            registeredServices.clear();
+            serviceToKey.clear();
 
-        localServices.clear();
-        registeredServices.clear();
-        serviceToKey.clear();
+            started = false;
+            logger.info("EtcdServiceRegistry closed");
+        }
     }
 
     private void renewLeases() {

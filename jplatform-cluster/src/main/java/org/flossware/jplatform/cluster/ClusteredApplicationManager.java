@@ -456,13 +456,24 @@ public class ClusteredApplicationManager extends ApplicationManager {
      * @param failedNode the failed cluster node
      */
     private void handleNodeFailure(ClusterNode failedNode) {
+        if (failedNode == null) {
+            logger.error("handleNodeFailure called with null failedNode, ignoring");
+            return;
+        }
+
         if (clusterManager.isLeader() && scheduler != null) {
-            logger.warn("Handling failure of node: {}", failedNode.getNodeId());
+            String nodeId = failedNode.getNodeId();
+            if (nodeId == null) {
+                logger.error("Failed node has null nodeId, cannot reassign applications");
+                return;
+            }
+
+            logger.warn("Handling failure of node: {}", nodeId);
             try {
-                int reassignedCount = scheduler.reassignFromFailedNode(failedNode.getNodeId());
-                logger.info("Reassigned {} applications from failed node", reassignedCount);
+                int reassignedCount = scheduler.reassignFromFailedNode(nodeId);
+                logger.info("Reassigned {} applications from failed node {}", reassignedCount, nodeId);
             } catch (Exception e) {
-                logger.error("Error reassigning applications from failed node", e);
+                logger.error("Error reassigning applications from failed node {}", nodeId, e);
             }
         }
     }
@@ -473,11 +484,17 @@ public class ClusteredApplicationManager extends ApplicationManager {
      */
     @Override
     public void shutdown() {
-        // Remove cluster event listener to prevent resource leak
-        if (clusterManager != null && clusterListener != null) {
-            clusterManager.removeListener(clusterListener);
-            logger.debug("Removed cluster event listener");
+        try {
+            // Remove cluster event listener to prevent resource leak
+            if (clusterManager != null && clusterListener != null) {
+                clusterManager.removeListener(clusterListener);
+                logger.debug("Removed cluster event listener");
+            }
+        } catch (Exception e) {
+            logger.error("Error removing cluster event listener", e);
+        } finally {
+            // Always shutdown parent, even if listener removal failed
+            super.shutdown();
         }
-        super.shutdown();
     }
 }

@@ -326,11 +326,22 @@ public class NettyApiServer implements PlatformApiServer {
                         Unpooled.copiedBuffer(responseBody, CharsetUtil.UTF_8)
                     );
                     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
+                } catch (IllegalArgumentException e) {
+                    // Client error - safe to return generic message
+                    logger.warn("Bad request to {}: {}", uri, e.getMessage());
+                    response = new DefaultFullHttpResponse(
+                        HttpVersion.HTTP_1_1,
+                        HttpResponseStatus.BAD_REQUEST,
+                        Unpooled.copiedBuffer("{\"error\":\"Invalid request\"}", CharsetUtil.UTF_8)
+                    );
+                    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
                 } catch (Exception e) {
+                    // Server error - don't leak details to client
+                    logger.error("Error handling request to {}", uri, e);
                     response = new DefaultFullHttpResponse(
                         HttpVersion.HTTP_1_1,
                         HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                        Unpooled.copiedBuffer("{\"error\":\"" + e.getMessage() + "\"}", CharsetUtil.UTF_8)
+                        Unpooled.copiedBuffer("{\"error\":\"Internal server error\"}", CharsetUtil.UTF_8)
                     );
                     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
                 }
