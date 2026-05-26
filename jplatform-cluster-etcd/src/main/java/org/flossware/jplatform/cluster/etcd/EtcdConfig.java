@@ -116,6 +116,10 @@ public class EtcdConfig {
         /**
          * Adds an etcd endpoint.
          *
+         * <p>The default endpoint "http://localhost:2379" is automatically removed
+         * when adding the first non-localhost endpoint. If explicitly adding localhost,
+         * it is preserved.</p>
+         *
          * @param endpoint the endpoint URL (e.g., "http://localhost:2379")
          * @return this builder for chaining
          * @throws IllegalArgumentException if endpoint is null or empty
@@ -124,7 +128,10 @@ public class EtcdConfig {
             if (endpoint == null || endpoint.trim().isEmpty()) {
                 throw new IllegalArgumentException("Endpoint must not be null or empty");
             }
-            if (this.endpoints.size() == 1 && "http://localhost:2379".equals(this.endpoints.get(0))) {
+            // Clear default localhost only when adding a different endpoint
+            if (this.endpoints.size() == 1 &&
+                "http://localhost:2379".equals(this.endpoints.get(0)) &&
+                !"http://localhost:2379".equals(endpoint)) {
                 this.endpoints.clear();
             }
             this.endpoints.add(endpoint);
