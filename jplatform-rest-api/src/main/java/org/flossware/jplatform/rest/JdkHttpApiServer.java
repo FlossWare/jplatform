@@ -114,17 +114,22 @@ public class JdkHttpApiServer implements PlatformApiServer {
             InetSocketAddress address = new InetSocketAddress(config.getBindAddress(), config.getPort());
             server = HttpServer.create(address, 0);
 
-            // Register handlers with CORS wrapper
-            server.createContext("/api/applications", wrapWithCors(new ApplicationApiHandler(manager)));
-            server.createContext("/api/platform", wrapWithCors(new PlatformApiHandler()));
-            server.createContext("/api/health", wrapWithCors(new PlatformApiHandler()));
+            // Register handlers with CORS wrapper and store the contexts
+            var applicationsContext = server.createContext("/api/applications",
+                wrapWithCors(new ApplicationApiHandler(manager)));
+            var platformContext = server.createContext("/api/platform",
+                wrapWithCors(new PlatformApiHandler()));
+            var healthContext = server.createContext("/api/health",
+                wrapWithCors(new PlatformApiHandler()));
 
             // Set up authentication filter if enabled
             if (config.isEnableAuth()) {
                 logger.info("API authentication enabled with header: {}", config.getApiKeyHeader());
                 ApiAuthFilter authFilter = new ApiAuthFilter(config);
-                server.createContext("/api/applications").getFilters().add(authFilter);
-                server.createContext("/api/platform").getFilters().add(authFilter);
+                // Add filters to existing contexts (don't create new ones!)
+                applicationsContext.getFilters().add(authFilter);
+                platformContext.getFilters().add(authFilter);
+                // Note: healthContext typically doesn't need auth
             }
 
             // Configure executor for handling requests
