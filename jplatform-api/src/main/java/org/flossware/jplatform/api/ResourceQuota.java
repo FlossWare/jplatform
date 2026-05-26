@@ -120,13 +120,13 @@ public class ResourceQuota {
         /**
          * Sets the maximum heap memory allowed.
          *
-         * @param bytes the maximum heap size in bytes
+         * @param bytes the maximum heap size in bytes (must be positive)
          * @return this builder
-         * @throws IllegalArgumentException if bytes is negative
+         * @throws IllegalArgumentException if bytes is zero or negative
          */
         public Builder maxHeapBytes(long bytes) {
-            if (bytes < 0) {
-                throw new IllegalArgumentException("maxHeapBytes must be >= 0, got: " + bytes);
+            if (bytes <= 0) {
+                throw new IllegalArgumentException("maxHeapBytes must be > 0, got: " + bytes);
             }
             this.maxHeapBytes = Optional.of(bytes);
             return this;
@@ -135,13 +135,13 @@ public class ResourceQuota {
         /**
          * Sets the maximum number of threads allowed.
          *
-         * @param count the maximum thread count
+         * @param count the maximum thread count (must be positive)
          * @return this builder
-         * @throws IllegalArgumentException if count is negative
+         * @throws IllegalArgumentException if count is zero or negative
          */
         public Builder maxThreadCount(int count) {
-            if (count < 0) {
-                throw new IllegalArgumentException("maxThreadCount must be >= 0, got: " + count);
+            if (count <= 0) {
+                throw new IllegalArgumentException("maxThreadCount must be > 0, got: " + count);
             }
             this.maxThreadCount = Optional.of(count);
             return this;
@@ -150,13 +150,13 @@ public class ResourceQuota {
         /**
          * Sets the maximum CPU time allowed.
          *
-         * @param nanos the maximum CPU time in nanoseconds
+         * @param nanos the maximum CPU time in nanoseconds (must be positive)
          * @return this builder
-         * @throws IllegalArgumentException if nanos is negative
+         * @throws IllegalArgumentException if nanos is zero or negative
          */
         public Builder maxCpuTimeNanos(long nanos) {
-            if (nanos < 0) {
-                throw new IllegalArgumentException("maxCpuTimeNanos must be >= 0, got: " + nanos);
+            if (nanos <= 0) {
+                throw new IllegalArgumentException("maxCpuTimeNanos must be > 0, got: " + nanos);
             }
             this.maxCpuTimeNanos = Optional.of(nanos);
             return this;

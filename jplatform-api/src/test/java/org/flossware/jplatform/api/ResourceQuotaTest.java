@@ -29,16 +29,30 @@ class ResourceQuotaTest {
     }
 
     @Test
-    void testBuilderAcceptsZeroValues() {
-        ResourceQuota quota = ResourceQuota.builder()
-                .maxHeapBytes(0)
-                .maxThreadCount(0)
-                .maxCpuTimeNanos(0)
-                .build();
+    void testBuilderRejectsZeroHeapBytes() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            ResourceQuota.builder().maxHeapBytes(0);
+        });
 
-        assertEquals(0L, quota.getMaxHeapBytes().get());
-        assertEquals(0, quota.getMaxThreadCount().get());
-        assertEquals(0L, quota.getMaxCpuTimeNanos().get());
+        assertTrue(exception.getMessage().contains("maxHeapBytes must be > 0"));
+    }
+
+    @Test
+    void testBuilderRejectsZeroThreadCount() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            ResourceQuota.builder().maxThreadCount(0);
+        });
+
+        assertTrue(exception.getMessage().contains("maxThreadCount must be > 0"));
+    }
+
+    @Test
+    void testBuilderRejectsZeroCpuTimeNanos() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            ResourceQuota.builder().maxCpuTimeNanos(0);
+        });
+
+        assertTrue(exception.getMessage().contains("maxCpuTimeNanos must be > 0"));
     }
 
     @Test
@@ -47,7 +61,7 @@ class ResourceQuotaTest {
             ResourceQuota.builder().maxHeapBytes(-512);
         });
 
-        assertEquals("maxHeapBytes must be >= 0, got: -512", exception.getMessage());
+        assertEquals("maxHeapBytes must be > 0, got: -512", exception.getMessage());
     }
 
     @Test
@@ -56,7 +70,7 @@ class ResourceQuotaTest {
             ResourceQuota.builder().maxThreadCount(-10);
         });
 
-        assertEquals("maxThreadCount must be >= 0, got: -10", exception.getMessage());
+        assertEquals("maxThreadCount must be > 0, got: -10", exception.getMessage());
     }
 
     @Test
@@ -65,7 +79,7 @@ class ResourceQuotaTest {
             ResourceQuota.builder().maxCpuTimeNanos(-1000);
         });
 
-        assertEquals("maxCpuTimeNanos must be >= 0, got: -1000", exception.getMessage());
+        assertEquals("maxCpuTimeNanos must be > 0, got: -1000", exception.getMessage());
     }
 
     @Test
