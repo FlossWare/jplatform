@@ -49,6 +49,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .name("Test VM")
             .properties(properties)
             .build();
@@ -78,6 +79,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .name("Test VM")
             .properties(properties)
             .build();
@@ -115,6 +117,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .name("Test VM")
             .properties(properties)
             .build();
@@ -152,6 +155,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("vnc-test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .name("VNC Test VM")
             .properties(properties)
             .build();
@@ -174,6 +178,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("bridge-test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .name("Bridge Test VM")
             .properties(properties)
             .build();
@@ -193,6 +198,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("default-test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .name("Default Test VM")
             .properties(properties)
             .build();
@@ -259,6 +265,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("snapshot-test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .properties(properties)
             .build();
 
@@ -312,6 +319,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("hotadd-test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .properties(properties)
             .build();
 
@@ -350,6 +358,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("hotmem-test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .properties(properties)
             .build();
 
@@ -387,6 +396,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("resize-test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .properties(properties)
             .build();
 
@@ -426,6 +436,7 @@ class VmLauncherTest {
 
         ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
             .applicationId("migrate-test-vm")
+            .mainClass("vm.Launcher")  // VMs don't use mainClass but builder requires it
             .properties(properties)
             .build();
 

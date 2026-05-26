@@ -29,6 +29,13 @@
             <version>0.5.4</version>
         </dependency>
 
+        <!-- JNA (required by libvirt-java) -->
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.13.0</version>
+        </dependency>
+
         <!-- SLF4J Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
