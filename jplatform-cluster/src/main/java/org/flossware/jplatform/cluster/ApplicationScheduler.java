@@ -237,6 +237,10 @@ public class ApplicationScheduler {
                 // Remove old assignment
                 assignmentMap.remove(appId);
 
+                // Decrement failed node load immediately for accurate load balancing
+                nodeLoadMap.compute(failedNodeId, (k, count) ->
+                    count == null || count <= 1 ? null : count - 1);
+
                 // Select new node
                 ClusterNode newNode = selectNode();
                 if (newNode != null) {
@@ -252,7 +256,7 @@ public class ApplicationScheduler {
             }
         }
 
-        // Clear load for failed node
+        // Ensure failed node is completely removed from load map
         nodeLoadMap.remove(failedNodeId);
 
         logger.info("Reassigned {} applications from failed node {}", reassignedCount, failedNodeId);
@@ -288,7 +292,8 @@ public class ApplicationScheduler {
      */
     private ClusterNode selectNodeRoundRobin(Set<ClusterNode> nodes) {
         List<ClusterNode> nodeList = new ArrayList<>(nodes);
-        int index = roundRobinIndex.getAndIncrement() % nodeList.size();
+        // Use Math.abs to handle integer overflow when roundRobinIndex wraps to negative
+        int index = Math.abs(roundRobinIndex.getAndIncrement() % nodeList.size());
         return nodeList.get(index);
     }
 
