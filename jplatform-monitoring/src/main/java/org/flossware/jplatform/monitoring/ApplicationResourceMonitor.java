@@ -71,7 +71,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
     private final String applicationId;
     private final ThreadGroup applicationThreadGroup;
     private final ScheduledExecutorService scheduler;
-    private final List<ResourceSnapshot> history;
+    private final Deque<ResourceSnapshot> history;
     private final List<ResourceEventListener> listeners;
     private final int maxHistorySize;
     private volatile ResourceQuota quota;
@@ -116,7 +116,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
         }
 
         this.maxHistorySize = maxHistorySize;
-        this.history = new CopyOnWriteArrayList<>();
+        this.history = new ArrayDeque<>(maxHistorySize);
         this.listeners = new CopyOnWriteArrayList<>();
 
         // Poll metrics at configured interval
@@ -161,11 +161,11 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
                     Collections.emptyMap()
             );
 
-            history.add(snapshot);
+            history.addLast(snapshot);
 
             // Keep only configured history size
             while (history.size() > maxHistorySize) {
-                history.remove(0);
+                history.removeFirst();  // O(1) with ArrayDeque
             }
 
             // Check quota
@@ -250,7 +250,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
      */
     @Override
     public ResourceSnapshot getCurrentSnapshot() {
-        return history.isEmpty() ? createEmptySnapshot() : history.get(history.size() - 1);
+        return history.isEmpty() ? createEmptySnapshot() : history.getLast();
     }
 
     /**
@@ -374,11 +374,30 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
     /**
      * Shuts down the resource monitor.
      * <p>
-     * Stops the background metric collection scheduler. This method does not wait
-     * for the scheduler to terminate.
+     * Stops the background metric collection scheduler and waits for it to terminate.
+     * If the scheduler does not terminate within 5 seconds, forces shutdown.
      */
     public void shutdown() {
         logger.info("[{}] Shutting down resource monitor", applicationId);
         scheduler.shutdown();
+
+        try {
+            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                logger.warn("[{}] Resource monitor did not terminate in 5 seconds, forcing shutdown",
+                        applicationId);
+                scheduler.shutdownNow();
+
+                // Wait a bit longer for shutdownNow() to take effect
+                if (!scheduler.awaitTermination(2, TimeUnit.SECONDS)) {
+                    logger.error("[{}] Resource monitor failed to terminate", applicationId);
+                }
+            }
+        } catch (InterruptedException e) {
+            logger.warn("[{}] Interrupted while waiting for resource monitor shutdown", applicationId);
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        logger.info("[{}] Resource monitor shut down", applicationId);
     }
 }
