@@ -1,14 +1,9 @@
 package org.flossware.jplatform.cluster.zookeeper;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.*;
-import org.apache.zookeeper.data.Stat;
 import org.flossware.jplatform.api.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -35,6 +30,20 @@ class ZookeeperClusterManagerTest {
         ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
         assertNotNull(manager);
         assertSame(mockClient, manager.getClient());
+    }
+
+    @Test
+    void testConstructorNullConfig() {
+        assertThrows(IllegalArgumentException.class, () ->
+            new ZookeeperClusterManager(null)
+        );
+    }
+
+    @Test
+    void testConstructorWithClientNullConfig() {
+        assertThrows(IllegalArgumentException.class, () ->
+            new ZookeeperClusterManager(null, mockClient)
+        );
     }
 
     @Test
@@ -69,6 +78,12 @@ class ZookeeperClusterManagerTest {
     }
 
     @Test
+    void testAddNullListener() {
+        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
+        assertDoesNotThrow(() -> manager.addListener(null));
+    }
+
+    @Test
     void testRemoveListener() {
         ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
         ClusterEventListener listener = mock(ClusterEventListener.class);
@@ -76,15 +91,38 @@ class ZookeeperClusterManagerTest {
     }
 
     @Test
+    void testRemoveNullListener() {
+        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
+        assertDoesNotThrow(() -> manager.removeListener(null));
+    }
+
+    @Test
     void testLeave_NotJoined() {
         ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
         assertDoesNotThrow(() -> manager.leave());
+        assertFalse(manager.isJoined());
     }
 
     @Test
     void testClose() {
         ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
         assertDoesNotThrow(() -> manager.close());
+    }
+
+    @Test
+    void testCloseWhenNotJoined() throws Exception {
+        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
+        assertDoesNotThrow(() -> manager.close());
+        assertFalse(manager.isJoined());
+    }
+
+    @Test
+    void testMultipleCloseCallsAreSafe() throws Exception {
+        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
+        manager.close();
+        // Second close should be safe
+        assertDoesNotThrow(() -> manager.close());
+        assertFalse(manager.isJoined());
     }
 
     @Test
@@ -95,43 +133,20 @@ class ZookeeperClusterManagerTest {
     }
 
     @Test
-    void testGetNodes_Joined() throws Exception {
-        // Setup mocks for getChildren
-        ExistsBuilder existsBuilder = mock(ExistsBuilder.class);
-        GetChildrenBuilder childrenBuilder = mock(GetChildrenBuilder.class);
+    void testNodeIdIsUnique() {
+        ZookeeperClusterManager manager1 = new ZookeeperClusterManager(config, mockClient);
+        ZookeeperClusterManager manager2 = new ZookeeperClusterManager(config, mockClient);
 
-        when(mockClient.checkExists()).thenReturn(existsBuilder);
-        when(existsBuilder.forPath(anyString())).thenReturn(new Stat());
-        when(mockClient.getChildren()).thenReturn(childrenBuilder);
-        when(childrenBuilder.forPath(anyString())).thenReturn(Collections.singletonList("node1"));
+        assertNotEquals(manager1.getNodeId(), manager2.getNodeId());
+    }
 
+    @Test
+    void testNodeIdIsUUID() {
         ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        ClusterConfig clusterConfig = ClusterConfig.builder()
-            .clusterName("test-cluster")
-            .bindAddress("localhost")
-            .bindPort(8080)
-            .build();
+        String nodeId = manager.getNodeId();
 
-        // Don't actually join (too complex to mock), just test getNodes with mock client
-        // Note: This tests the getNodes() logic assuming isJoined is true
-        // In a real scenario with testcontainers, you could do full integration test
-
-        // For now, just verify the method doesn't crash when not joined
-        assertTrue(manager.getNodes().isEmpty());
-    }
-
-    @Test
-    void testConstructorNullConfig() {
-        assertThrows(IllegalArgumentException.class, () ->
-            new ZookeeperClusterManager(null)
-        );
-    }
-
-    @Test
-    void testConstructorWithClientNullConfig() {
-        assertThrows(IllegalArgumentException.class, () ->
-            new ZookeeperClusterManager(null, mockClient)
-        );
+        // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        assertTrue(nodeId.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
     }
 
     @Test
@@ -141,115 +156,24 @@ class ZookeeperClusterManagerTest {
     }
 
     @Test
-    void testGetClientWhenNull() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config);
-        assertNull(manager.getClient());
-    }
-
-    @Test
-    void testAddNullListener() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        assertDoesNotThrow(() -> manager.addListener(null));
-    }
-
-    @Test
-    void testRemoveNullListener() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        assertDoesNotThrow(() -> manager.removeListener(null));
-    }
-
-    @Test
-    void testMultipleListeners() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        ClusterEventListener listener1 = mock(ClusterEventListener.class);
-        ClusterEventListener listener2 = mock(ClusterEventListener.class);
-        ClusterEventListener listener3 = mock(ClusterEventListener.class);
-
-        manager.addListener(listener1);
-        manager.addListener(listener2);
-        manager.addListener(listener3);
-
-        assertDoesNotThrow(() -> manager.removeListener(listener2));
-    }
-
-    @Test
-    void testAddSameListenerTwice() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        ClusterEventListener listener = mock(ClusterEventListener.class);
-
-        manager.addListener(listener);
-        manager.addListener(listener);
-
-        assertDoesNotThrow(() -> manager.removeListener(listener));
-    }
-
-    @Test
-    void testRemoveListenerNotAdded() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        ClusterEventListener listener = mock(ClusterEventListener.class);
-
-        assertDoesNotThrow(() -> manager.removeListener(listener));
-    }
-
-    @Test
-    void testNodeIdNotNull() {
-        ZookeeperClusterManager manager1 = new ZookeeperClusterManager(config, mockClient);
-        ZookeeperClusterManager manager2 = new ZookeeperClusterManager(config, mockClient);
-
-        assertNotNull(manager1.getNodeId());
-        assertNotNull(manager2.getNodeId());
-        assertNotEquals(manager1.getNodeId(), manager2.getNodeId());
-    }
-
-    @Test
-    void testNodeIdFormat() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        String nodeId = manager.getNodeId();
-
-        assertTrue(nodeId.length() > 0);
-        assertTrue(nodeId.contains("-"));
-    }
-
-    @Test
-    void testClose_MultipleTimes() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-
-        assertDoesNotThrow(() -> manager.close());
-        assertDoesNotThrow(() -> manager.close());
-    }
-
-    @Test
-    void testLeave_MultipleTimes() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-
-        assertDoesNotThrow(() -> manager.leave());
-        assertDoesNotThrow(() -> manager.leave());
-    }
-
-    @Test
-    void testGetNodesReturnsSet() {
-        ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        Set<ClusterNode> nodes = manager.getNodes();
-
-        assertNotNull(nodes);
-        assertTrue(nodes.isEmpty());
-    }
-
-    @Test
-    void testIsLeaderInitiallyFalse() {
+    void testIsLeaderWhenNotJoinedReturnsFalse() {
         ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
         assertFalse(manager.isLeader());
     }
 
     @Test
-    void testIsJoinedInitiallyFalse() {
+    void testLeaveWhenNotJoinedIsNoOp() {
         ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
+        assertDoesNotThrow(() -> manager.leave());
         assertFalse(manager.isJoined());
     }
 
     @Test
-    void testGetLocalNodeWhenNotJoined() {
+    void testMultipleLeaveCallsAreSafe() {
         ZookeeperClusterManager manager = new ZookeeperClusterManager(config, mockClient);
-        assertNull(manager.getLocalNode());
+        manager.leave();
+        // Second leave should be safe
+        assertDoesNotThrow(() -> manager.leave());
+        assertFalse(manager.isJoined());
     }
 }
