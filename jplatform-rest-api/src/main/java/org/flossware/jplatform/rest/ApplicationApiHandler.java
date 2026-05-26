@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
 public class ApplicationApiHandler implements HttpHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationApiHandler.class);
+    private static final long MAX_REQUEST_SIZE = 10 * 1024 * 1024; // 10 MB
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final Pattern APP_ID_PATTERN = Pattern.compile("/api/applications/([^/]+)$");
@@ -126,7 +127,10 @@ public class ApplicationApiHandler implements HttpHandler {
      */
     private void handleDeploy(HttpExchange exchange) throws IOException {
         try (InputStream is = exchange.getRequestBody()) {
-            ApplicationDescriptorDTO dto = mapper.readValue(is, ApplicationDescriptorDTO.class);
+            // Limit request size to prevent DoS
+            InputStream limitedStream = new BoundedInputStream(is, MAX_REQUEST_SIZE);
+
+            ApplicationDescriptorDTO dto = mapper.readValue(limitedStream, ApplicationDescriptorDTO.class);
             ApplicationDescriptor descriptor = dto.toApplicationDescriptor();
 
             manager.deploy(descriptor);
@@ -136,6 +140,10 @@ public class ApplicationApiHandler implements HttpHandler {
 
             logger.info("Deployed application: {}", descriptor.getApplicationId());
             sendJsonResponse(exchange, 201, response);
+        } catch (RequestTooLargeException e) {
+            logger.warn("Deploy request too large: {}", e.getMessage());
+            sendErrorResponse(exchange, 413, "PayloadTooLarge",
+                "Request body exceeds maximum size of " + MAX_REQUEST_SIZE + " bytes");
         } catch (Exception e) {
             logger.error("Failed to deploy application", e);
             sendErrorResponse(exchange, 400, "DeploymentFailed", e.getMessage());
@@ -455,6 +463,61 @@ public class ApplicationApiHandler implements HttpHandler {
             builder.enableMessaging(enableMessaging);
 
             return builder.build();
+        }
+    }
+
+    /**
+     * Exception thrown when request size exceeds the limit.
+     */
+    private static class RequestTooLargeException extends IOException {
+        public RequestTooLargeException(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * InputStream wrapper that enforces a maximum read size.
+     * Throws RequestTooLargeException if the limit is exceeded.
+     */
+    private static class BoundedInputStream extends InputStream {
+        private final InputStream delegate;
+        private final long maxSize;
+        private long bytesRead = 0;
+
+        public BoundedInputStream(InputStream delegate, long maxSize) {
+            this.delegate = delegate;
+            this.maxSize = maxSize;
+        }
+
+        @Override
+        public int read() throws IOException {
+            int b = delegate.read();
+            if (b != -1) {
+                bytesRead++;
+                if (bytesRead > maxSize) {
+                    throw new RequestTooLargeException(
+                        "Request size exceeded maximum of " + maxSize + " bytes");
+                }
+            }
+            return b;
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            int count = delegate.read(b, off, len);
+            if (count > 0) {
+                bytesRead += count;
+                if (bytesRead > maxSize) {
+                    throw new RequestTooLargeException(
+                        "Request size exceeded maximum of " + maxSize + " bytes");
+                }
+            }
+            return count;
+        }
+
+        @Override
+        public void close() throws IOException {
+            delegate.close();
         }
     }
 }

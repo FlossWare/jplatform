@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Objects;
 
 /**
@@ -40,9 +42,22 @@ public class ApiAuthFilter extends Filter {
      *
      * @param config the API server configuration containing auth settings
      * @throws NullPointerException if config is null
+     * @throws IllegalArgumentException if auth is enabled but API key is not configured
      */
     public ApiAuthFilter(ApiServerConfig config) {
         this.config = Objects.requireNonNull(config, "API server config cannot be null");
+
+        // Validate auth configuration
+        if (config.isEnableAuth()) {
+            if (config.getApiKey() == null || config.getApiKey().trim().isEmpty()) {
+                throw new IllegalArgumentException(
+                    "API key must be configured when authentication is enabled");
+            }
+            if (config.getApiKeyHeader() == null || config.getApiKeyHeader().trim().isEmpty()) {
+                throw new IllegalArgumentException(
+                    "API key header must be configured when authentication is enabled");
+            }
+        }
     }
 
     /**
@@ -71,7 +86,7 @@ public class ApiAuthFilter extends Filter {
         String apiKeyHeader = config.getApiKeyHeader();
         String providedKey = exchange.getRequestHeaders().getFirst(apiKeyHeader);
 
-        if (providedKey == null || !providedKey.equals(config.getApiKey())) {
+        if (providedKey == null || !constantTimeEquals(providedKey, config.getApiKey())) {
             logger.warn("Unauthorized request from {}: missing or invalid API key",
                     exchange.getRemoteAddress());
             sendUnauthorized(exchange);
@@ -80,6 +95,23 @@ public class ApiAuthFilter extends Filter {
 
         // Auth successful, continue
         chain.doFilter(exchange);
+    }
+
+    /**
+     * Performs constant-time comparison of two strings to prevent timing attacks.
+     * Uses MessageDigest.isEqual which compares all bytes regardless of match.
+     *
+     * @param a first string
+     * @param b second string
+     * @return true if strings are equal, false otherwise
+     */
+    private boolean constantTimeEquals(String a, String b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+        byte[] aBytes = a.getBytes(StandardCharsets.UTF_8);
+        byte[] bBytes = b.getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(aBytes, bBytes);
     }
 
     /**
