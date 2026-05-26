@@ -240,19 +240,25 @@ public class ZooKeeperConfigSource implements AutoCloseable {
             return;
         }
 
-        loadConfigRecursive(config.getBasePath());
+        // Load into temporary map first to ensure atomic cache update
+        Map<String, String> tempCache = new HashMap<>();
+        loadConfigRecursive(config.getBasePath(), tempCache);
+
+        // Only update cache if all loading succeeded
+        configCache.clear();
+        configCache.putAll(tempCache);
     }
 
-    private void loadConfigRecursive(String path) throws Exception {
+    private void loadConfigRecursive(String path, Map<String, String> target) throws Exception {
         byte[] data = client.getData().forPath(path);
         if (data != null && data.length > 0) {
             String key = pathToKey(path);
             String value = new String(data, StandardCharsets.UTF_8);
-            configCache.put(key, value);
+            target.put(key, value);
         }
 
         for (String child : client.getChildren().forPath(path)) {
-            loadConfigRecursive(path + "/" + child);
+            loadConfigRecursive(path + "/" + child, target);
         }
     }
 

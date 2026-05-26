@@ -126,9 +126,17 @@ public class VaultConfigSource implements AutoCloseable {
         }
 
         try {
+            // Read existing secret data to preserve other keys
             Map<String, Object> data = new HashMap<>();
+            LogicalResponse response = vault.logical().read(config.getSecretPath());
+            if (response != null && response.getData() != null) {
+                data.putAll(response.getData());
+            }
+
+            // Update the specific key
             data.put(key, value);
 
+            // Write back the complete map
             vault.logical().write(config.getSecretPath(), data);
 
             configCache.put(key, value);

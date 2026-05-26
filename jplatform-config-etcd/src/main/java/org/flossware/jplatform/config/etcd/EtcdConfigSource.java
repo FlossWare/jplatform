@@ -319,6 +319,11 @@ public class EtcdConfigSource implements AutoCloseable {
         if (fullKey.startsWith(prefix)) {
             return fullKey.substring(prefix.length());
         }
-        return fullKey;
+
+        // Key doesn't match expected prefix - this shouldn't happen
+        logger.warn("Received etcd key '{}' that doesn't start with configured prefix '{}'",
+                    fullKey, config.getKeyPrefix());
+        throw new IllegalArgumentException(
+            "Key '" + fullKey + "' does not start with configured prefix '" + config.getKeyPrefix() + "'");
     }
 }
