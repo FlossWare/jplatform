@@ -178,12 +178,13 @@ public class Message {
         /**
          * Sets the complete map of message headers.
          * Replaces any previously added headers.
+         * Makes a defensive copy to prevent external modifications.
          *
          * @param headers the headers map
          * @return this builder
          */
         public Builder headers(Map<String, Object> headers) {
-            this.headers = headers;
+            this.headers = headers != null ? new HashMap<>(headers) : null;
             return this;
         }
 

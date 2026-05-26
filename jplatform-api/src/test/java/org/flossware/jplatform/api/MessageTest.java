@@ -244,6 +244,26 @@ class MessageTest {
     }
 
     @Test
+    void testBuilder_headersDefensiveCopy() {
+        Map<String, Object> originalHeaders = new HashMap<>();
+        originalHeaders.put("key1", "value1");
+
+        Message.Builder builder = Message.builder()
+                .topic("test-topic")
+                .sourceApplicationId("app1")
+                .headers(originalHeaders);
+
+        // Modify original map after passing to builder
+        originalHeaders.put("key2", "value2");
+        originalHeaders.remove("key1");
+
+        // Builder should contain unmodified headers
+        Message msg = builder.build();
+        assertEquals("value1", msg.getHeaders().get("key1"));
+        assertNull(msg.getHeaders().get("key2"));
+    }
+
+    @Test
     void testBuilder_headersReplacement() {
         Map<String, Object> headers1 = new HashMap<>();
         headers1.put("key1", "value1");
