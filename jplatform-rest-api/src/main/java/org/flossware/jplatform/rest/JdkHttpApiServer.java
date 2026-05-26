@@ -265,26 +265,29 @@ public class JdkHttpApiServer implements PlatformApiServer {
         Headers requestHeaders = exchange.getRequestHeaders();
 
         Set<String> allowedOrigins = config.getAllowedOrigins();
-        if (!allowedOrigins.isEmpty()) {
-            // Get the Origin header from the request
-            String requestOrigin = requestHeaders.getFirst("Origin");
+        if (allowedOrigins.isEmpty()) {
+            // No CORS origins configured - don't add CORS headers
+            // This means CORS is effectively disabled (browser will block cross-origin requests)
+            // This is secure by default - users must explicitly configure allowed origins
+            logger.debug("No CORS origins configured, cross-origin requests will be blocked");
+            return;
+        }
 
-            if (requestOrigin != null && allowedOrigins.contains(requestOrigin)) {
-                // Echo back the origin only if it's in the allowed set
-                responseHeaders.add("Access-Control-Allow-Origin", requestOrigin);
-                // Vary header is important for proper caching of CORS responses
-                responseHeaders.add("Vary", "Origin");
-                logger.debug("Accepting CORS request from allowed origin: {}", requestOrigin);
-            } else {
-                // Origin not allowed or not provided - don't add CORS header
-                // Browser will block the response
-                if (requestOrigin != null) {
-                    logger.debug("Rejecting CORS request from disallowed origin: {}", requestOrigin);
-                }
-            }
+        // Get the Origin header from the request
+        String requestOrigin = requestHeaders.getFirst("Origin");
+
+        if (requestOrigin != null && allowedOrigins.contains(requestOrigin)) {
+            // Echo back the origin only if it's in the allowed set
+            responseHeaders.add("Access-Control-Allow-Origin", requestOrigin);
+            // Vary header is important for proper caching of CORS responses
+            responseHeaders.add("Vary", "Origin");
+            logger.debug("Accepting CORS request from allowed origin: {}", requestOrigin);
         } else {
-            // No restrictions configured - allow all origins
-            responseHeaders.add("Access-Control-Allow-Origin", "*");
+            // Origin not allowed or not provided - don't add CORS header
+            // Browser will block the response
+            if (requestOrigin != null) {
+                logger.debug("Rejecting CORS request from disallowed origin: {}", requestOrigin);
+            }
         }
 
         responseHeaders.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
