@@ -231,14 +231,29 @@ public class ConsulConfigSource implements AutoCloseable {
             KeyValueClient kvClient = consul.keyValueClient();
             List<Value> values = kvClient.getValues(config.getKeyPrefix());
 
+            if (values == null || values.isEmpty()) {
+                logger.info("No configuration found at prefix: {}", config.getKeyPrefix());
+                return;
+            }
+
+            String prefix = config.getKeyPrefix() + "/";
             for (Value value : values) {
+                String fullKey = value.getKey();
+
+                // Validate key has expected prefix
+                if (!fullKey.startsWith(prefix)) {
+                    logger.warn("Unexpected key '{}' not under prefix '{}', skipping", fullKey, prefix);
+                    continue;
+                }
+
                 if (value.getValueAsString().isPresent()) {
-                    String fullKey = value.getKey();
-                    String key = extractKey(fullKey);
+                    String key = fullKey.substring(prefix.length());
                     String val = value.getValueAsString().get();
                     configCache.put(key, val);
                 }
             }
+
+            logger.debug("Loaded {} config entries from Consul", configCache.size());
         } catch (Exception e) {
             logger.warn("Failed to load config from Consul", e);
         }
