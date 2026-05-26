@@ -308,9 +308,15 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
                 s3Client.createBucket(CreateBucketRequest.builder()
                     .bucket(config.getBucketName())
                     .build());
+                logger.info("Successfully created bucket: {}", config.getBucketName());
             } catch (Exception ex) {
                 logger.error("Failed to create bucket: " + config.getBucketName(), ex);
+                throw new RuntimeException("Failed to create S3 bucket: " + config.getBucketName() +
+                    ". Check credentials and permissions.", ex);
             }
+        } catch (Exception e) {
+            logger.error("Failed to verify bucket existence: " + config.getBucketName(), e);
+            throw new RuntimeException("Failed to verify S3 bucket: " + config.getBucketName(), e);
         }
     }
 
