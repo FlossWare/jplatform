@@ -97,25 +97,40 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
 
     @Override
     public long getCpuTimeNanos() {
-        ResourceSnapshot snapshot = context.getResourceMonitor().getCurrentSnapshot();
+        ResourceMonitor monitor = context.getResourceMonitor();
+        if (monitor == null) {
+            return -1;  // Indicate unavailable
+        }
+        ResourceSnapshot snapshot = monitor.getCurrentSnapshot();
         return snapshot.getCpuTimeNanos();
     }
 
     @Override
     public long getHeapUsedBytes() {
-        ResourceSnapshot snapshot = context.getResourceMonitor().getCurrentSnapshot();
+        ResourceMonitor monitor = context.getResourceMonitor();
+        if (monitor == null) {
+            return -1;  // Indicate unavailable
+        }
+        ResourceSnapshot snapshot = monitor.getCurrentSnapshot();
         return snapshot.getHeapUsedBytes();
     }
 
     @Override
     public int getThreadCount() {
-        ResourceSnapshot snapshot = context.getResourceMonitor().getCurrentSnapshot();
+        ResourceMonitor monitor = context.getResourceMonitor();
+        if (monitor == null) {
+            return -1;  // Indicate unavailable
+        }
+        ResourceSnapshot snapshot = monitor.getCurrentSnapshot();
         return snapshot.getThreadCount();
     }
 
     @Override
     public int getActiveThreads() {
         ThreadPoolExecutor executor = context.getThreadPool();
+        if (executor == null) {
+            return -1;  // Indicate unavailable
+        }
         ThreadPoolStats stats = executor.getStats();
         return stats.getActiveThreads();
     }
@@ -123,6 +138,9 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
     @Override
     public int getQueuedTasks() {
         ThreadPoolExecutor executor = context.getThreadPool();
+        if (executor == null) {
+            return -1;  // Indicate unavailable
+        }
         ThreadPoolStats stats = executor.getStats();
         return stats.getQueuedTasks();
     }
@@ -130,6 +148,9 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
     @Override
     public long getCompletedTasks() {
         ThreadPoolExecutor executor = context.getThreadPool();
+        if (executor == null) {
+            return -1;  // Indicate unavailable
+        }
         ThreadPoolStats stats = executor.getStats();
         return stats.getCompletedTasks();
     }
@@ -163,8 +184,12 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
         logger.debug("[{}] JMX operation: getResourceHistory({}) invoked", applicationId, minutes);
 
         try {
-            Duration duration = Duration.ofMinutes(minutes);
             ResourceMonitor monitor = context.getResourceMonitor();
+            if (monitor == null) {
+                return "{\"error\": \"Resource monitoring not available for this application\"}";
+            }
+
+            Duration duration = Duration.ofMinutes(minutes);
             ResourceUsageHistory history = monitor.getHistory(duration);
 
             // Convert to a simplified JSON-friendly structure
