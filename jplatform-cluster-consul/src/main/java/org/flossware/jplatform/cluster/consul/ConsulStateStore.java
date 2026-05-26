@@ -2,6 +2,7 @@ package org.flossware.jplatform.cluster.consul;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.model.kv.Value;
@@ -80,6 +81,7 @@ public class ConsulStateStore implements ClusterStateStore {
         this.kvClient = consulClient.keyValueClient();
         this.objectMapper = new ObjectMapper();
         this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper.registerModule(new Jdk8Module());  // Support Optional types
         this.objectMapper.registerModule(new ApplicationDescriptorJsonModule());
         this.listeners = new ConcurrentHashMap<>();
         this.watchExecutor = Executors.newScheduledThreadPool(2);

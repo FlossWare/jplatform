@@ -1,6 +1,7 @@
 package org.flossware.jplatform.cluster.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import org.flossware.jplatform.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,7 @@ public class RedisStateStore implements ClusterStateStore {
         }
         this.pool = pool;
         this.mapper = new ObjectMapper();
+        this.mapper.registerModule(new Jdk8Module());  // Support Optional types
         this.listeners = new ConcurrentHashMap<>();
     }
 

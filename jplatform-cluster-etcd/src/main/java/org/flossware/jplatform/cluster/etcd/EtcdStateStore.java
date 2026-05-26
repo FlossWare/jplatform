@@ -1,6 +1,7 @@
 package org.flossware.jplatform.cluster.etcd;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
@@ -53,6 +54,7 @@ public class EtcdStateStore implements ClusterStateStore {
         }
         this.client = client;
         this.mapper = new ObjectMapper();
+        this.mapper.registerModule(new Jdk8Module());  // Support Optional types
         this.listeners = new ConcurrentHashMap<>();
     }
 
