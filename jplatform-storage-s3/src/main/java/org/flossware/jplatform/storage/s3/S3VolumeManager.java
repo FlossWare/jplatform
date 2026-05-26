@@ -265,7 +265,12 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
         }
 
         Path localPath = getVolumePath(volumeName).resolve(relativePath);
-        Files.createDirectories(localPath.getParent());
+
+        // Create parent directories if parent exists
+        Path parent = localPath.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
 
         try {
             String s3Key = buildS3Key(volumeName, relativePath);
