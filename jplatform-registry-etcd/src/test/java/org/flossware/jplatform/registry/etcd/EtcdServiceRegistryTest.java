@@ -161,4 +161,94 @@ class EtcdServiceRegistryTest {
     void testGetClient() {
         assertSame(mockClient, registry.getClient());
     }
+
+    @Test
+    void testStartIdempotent() {
+        // Create registry without client (will need to start)
+        EtcdServiceRegistry reg = new EtcdServiceRegistry(config);
+
+        // First start should succeed
+        assertDoesNotThrow(() -> reg.start());
+
+        // Second start should be idempotent (no error)
+        assertDoesNotThrow(() -> reg.start());
+
+        reg.close();
+    }
+
+    @Test
+    void testStartWithLargeLeaseTtl() {
+        // Create config with large lease TTL (> 3600 seconds)
+        EtcdRegistryConfig largeTtlConfig = EtcdRegistryConfig.builder()
+            .leaseTtl(7200)  // 2 hours
+            .build();
+
+        EtcdServiceRegistry reg = new EtcdServiceRegistry(largeTtlConfig);
+
+        // Start should log a warning but not fail
+        assertDoesNotThrow(() -> reg.start());
+
+        reg.close();
+    }
+
+    @Test
+    void testUnregisterWithEtcdCleanup() throws Exception {
+        // Mock lease revoke and delete operations
+        io.etcd.jetcd.kv.DeleteResponse deleteResponse = mock(io.etcd.jetcd.kv.DeleteResponse.class);
+        CompletableFuture<io.etcd.jetcd.kv.DeleteResponse> deleteFuture =
+            CompletableFuture.completedFuture(deleteResponse);
+        when(mockKV.delete(any())).thenReturn(deleteFuture);
+
+        io.etcd.jetcd.lease.LeaseRevokeResponse revokeResponse = mock(io.etcd.jetcd.lease.LeaseRevokeResponse.class);
+        CompletableFuture<io.etcd.jetcd.lease.LeaseRevokeResponse> revokeFuture =
+            CompletableFuture.completedFuture(revokeResponse);
+        when(mockLease.revoke(anyLong())).thenReturn(revokeFuture);
+
+        // Register and then unregister
+        TestService impl = new TestServiceImpl();
+        registry.registerService(TestService.class, impl);
+        registry.unregisterService(TestService.class, impl);
+
+        // Verify etcd cleanup was called
+        verify(mockLease).revoke(anyLong());
+        verify(mockKV).delete(any());
+    }
+
+    @Test
+    void testCloseNotStarted() {
+        // Create registry that was never started
+        EtcdServiceRegistry reg = new EtcdServiceRegistry(config);
+
+        // Close should not fail even if not started
+        assertDoesNotThrow(() -> reg.close());
+    }
+
+    @Test
+    void testRegisterDuplicateService() {
+        TestService impl = new TestServiceImpl();
+
+        // Register once
+        registry.registerService(TestService.class, impl);
+
+        // Register same instance again - should be idempotent (warning logged)
+        assertDoesNotThrow(() -> registry.registerService(TestService.class, impl));
+
+        // Should still have only one instance
+        Optional<TestService> service = registry.getService(TestService.class);
+        assertTrue(service.isPresent());
+    }
+
+    @Test
+    void testGetServiceNullInterface() {
+        // Attempting to get service with null interface should throw
+        assertThrows(IllegalArgumentException.class, () ->
+            registry.getService(null));
+    }
+
+    @Test
+    void testGetAllServicesNullInterface() {
+        // Attempting to get all services with null interface should throw
+        assertThrows(IllegalArgumentException.class, () ->
+            registry.getAllServices(null));
+    }
 }
