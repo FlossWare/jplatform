@@ -17,6 +17,8 @@
 
 package org.flossware.platform.api;
 
+import org.flossware.platform.util.EnvironmentVariableResolver;
+
 import java.net.URI;
 import java.util.*;
 
@@ -72,8 +74,15 @@ public class ApplicationDescriptor {
                 builder.securityConfig : SecurityConfig.permissive();
         this.resourceConfig = builder.resourceConfig != null ?
                 builder.resourceConfig : ResourceConfig.unlimited();
-        this.properties = builder.properties != null ?
-                new HashMap<>(builder.properties) : Collections.emptyMap();
+
+        // Resolve environment variables in properties for secure credential handling
+        if (builder.properties != null && !builder.properties.isEmpty()) {
+            EnvironmentVariableResolver resolver = new EnvironmentVariableResolver();
+            this.properties = Collections.unmodifiableMap(resolver.resolveMap(builder.properties));
+        } else {
+            this.properties = Collections.emptyMap();
+        }
+
         this.enableMessaging = builder.enableMessaging;
         this.volumes = builder.volumes != null ?
                 List.copyOf(builder.volumes) : Collections.emptyList();
