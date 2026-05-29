@@ -20,12 +20,16 @@ package org.flossware.platform.core;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.flossware.platform.api.RestartPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /** Tests for RestartPolicyParser. */
 @Tag("unit")
@@ -51,170 +55,134 @@ class RestartPolicyParserTest {
     assertFalse(result.isPresent(), "Should return empty when no restart policy configured");
   }
 
-  @Test
-  void testParseNever() {
+  @ParameterizedTest
+  @CsvSource({
+    "never, NEVER, 0",
+    "always, ALWAYS, " + Integer.MAX_VALUE,
+    "on-failure, ON_FAILURE, 5"
+  })
+  void testParsePolicyTypes(
+      String policyValue,
+      RestartPolicy.RestartCondition expectedCondition,
+      int expectedMaxRetries) {
     ApplicationDescriptor descriptor =
         ApplicationDescriptor.builder()
             .applicationId("test-app")
             .mainClass("com.example.App")
-            .property("restart.policy", "never")
+            .property("restart.policy", policyValue)
             .build();
 
     Optional<RestartPolicy> result = parser.parse(descriptor);
 
     assertTrue(result.isPresent());
-    assertEquals(RestartPolicy.RestartCondition.NEVER, result.get().getCondition());
+    assertEquals(expectedCondition, result.get().getCondition());
+    if (expectedMaxRetries > 0) {
+      assertEquals(expectedMaxRetries, result.get().getMaxRetries());
+    }
   }
 
-  @Test
-  void testParseAlways() {
-    ApplicationDescriptor descriptor =
+  @ParameterizedTest
+  @CsvSource({"'', 5, 5, 300", "10, 10, 15, 600"})
+  void testParseOnFailureWithProperties(
+      String maxRetries,
+      int expectedMaxRetries,
+      int expectedInitialBackoff,
+      int expectedMaxBackoff) {
+    ApplicationDescriptor.Builder builder =
         ApplicationDescriptor.builder()
             .applicationId("test-app")
             .mainClass("com.example.App")
-            .property("restart.policy", "always")
-            .build();
+            .property("restart.policy", "on-failure");
 
-    Optional<RestartPolicy> result = parser.parse(descriptor);
+    if (!maxRetries.isEmpty()) {
+      builder
+          .property("restart.maxRetries", maxRetries)
+          .property("restart.initialBackoff", "15")
+          .property("restart.maxBackoff", "600");
+    }
 
-    assertTrue(result.isPresent());
-    assertEquals(RestartPolicy.RestartCondition.ALWAYS, result.get().getCondition());
-    assertEquals(Integer.MAX_VALUE, result.get().getMaxRetries());
-  }
-
-  @Test
-  void testParseOnFailureWithDefaults() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("restart.policy", "on-failure")
-            .build();
-
-    Optional<RestartPolicy> result = parser.parse(descriptor);
-
-    assertTrue(result.isPresent());
-    RestartPolicy policy = result.get();
-    assertEquals(RestartPolicy.RestartCondition.ON_FAILURE, policy.getCondition());
-    assertEquals(5, policy.getMaxRetries());
-    assertEquals(5, policy.getInitialBackoffSeconds());
-    assertEquals(300, policy.getMaxBackoffSeconds());
-  }
-
-  @Test
-  void testParseOnFailureWithCustomValues() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("restart.policy", "on-failure")
-            .property("restart.maxRetries", "10")
-            .property("restart.initialBackoff", "15")
-            .property("restart.maxBackoff", "600")
-            .build();
-
-    Optional<RestartPolicy> result = parser.parse(descriptor);
+    Optional<RestartPolicy> result = parser.parse(builder.build());
 
     assertTrue(result.isPresent());
     RestartPolicy policy = result.get();
     assertEquals(RestartPolicy.RestartCondition.ON_FAILURE, policy.getCondition());
-    assertEquals(10, policy.getMaxRetries());
-    assertEquals(15, policy.getInitialBackoffSeconds());
-    assertEquals(600, policy.getMaxBackoffSeconds());
+    assertEquals(expectedMaxRetries, policy.getMaxRetries());
+    assertEquals(expectedInitialBackoff, policy.getInitialBackoffSeconds());
+    assertEquals(expectedMaxBackoff, policy.getMaxBackoffSeconds());
   }
 
-  @Test
-  void testParseCaseInsensitive() {
+  @ParameterizedTest
+  @CsvSource({"ON-FAILURE, ON_FAILURE", "unknown-policy, NEVER"})
+  void testParsePolicyEdgeCases(
+      String policyValue, RestartPolicy.RestartCondition expectedCondition) {
     ApplicationDescriptor descriptor =
         ApplicationDescriptor.builder()
             .applicationId("test-app")
             .mainClass("com.example.App")
-            .property("restart.policy", "ON-FAILURE")
+            .property("restart.policy", policyValue)
             .build();
 
     Optional<RestartPolicy> result = parser.parse(descriptor);
 
     assertTrue(result.isPresent());
-    assertEquals(RestartPolicy.RestartCondition.ON_FAILURE, result.get().getCondition());
+    assertEquals(expectedCondition, result.get().getCondition());
   }
 
-  @Test
-  void testParseUnknownPolicyDefaultsToNever() {
-    ApplicationDescriptor descriptor =
+  @ParameterizedTest
+  @MethodSource("provideInvalidPropertyCases")
+  void testParseInvalidPropertiesUseDefaults(
+      String maxRetries,
+      String initialBackoff,
+      String maxBackoff,
+      int expectedMaxRetries,
+      int expectedInitialBackoff,
+      int expectedMaxBackoff) {
+    ApplicationDescriptor.Builder builder =
         ApplicationDescriptor.builder()
             .applicationId("test-app")
             .mainClass("com.example.App")
-            .property("restart.policy", "unknown-policy")
-            .build();
+            .property("restart.policy", "on-failure");
 
-    Optional<RestartPolicy> result = parser.parse(descriptor);
+    if (maxRetries != null) {
+      builder.property("restart.maxRetries", maxRetries);
+    }
+    if (initialBackoff != null) {
+      builder.property("restart.initialBackoff", initialBackoff);
+    }
+    if (maxBackoff != null) {
+      builder.property("restart.maxBackoff", maxBackoff);
+    }
 
-    assertTrue(result.isPresent());
-    assertEquals(RestartPolicy.RestartCondition.NEVER, result.get().getCondition());
-  }
-
-  @Test
-  void testParseInvalidMaxRetriesUsesDefault() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("restart.policy", "on-failure")
-            .property("restart.maxRetries", "not-a-number")
-            .build();
-
-    Optional<RestartPolicy> result = parser.parse(descriptor);
-
-    assertTrue(result.isPresent());
-    assertEquals(5, result.get().getMaxRetries(), "Should use default when invalid");
-  }
-
-  @Test
-  void testParseInvalidBackoffUsesDefault() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("restart.policy", "on-failure")
-            .property("restart.initialBackoff", "invalid")
-            .property("restart.maxBackoff", "also-invalid")
-            .build();
-
-    Optional<RestartPolicy> result = parser.parse(descriptor);
+    Optional<RestartPolicy> result = parser.parse(builder.build());
 
     assertTrue(result.isPresent());
     RestartPolicy policy = result.get();
-    assertEquals(5, policy.getInitialBackoffSeconds());
-    assertEquals(300, policy.getMaxBackoffSeconds());
+    assertEquals(expectedMaxRetries, policy.getMaxRetries(), "Should use default when invalid");
+    assertEquals(expectedInitialBackoff, policy.getInitialBackoffSeconds());
+    assertEquals(expectedMaxBackoff, policy.getMaxBackoffSeconds());
   }
 
-  @Test
-  void testParseEmptyPolicyString() {
+  private static Stream<Object[]> provideInvalidPropertyCases() {
+    return Stream.of(
+        new Object[] {"not-a-number", null, null, 5, 5, 300},
+        new Object[] {null, "invalid", "also-invalid", 5, 5, 300});
+  }
+
+  @ParameterizedTest
+  @CsvSource({"'   ', false", "'  always  ', true"})
+  void testParseWhitespaceHandling(String policyValue, boolean shouldBePresent) {
     ApplicationDescriptor descriptor =
         ApplicationDescriptor.builder()
             .applicationId("test-app")
             .mainClass("com.example.App")
-            .property("restart.policy", "   ")
+            .property("restart.policy", policyValue)
             .build();
 
     Optional<RestartPolicy> result = parser.parse(descriptor);
 
-    assertFalse(result.isPresent(), "Empty policy string should be treated as no policy");
-  }
-
-  @Test
-  void testParseTrimsWhitespace() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("restart.policy", "  always  ")
-            .property("restart.maxRetries", "  10  ")
-            .build();
-
-    Optional<RestartPolicy> result = parser.parse(descriptor);
-
-    assertTrue(result.isPresent());
-    assertEquals(RestartPolicy.RestartCondition.ALWAYS, result.get().getCondition());
+    assertEquals(shouldBePresent, result.isPresent());
+    if (shouldBePresent) {
+      assertEquals(RestartPolicy.RestartCondition.ALWAYS, result.get().getCondition());
+    }
   }
 }

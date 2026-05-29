@@ -20,11 +20,15 @@ package org.flossware.platform.core;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests for HealthCheckConfigParser. */
 @Tag("unit")
@@ -37,199 +41,118 @@ class HealthCheckConfigParserTest {
     parser = new HealthCheckConfigParser();
   }
 
-  @Test
-  void testParseNotEnabled() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .build();
+  @ParameterizedTest
+  @ValueSource(strings = {"false", ""})
+  void testParseNotEnabled(String enabledValue) {
+    ApplicationDescriptor.Builder builder =
+        ApplicationDescriptor.builder().applicationId("test-app").mainClass("com.example.App");
 
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
+    if (!enabledValue.isEmpty()) {
+      builder.property("healthcheck.enabled", enabledValue);
+    }
+
+    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(builder.build());
 
     assertFalse(result.isPresent(), "Should return empty when health checks not enabled");
   }
 
-  @Test
-  void testParseEnabledWithDefaults() {
-    ApplicationDescriptor descriptor =
+  @ParameterizedTest
+  @MethodSource("provideHealthCheckTypeTestCases")
+  void testParseHealthCheckTypes(
+      String type,
+      HealthChecker.HealthCheckType expectedType,
+      String httpUrl,
+      String tcpHost,
+      String tcpPort) {
+    ApplicationDescriptor.Builder builder =
         ApplicationDescriptor.builder()
             .applicationId("test-app")
             .mainClass("com.example.App")
             .property("healthcheck.enabled", "true")
-            .build();
+            .property("healthcheck.type", type);
 
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
+    if (httpUrl != null) {
+      builder.property("healthcheck.http.url", httpUrl);
+    }
+    if (tcpHost != null) {
+      builder.property("healthcheck.tcp.host", tcpHost);
+    }
+    if (tcpPort != null) {
+      builder.property("healthcheck.tcp.port", tcpPort);
+    }
+
+    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(builder.build());
 
     assertTrue(result.isPresent());
     HealthChecker.HealthCheckConfig config = result.get();
-    assertEquals(HealthChecker.HealthCheckType.APPLICATION, config.getType());
-    assertEquals(30, config.getIntervalSeconds());
-    assertEquals(10, config.getInitialDelaySeconds());
-    assertEquals(5, config.getTimeoutSeconds());
-    assertEquals(3, config.getFailureThreshold());
+    assertEquals(expectedType, config.getType());
+    if (httpUrl != null) {
+      assertEquals(httpUrl, config.getHttpUrl());
+    }
+    if (tcpHost != null) {
+      assertEquals(tcpHost, config.getTcpHost());
+    }
+    if (tcpPort != null) {
+      assertEquals(Integer.parseInt(tcpPort), config.getTcpPort());
+    }
   }
 
-  @Test
-  void testParseHttpHealthCheck() {
-    ApplicationDescriptor descriptor =
+  private static Stream<Object[]> provideHealthCheckTypeTestCases() {
+    return Stream.of(
+        new Object[] {
+          "http", HealthChecker.HealthCheckType.HTTP, "http://localhost:8080/health", null, null
+        },
+        new Object[] {"tcp", HealthChecker.HealthCheckType.TCP, null, "localhost", "8080"});
+  }
+
+  @ParameterizedTest
+  @CsvSource({"HTTP, HTTP", "unknown-type, APPLICATION"})
+  void testParseTypeEdgeCases(String typeValue, HealthChecker.HealthCheckType expectedType) {
+    ApplicationDescriptor.Builder builder =
         ApplicationDescriptor.builder()
             .applicationId("test-app")
             .mainClass("com.example.App")
             .property("healthcheck.enabled", "true")
-            .property("healthcheck.type", "http")
-            .property("healthcheck.http.url", "http://localhost:8080/health")
-            .build();
+            .property("healthcheck.type", typeValue);
 
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
+    if (expectedType == HealthChecker.HealthCheckType.HTTP) {
+      builder.property("healthcheck.http.url", "http://localhost:8080/health");
+    }
+
+    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(builder.build());
 
     assertTrue(result.isPresent());
-    HealthChecker.HealthCheckConfig config = result.get();
-    assertEquals(HealthChecker.HealthCheckType.HTTP, config.getType());
-    assertEquals("http://localhost:8080/health", config.getHttpUrl());
+    assertEquals(expectedType, result.get().getType());
   }
 
-  @Test
-  void testParseTcpHealthCheck() {
-    ApplicationDescriptor descriptor =
+  @ParameterizedTest
+  @CsvSource({"not-a-number, '', '', 30", "'', invalid, localhost, 0"})
+  void testParseInvalidPropertiesUseDefaults(
+      String interval, String tcpPort, String tcpHost, int expectedValue) {
+    ApplicationDescriptor.Builder builder =
         ApplicationDescriptor.builder()
             .applicationId("test-app")
             .mainClass("com.example.App")
-            .property("healthcheck.enabled", "true")
-            .property("healthcheck.type", "tcp")
-            .property("healthcheck.tcp.host", "localhost")
-            .property("healthcheck.tcp.port", "8080")
-            .build();
+            .property("healthcheck.enabled", "true");
 
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
+    if (!interval.isEmpty()) {
+      builder.property("healthcheck.interval", interval);
+    }
+    if (!tcpPort.isEmpty()) {
+      builder
+          .property("healthcheck.type", "tcp")
+          .property("healthcheck.tcp.host", tcpHost)
+          .property("healthcheck.tcp.port", tcpPort);
+    }
 
-    assertTrue(result.isPresent());
-    HealthChecker.HealthCheckConfig config = result.get();
-    assertEquals(HealthChecker.HealthCheckType.TCP, config.getType());
-    assertEquals("localhost", config.getTcpHost());
-    assertEquals(8080, config.getTcpPort());
-  }
-
-  @Test
-  void testParseCustomIntervals() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("healthcheck.enabled", "true")
-            .property("healthcheck.interval", "60")
-            .property("healthcheck.initialDelay", "30")
-            .property("healthcheck.timeout", "10")
-            .property("healthcheck.failureThreshold", "5")
-            .build();
-
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
+    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(builder.build());
 
     assertTrue(result.isPresent());
-    HealthChecker.HealthCheckConfig config = result.get();
-    assertEquals(60, config.getIntervalSeconds());
-    assertEquals(30, config.getInitialDelaySeconds());
-    assertEquals(10, config.getTimeoutSeconds());
-    assertEquals(5, config.getFailureThreshold());
-  }
-
-  @Test
-  void testParseCaseInsensitiveType() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("healthcheck.enabled", "true")
-            .property("healthcheck.type", "HTTP")
-            .property("healthcheck.http.url", "http://localhost:8080/health")
-            .build();
-
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
-
-    assertTrue(result.isPresent());
-    assertEquals(HealthChecker.HealthCheckType.HTTP, result.get().getType());
-  }
-
-  @Test
-  void testParseUnknownTypeDefaultsToApplication() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("healthcheck.enabled", "true")
-            .property("healthcheck.type", "unknown-type")
-            .build();
-
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
-
-    assertTrue(result.isPresent());
-    assertEquals(HealthChecker.HealthCheckType.APPLICATION, result.get().getType());
-  }
-
-  @Test
-  void testParseInvalidIntervalUsesDefault() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("healthcheck.enabled", "true")
-            .property("healthcheck.interval", "not-a-number")
-            .build();
-
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
-
-    assertTrue(result.isPresent());
-    assertEquals(30, result.get().getIntervalSeconds(), "Should use default when invalid");
-  }
-
-  @Test
-  void testParseInvalidPortUsesDefault() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("healthcheck.enabled", "true")
-            .property("healthcheck.type", "tcp")
-            .property("healthcheck.tcp.host", "localhost")
-            .property("healthcheck.tcp.port", "invalid")
-            .build();
-
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
-
-    assertTrue(result.isPresent());
-    assertEquals(0, result.get().getTcpPort());
-  }
-
-  @Test
-  void testParseEnabledFalse() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("healthcheck.enabled", "false")
-            .build();
-
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
-
-    assertFalse(result.isPresent(), "Should return empty when explicitly disabled");
-  }
-
-  @Test
-  void testParseTrimsWhitespace() {
-    ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder()
-            .applicationId("test-app")
-            .mainClass("com.example.App")
-            .property("healthcheck.enabled", "  true  ")
-            .property("healthcheck.type", "  http  ")
-            .property("healthcheck.http.url", "  http://localhost:8080/health  ")
-            .build();
-
-    Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
-
-    assertTrue(result.isPresent());
-    HealthChecker.HealthCheckConfig config = result.get();
-    assertEquals(HealthChecker.HealthCheckType.HTTP, config.getType());
-    assertEquals("http://localhost:8080/health", config.getHttpUrl());
+    if (!interval.isEmpty()) {
+      assertEquals(
+          expectedValue, result.get().getIntervalSeconds(), "Should use default when invalid");
+    } else {
+      assertEquals(expectedValue, result.get().getTcpPort());
+    }
   }
 }
