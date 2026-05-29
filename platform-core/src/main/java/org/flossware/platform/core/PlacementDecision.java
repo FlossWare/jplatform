@@ -146,8 +146,12 @@ public final class PlacementDecision {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     PlacementDecision that = (PlacementDecision) o;
     return timestamp == that.timestamp
         && backend == that.backend

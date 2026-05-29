@@ -43,6 +43,11 @@ class ArgumentParser {
   private static final Pattern ARG_PATTERN =
       Pattern.compile("\"((?:[^\\\\\"]|\\\\.)*)\"|'((?:[^\\\\']|\\\\.)*)'|(\\S+)");
 
+  /** Private constructor to prevent instantiation of utility class. */
+  private ArgumentParser() {
+    throw new UnsupportedOperationException("Utility class");
+  }
+
   /**
    * Parses a command-line argument string respecting quoted strings.
    *

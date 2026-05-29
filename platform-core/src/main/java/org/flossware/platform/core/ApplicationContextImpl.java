@@ -23,7 +23,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.flossware.platform.api.*;
+import org.flossware.platform.api.ApplicationContext;
+import org.flossware.platform.api.ApplicationDescriptor;
+import org.flossware.platform.api.ApplicationState;
 
 /**
  * Implementation of ApplicationContext. Provides isolated runtime environment for an application.
@@ -32,7 +34,7 @@ import org.flossware.platform.api.*;
  * (descriptor, state, classLoader, applicationInstance). The setClassLoaderAndDescriptor() method
  * is synchronized for atomic updates during hot reload.
  */
-public class ApplicationContextImpl implements ApplicationContext {
+public final class ApplicationContextImpl implements ApplicationContext {
 
   private final String applicationId;
   private volatile ApplicationDescriptor descriptor; // Swappable during hot reload

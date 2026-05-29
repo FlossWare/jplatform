@@ -262,8 +262,12 @@ public final class WorkloadProfile {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     WorkloadProfile that = (WorkloadProfile) o;
     return isJavaApp == that.isJavaApp
         && isNativeApp == that.isNativeApp
@@ -297,10 +301,15 @@ public final class WorkloadProfile {
       sb.append("app=").append(applicationId).append(", ");
     }
     sb.append("type=");
-    if (isJavaApp) sb.append("Java");
-    else if (isNativeApp) sb.append("Native");
-    else if (isContainerImage) sb.append("Container");
-    else sb.append("Unknown");
+    if (isJavaApp) {
+      sb.append("Java");
+    } else if (isNativeApp) {
+      sb.append("Native");
+    } else if (isContainerImage) {
+      sb.append("Container");
+    } else {
+      sb.append("Unknown");
+    }
 
     sb.append(", cpu=")
         .append(cpuCores)
