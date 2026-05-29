@@ -153,7 +153,7 @@ public final class ApiServerConfig {
   public static class Builder {
     private int port = 8080;
     private String bindAddress = "0.0.0.0";
-    private boolean enableAuth = false;
+    private boolean enableAuth = true; // SECURITY: Auth required by default (was false - P0 issue)
     private String apiKey;
     private String apiKeyHeader = "X-API-Key";
     private Set<String> allowedOrigins = new HashSet<>();
@@ -306,8 +306,31 @@ public final class ApiServerConfig {
      */
     public ApiServerConfig build() {
       if (enableAuth && (apiKey == null || apiKey.trim().isEmpty())) {
-        throw new IllegalStateException("apiKey is required when enableAuth is true");
+        throw new IllegalStateException(
+            "SECURITY: API key is REQUIRED for authentication. "
+                + "Set via: ApiServerConfig.builder().apiKey(System.getenv(\"API_KEY\"))");
       }
+
+      // Validate API key strength
+      if (enableAuth && apiKey != null) {
+        if (apiKey.length() < 32) {
+          throw new IllegalStateException(
+              "SECURITY: API key is too short (minimum 32 characters for security). "
+                  + "Generate a secure key with: openssl rand -hex 32");
+        }
+        // Warn about common weak patterns (but don't fail - user might have legacy keys)
+        if (apiKey.matches("^[0-9]+$")
+            || apiKey.matches("^[a-z]+$")
+            || apiKey.equalsIgnoreCase("changeme")
+            || apiKey.equalsIgnoreCase("secret")
+            || apiKey.equalsIgnoreCase("password")
+            || apiKey.contains("123456")) {
+          System.err.println(
+              "WARNING: API key appears weak. Use a cryptographically random key: openssl rand -hex"
+                  + " 32");
+        }
+      }
+
       if (maxThreadPoolSize < threadPoolSize) {
         throw new IllegalStateException(
             "Max thread pool size ("
