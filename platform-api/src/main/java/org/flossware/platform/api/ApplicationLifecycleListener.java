@@ -17,6 +17,8 @@
 
 package org.flossware.platform.api;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 /**
  * Observer interface for application lifecycle events.
  *
@@ -61,14 +63,14 @@ public interface ApplicationLifecycleListener {
    * @param applicationId the application identifier
    * @param descriptor the application descriptor containing configuration
    */
-  void onDeployed(String applicationId, ApplicationDescriptor descriptor);
+  void onDeployed(@NonNull String applicationId, @NonNull ApplicationDescriptor descriptor);
 
   /**
    * Called when an application transitions to RUNNING state.
    *
    * @param applicationId the application identifier
    */
-  void onStarted(String applicationId);
+  void onStarted(@NonNull String applicationId);
 
   /**
    * Called when an application transitions to STOPPED or FAILED state.
@@ -76,7 +78,7 @@ public interface ApplicationLifecycleListener {
    * @param applicationId the application identifier
    * @param exitCode the exit code (0 for normal shutdown, non-zero for errors)
    */
-  void onStopped(String applicationId, int exitCode);
+  void onStopped(@NonNull String applicationId, int exitCode);
 
   /**
    * Called when an application is automatically restarted by the RestartManager.
@@ -84,7 +86,7 @@ public interface ApplicationLifecycleListener {
    * @param applicationId the application identifier
    * @param attemptNumber the restart attempt number (1-based)
    */
-  void onRestarted(String applicationId, int attemptNumber);
+  void onRestarted(@NonNull String applicationId, int attemptNumber);
 
   /**
    * Called when an application's health status changes.
@@ -95,7 +97,10 @@ public interface ApplicationLifecycleListener {
    * @param oldStatus the previous health status
    * @param newStatus the new health status
    */
-  void onHealthChanged(String applicationId, HealthStatus oldStatus, HealthStatus newStatus);
+  void onHealthChanged(
+      @NonNull String applicationId,
+      @NonNull HealthStatus oldStatus,
+      @NonNull HealthStatus newStatus);
 
   /**
    * Called when an application is undeployed from the platform.
@@ -104,5 +109,5 @@ public interface ApplicationLifecycleListener {
    *
    * @param applicationId the application identifier
    */
-  void onUndeployed(String applicationId);
+  void onUndeployed(@NonNull String applicationId);
 }

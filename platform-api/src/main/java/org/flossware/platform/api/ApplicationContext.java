@@ -21,6 +21,9 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  * Runtime context for an application running on the platform. Provides access to isolated resources
  * and optional platform features.
@@ -49,7 +52,7 @@ public interface ApplicationContext {
    *
    * @return the application ID
    */
-  String getApplicationId();
+  @NonNull String getApplicationId();
 
   /**
    * Returns the current lifecycle state of this application.
@@ -57,14 +60,14 @@ public interface ApplicationContext {
    * @return the application state
    * @see ApplicationState
    */
-  ApplicationState getState();
+  @NonNull ApplicationState getState();
 
   /**
    * Returns the timestamp when this application was deployed.
    *
    * @return the deployment timestamp
    */
-  Instant getDeployedAt();
+  @NonNull Instant getDeployedAt();
 
   /**
    * Returns the isolated classloader for this application. All application classes are loaded
@@ -72,7 +75,7 @@ public interface ApplicationContext {
    *
    * @return the application's classloader
    */
-  ClassLoader getClassLoader();
+  @NonNull ClassLoader getClassLoader();
 
   /**
    * Returns the dedicated thread pool for this application. Use this for concurrent execution to
@@ -80,7 +83,7 @@ public interface ApplicationContext {
    *
    * @return the application's thread pool
    */
-  ThreadPoolExecutor getThreadPool();
+  @NonNull ThreadPoolExecutor getThreadPool();
 
   /**
    * Returns the security policy for this application. Use this to check permissions before
@@ -88,7 +91,7 @@ public interface ApplicationContext {
    *
    * @return the application's security policy
    */
-  SecurityPolicy getSecurityPolicy();
+  @NonNull SecurityPolicy getSecurityPolicy();
 
   /**
    * Returns the resource monitor tracking this application's resource usage. Provides CPU time,
@@ -96,21 +99,21 @@ public interface ApplicationContext {
    *
    * @return the application's resource monitor
    */
-  ResourceMonitor getResourceMonitor();
+  @NonNull ResourceMonitor getResourceMonitor();
 
   /**
    * Returns the message bus if messaging is enabled for this application.
    *
    * @return optional message bus, empty if messaging is not enabled
    */
-  Optional<MessageBus> getMessageBus();
+  @NonNull Optional<MessageBus> getMessageBus();
 
   /**
    * Returns the service registry if messaging is enabled for this application.
    *
    * @return optional service registry, empty if messaging is not enabled
    */
-  Optional<ServiceRegistry> getServiceRegistry();
+  @NonNull Optional<ServiceRegistry> getServiceRegistry();
 
   /**
    * Returns the volume manager if volumes are defined for this application. Provides access to
@@ -119,19 +122,19 @@ public interface ApplicationContext {
    * @return optional volume manager, empty if no volumes are defined
    * @since 2.0
    */
-  Optional<VolumeManager> getVolumeManager();
+  @NonNull Optional<VolumeManager> getVolumeManager();
 
   /**
    * Returns custom properties configured for this application.
    *
    * @return immutable map of application properties
    */
-  Map<String, String> getProperties();
+  @NonNull Map<String, String> getProperties();
 
   /**
    * Returns the application instance if it has been started.
    *
    * @return the application instance, or null if not yet started
    */
-  Object getApplicationInstance();
+  @Nullable Object getApplicationInstance();
 }

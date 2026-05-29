@@ -37,6 +37,7 @@
     <snakeyaml.version>2.3</snakeyaml.version>
     <opentelemetry.version>1.40.0</opentelemetry.version>
     <dependency-check.version>10.0.4</dependency-check.version>
+    <checkerframework.version>3.42.0</checkerframework.version>
     <!-- Test categorization properties -->
     <test.groups/>
     <test.excludedGroups/>
@@ -195,6 +196,12 @@
         <groupId>org.flossware.jplatform</groupId>
         <artifactId>platform-java-otel</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <!-- Null-safety annotations -->
+      <dependency>
+        <groupId>org.checkerframework</groupId>
+        <artifactId>checker-qual</artifactId>
+        <version>${checkerframework.version}</version>
       </dependency>
       <!-- Logging -->
       <dependency>

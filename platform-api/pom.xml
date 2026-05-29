@@ -15,7 +15,12 @@
     <description>Public APIs for JPlatform - interfaces and contracts for applications and deployers</description>
 
     <dependencies>
-        <!-- No runtime dependencies - pure interfaces -->
+        <!-- Null-safety annotations (compile-time only) -->
+        <dependency>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-qual</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>

@@ -20,6 +20,8 @@ package org.flossware.platform.api;
 import java.util.List;
 import java.util.Optional;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 /**
  * Service registry for inter-application service discovery. Allows applications to register
  * services and look up services provided by other applications.
@@ -50,7 +52,7 @@ public interface ServiceRegistry {
    * @throws IllegalArgumentException if serviceInterface is not an interface or implementation does
    *     not implement the interface
    */
-  <T> void registerService(Class<T> serviceInterface, T implementation);
+  <T> void registerService(@NonNull Class<T> serviceInterface, @NonNull T implementation);
 
   /**
    * Returns the first registered service for the specified interface. If multiple services are
@@ -60,7 +62,7 @@ public interface ServiceRegistry {
    * @param serviceInterface the interface class
    * @return optional containing the service, or empty if none found
    */
-  <T> Optional<T> getService(Class<T> serviceInterface);
+  @NonNull <T> Optional<T> getService(@NonNull Class<T> serviceInterface);
 
   /**
    * Returns all registered services for the specified interface.
@@ -69,7 +71,7 @@ public interface ServiceRegistry {
    * @param serviceInterface the interface class
    * @return list of all registered services, empty if none found
    */
-  <T> List<T> getAllServices(Class<T> serviceInterface);
+  @NonNull <T> List<T> getAllServices(@NonNull Class<T> serviceInterface);
 
   /**
    * Unregisters a specific service implementation.
@@ -77,5 +79,5 @@ public interface ServiceRegistry {
    * @param serviceInterface the interface class
    * @param implementation the service implementation to remove
    */
-  void unregisterService(Class<?> serviceInterface, Object implementation);
+  void unregisterService(@NonNull Class<?> serviceInterface, @NonNull Object implementation);
 }
