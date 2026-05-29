@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2024-2026 FlossWare
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<configuration>
+    <!-- Property for log directory location -->
+    <property name="LOG_DIR" value="${platform.log.dir:-./logs}" />
+    <property name="LOG_LEVEL" value="${LOG_LEVEL:-INFO}" />
+
+    <!-- Console appender with sensitive data masking -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="org.flossware.platform.logging.MaskingPatternLayout">
+                <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+
+                <!-- Mask API keys in JSON format -->
+                <maskPattern>"apiKey"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"api_key"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"API_KEY"\s*:\s*"([^"]+)"</maskPattern>
+
+                <!-- Mask passwords in JSON format -->
+                <maskPattern>"password"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"passwd"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"pwd"\s*:\s*"([^"]+)"</maskPattern>
+
+                <!-- Mask tokens -->
+                <maskPattern>"token"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"access_token"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"refresh_token"\s*:\s*"([^"]+)"</maskPattern>
+
+                <!-- Mask secrets -->
+                <maskPattern>"secret"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"client_secret"\s*:\s*"([^"]+)"</maskPattern>
+
+                <!-- Mask HTTP headers -->
+                <maskPattern>Authorization:\s*Bearer\s+([A-Za-z0-9._-]+)</maskPattern>
+                <maskPattern>X-API-Key:\s+([A-Za-z0-9._-]+)</maskPattern>
+
+                <!-- Mask key=value format -->
+                <maskPattern>apiKey=([^\s,&amp;]+)</maskPattern>
+                <maskPattern>password=([^\s,&amp;]+)</maskPattern>
+                <maskPattern>token=([^\s,&amp;]+)</maskPattern>
+            </layout>
+        </encoder>
+    </appender>
+
+    <!-- File appender with rotation and masking -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/platform.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/platform.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="org.flossware.platform.logging.MaskingPatternLayout">
+                <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+
+                <!-- Same mask patterns as console -->
+                <maskPattern>"apiKey"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"api_key"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"API_KEY"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"password"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"passwd"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"pwd"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"token"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"access_token"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"refresh_token"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"secret"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>"client_secret"\s*:\s*"([^"]+)"</maskPattern>
+                <maskPattern>Authorization:\s*Bearer\s+([A-Za-z0-9._-]+)</maskPattern>
+                <maskPattern>X-API-Key:\s+([A-Za-z0-9._-]+)</maskPattern>
+                <maskPattern>apiKey=([^\s,&amp;]+)</maskPattern>
+                <maskPattern>password=([^\s,&amp;]+)</maskPattern>
+                <maskPattern>token=([^\s,&amp;]+)</maskPattern>
+            </layout>
+        </encoder>
+    </appender>
+
+    <!-- Separate audit log for security events (no masking) -->
+    <appender name="AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/audit.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/audit.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{ISO8601} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logger for audit events -->
+    <logger name="org.flossware.platform.audit" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT" />
+    </logger>
+
+    <!-- Debug logging for security-related packages in development -->
+    <logger name="org.flossware.platform.security" level="${LOG_LEVEL}" />
+    <logger name="org.flossware.platform.classloader" level="${LOG_LEVEL}" />
+    <logger name="org.flossware.platform.api" level="${LOG_LEVEL}" />
+
+    <!-- Root logger -->
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>
