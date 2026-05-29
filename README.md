@@ -135,7 +135,7 @@ platform-java/
 ├── platform-java-rest-api/         # HTTP REST API server ✅ **COMPLETE**
 ├── platform-java-web-console/      # Browser-based management UI ✅ **COMPLETE**
 ├── platform-java-swing-ui/         # Swing desktop management UI ✅ **NEW**
-├── platform-java-jcurses-ui/       # Terminal UI (curses-like) ✅ **NEW**
+├── platform-java-terminal-ui/      # Terminal UI (full-screen) ✅ **NEW**
 ├── platform-java-metrics-jmx/      # JMX metrics exporter ✅ **COMPLETE**
 ├── platform-java-metrics-prometheus/ # Prometheus metrics exporter ✅ **COMPLETE**
 ├── platform-java-storage/          # Persistent volume management ✅ **COMPLETE (2.0)**
@@ -590,7 +590,7 @@ Applications SHOULD use the provided `ManagedThreadPool`. Direct thread creation
 - REST API server (`platform-java-rest-api`) - full HTTP API
 - Web console (`platform-java-web-console`) - modern browser-based UI
 - Swing desktop UI (`platform-java-swing-ui`) - native desktop management interface ✅ **NEW in 1.1**
-- Terminal UI (`platform-java-jcurses-ui`) - full-screen curses-like terminal interface ✅ **NEW in 1.1**
+- Terminal UI (`platform-java-terminal-ui`) - full-screen terminal interface ✅ **NEW in 1.1**
 
 **Metrics & Monitoring (NEW in 1.0):**
 - JMX metrics exporter (`platform-java-metrics-jmx`) - JConsole/VisualVM integration

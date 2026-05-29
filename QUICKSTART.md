@@ -162,13 +162,13 @@ The Swing UI provides:
 
 **Note**: Swing UI requires a display environment (X11, Wayland, Windows, macOS). It cannot run in headless CI/CD environments.
 
-## Use Terminal UI (Curses-like)
+## Use Terminal UI
 
 For a full-screen terminal interface perfect for SSH sessions:
 
 ```bash
-java -cp platform-java-jcurses-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar:lanterna-3.1.1.jar \
-    org.flossware.platform-java.jcurses.TerminalConsole
+java -cp platform-java-terminal-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar:lanterna-3.1.1.jar \
+    org.flossware.jplatform.terminal.TerminalConsole
 
 # Or integrated with launcher:
 java -jar platform-java-launcher-1.1.jar --terminal-ui

@@ -1,4 +1,4 @@
-package org.flossware.jplatform.jcurses;
+package org.flossware.jplatform.terminal;
 
 import org.flossware.jplatform.api.PlatformManager;
 import org.junit.jupiter.api.Test;

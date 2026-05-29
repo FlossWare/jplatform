@@ -1,4 +1,4 @@
-package org.flossware.jplatform.jcurses;
+package org.flossware.jplatform.terminal;
 
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;

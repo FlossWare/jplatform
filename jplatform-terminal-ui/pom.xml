@@ -11,10 +11,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>platform-java-jcurses-ui</artifactId>
+    <artifactId>platform-java-terminal-ui</artifactId>
     <packaging>jar</packaging>
     <name>platform-java Terminal UI</name>
-    <description>Terminal-based management UI for JPlatform using Lanterna (modern curses-like library)</description>
+    <description>Terminal-based management UI for platform-java using Lanterna (modern terminal library)</description>
 
     <dependencies>
         <!-- JPlatform dependencies -->
@@ -24,7 +24,7 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Lanterna for terminal UI (modern alternative to jcurses) -->
+        <!-- Lanterna for terminal UI (modern pure-Java terminal library) -->
         <dependency>
             <groupId>com.googlecode.lanterna</groupId>
             <artifactId>lanterna</artifactId>
@@ -59,7 +59,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.flossware.jplatform.jcurses.TerminalConsole</Main-Class>
+                            <Main-Class>org.flossware.jplatform.terminal.TerminalConsole</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

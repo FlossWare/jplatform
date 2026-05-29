@@ -1,10 +1,10 @@
-# platform-java Terminal UI (JCurses-style)
+# platform-java Terminal UI
 
-Terminal-based management interface for platform-java using Lanterna for curses-like text UI.
+Terminal-based management interface for platform-java using Lanterna for full-screen text UI.
 
 ## Overview
 
-The `platform-java-jcurses-ui` module provides a full-screen terminal interface for managing platform-java instances. It uses Lanterna, a modern Java library that provides curses-like functionality without native dependencies. This UI is perfect for:
+The `platform-java-terminal-ui` module provides a full-screen terminal interface for managing platform-java instances. It uses Lanterna, a modern pure-Java library for full-screen terminal UIs without native dependencies. This UI is perfect for:
 
 - SSH sessions and remote server management
 - Headless environments where GUI is unavailable
@@ -12,10 +12,10 @@ The `platform-java-jcurses-ui` module provides a full-screen terminal interface 
 - Low-resource environments
 - Terminal multiplexers (tmux, screen)
 
-**Note:** Despite the module name, this uses Lanterna (not the old jcurses library) because:
-- **Pure Java**: No native dependencies, works everywhere
+**Technology:** This module uses Lanterna, a pure-Java terminal UI library:
+- **Pure Java**: No native dependencies or JNI, works everywhere
 - **Actively Maintained**: Regular updates and bug fixes
-- **Better Features**: Modern terminal capabilities and Unicode support
+- **Modern Features**: Full terminal capabilities and Unicode support
 - **Cross-Platform**: Works on Linux, macOS, Windows, and SSH sessions
 
 ## Features
@@ -77,8 +77,8 @@ The `platform-java-jcurses-ui` module provides a full-screen terminal interface 
 
 ```bash
 # Run with platform manager instance
-java -cp platform-java-jcurses-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar:lanterna-3.1.1.jar \
-    org.flossware.platform-java.jcurses.TerminalConsole
+java -cp platform-java-terminal-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar:lanterna-3.1.1.jar \
+    org.flossware.jplatform.terminal.TerminalConsole
 
 # Or integrate with launcher (recommended)
 java -jar platform-java-launcher-1.1.jar --terminal-ui
@@ -87,9 +87,9 @@ java -jar platform-java-launcher-1.1.jar --terminal-ui
 ### Programmatic Usage
 
 ```java
-import org.flossware.platform-java.api.PlatformManager;
-import org.flossware.platform-java.core.ApplicationManager;
-import org.flossware.platform-java.jcurses.TerminalConsole;
+import org.flossware.jplatform.api.PlatformManager;
+import org.flossware.jplatform.core.ApplicationManager;
+import org.flossware.jplatform.terminal.TerminalConsole;
 
 public class Main {
     public static void main(String[] args) throws IOException {

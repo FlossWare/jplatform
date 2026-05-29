@@ -34,8 +34,8 @@ and this project adheres to X.Y semantic versioning.
   - Auto-refresh every 2 seconds
   - Input validation for application ID and main class
   - Native look and feel for the operating system
-- Terminal UI (platform-java-jcurses-ui module)
-  - Full-screen terminal interface using Lanterna (modern curses-like library)
+- Terminal UI (platform-java-terminal-ui module)
+  - Full-screen terminal interface using Lanterna (modern pure-Java terminal library)
   - Keyboard-driven navigation (arrow keys and vi-style j/k)
   - Color-coded application states (green=running, yellow=stopped, red=failed)
   - Real-time metrics updates (CPU time, heap, threads)
@@ -63,7 +63,7 @@ and this project adheres to X.Y semantic versioning.
 - Added tests for DependencyResolver, ApplicationReloader, NativeLibraryLoader, ClassLoaderVersion
 - Added tests for NativeProcessLauncher and ContainerLauncher
 - Added tests for platform-java-swing-ui module (SwingConsoleTest, DeployDialogTest)
-- Added tests for platform-java-jcurses-ui module (TerminalConsoleTest)
+- Added tests for platform-java-terminal-ui module (TerminalConsoleTest)
 - Test coverage at 39% instruction coverage (74 tests across 12 test classes)
 - Focus on API contracts and configuration validation
 - Integration tests require actual executables/containers
@@ -77,7 +77,7 @@ and this project adheres to X.Y semantic versioning.
 - platform-java-rest-api/README.md - Complete REST API reference with all endpoints
 - platform-java-web-console/README.md - Browser-based UI documentation
 - platform-java-swing-ui/README.md - Desktop UI documentation
-- platform-java-jcurses-ui/README.md - Terminal UI documentation with keyboard controls
+- platform-java-terminal-ui/README.md - Terminal UI documentation with keyboard controls
 - Updated README.md with all UI modules in management interfaces and deployment mechanisms
 - Updated QUICKSTART.md with all UI launch instructions (Web, Swing, Terminal)
 - All classes have complete Javadoc (NativeProcessLauncher, ContainerLauncher, SwingConsole, DeployDialog, TerminalConsole)
