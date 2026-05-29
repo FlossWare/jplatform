@@ -53,7 +53,7 @@ import java.util.Map;
  * );
  *
  * WatcherConfig config = WatcherConfig.builder()
- *     .watchDirectory(Paths.get("/var/jplatform/apps"))
+ *     .watchDirectory(Paths.get("/var/platform/apps"))
  *     .autoStart(true)
  *     .autoDeploy(true)
  *     .build();

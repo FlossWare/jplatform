@@ -310,7 +310,7 @@ public class ApplicationManager implements PlatformManager {
                     // Launch as native process
                     logger.info("[{}] Launching as native process", applicationId);
                     java.nio.file.Path workingDir = java.nio.file.Paths.get(
-                            descriptor.getProperties().getOrDefault("native.workdir", "/var/jplatform/apps/" + applicationId)
+                            descriptor.getProperties().getOrDefault("native.workdir", "/var/platform/apps/" + applicationId)
                     );
 
                     // Create working directory if needed
@@ -559,7 +559,7 @@ public class ApplicationManager implements PlatformManager {
                 cleanup.cleanupAll();
 
                 // Detect leaks in non-production mode
-                if (Boolean.getBoolean("jplatform.debug.detectLeaks")) {
+                if (Boolean.getBoolean("platform.debug.detectLeaks")) {
                     cleanup.detectLeaks();
                 }
             }

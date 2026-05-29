@@ -204,7 +204,7 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
      * Platform-specific: Get cache directory for this application.
      */
     private static String getCacheDir(String applicationId) {
-        String baseDir = System.getProperty("jplatform.cache.dir", "/var/jplatform/cache");
+        String baseDir = System.getProperty("platform.cache.dir", "/var/platform/cache");
         return baseDir + "/" + applicationId;
     }
 
@@ -262,7 +262,7 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
 
         // Optionally suggest GC to reclaim class memory (disabled by default)
         // Enable with -Djplatform.debug.forceGcOnClose=true
-        if (Boolean.getBoolean("jplatform.debug.forceGcOnClose")) {
+        if (Boolean.getBoolean("platform.debug.forceGcOnClose")) {
             System.gc();
         }
     }

@@ -144,11 +144,11 @@ class PlatformConfigTest {
     void testWatchDirFlag() {
         PlatformConfig config = new PlatformConfig();
 
-        String[] args = {"--watch-dir", "/var/jplatform/apps"};
+        String[] args = {"--watch-dir", "/var/platform/apps"};
         config.mergeCommandLineArgs(args);
 
         assertTrue(config.getWatcher().isEnabled());
-        assertEquals("/var/jplatform/apps", config.getWatcher().getWatchDirectory());
+        assertEquals("/var/platform/apps", config.getWatcher().getWatchDirectory());
     }
 
     @Test

@@ -46,7 +46,7 @@ import java.util.Objects;
  *
  * <p>Libraries are extracted to:</p>
  * <pre>
- * /var/jplatform/natives/{applicationId}/
+ * /var/platform/natives/{applicationId}/
  * </pre>
  *
  * @since 2.0
@@ -54,7 +54,7 @@ import java.util.Objects;
 public class NativeLibraryLoader {
 
     private static final Logger logger = LoggerFactory.getLogger(NativeLibraryLoader.class);
-    private static final String DEFAULT_BASE_PATH = "/var/jplatform/natives";
+    private static final String DEFAULT_BASE_PATH = "/var/platform/natives";
 
     private final String applicationId;
     private final Path basePath;
@@ -259,7 +259,7 @@ public class NativeLibraryLoader {
      * @return the base path
      */
     private static String getConfiguredBasePath() {
-        return System.getProperty("jplatform.natives.dir", DEFAULT_BASE_PATH);
+        return System.getProperty("platform.natives.dir", DEFAULT_BASE_PATH);
     }
 
     /**

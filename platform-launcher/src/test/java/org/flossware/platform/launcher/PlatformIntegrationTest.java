@@ -161,7 +161,7 @@ class PlatformIntegrationTest {
             "    port: 9090\n\n" +
             "watcher:\n" +
             "  enabled: true\n" +
-            "  watchDirectory: /var/jplatform/apps\n";
+            "  watchDirectory: /var/platform/apps\n";
 
         Path configFile = tempDir.resolve("platform.yaml");
         Files.writeString(configFile, config);

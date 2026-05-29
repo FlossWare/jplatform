@@ -78,7 +78,7 @@ The `platform-java-terminal-ui` module provides a full-screen terminal interface
 ```bash
 # Run with platform manager instance
 java -cp platform-java-terminal-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar:lanterna-3.1.1.jar \
-    org.flossware.jplatform.terminal.TerminalConsole
+    org.flossware.platform.terminal.TerminalConsole
 
 # Or integrate with launcher (recommended)
 java -jar platform-java-launcher-1.1.jar --terminal-ui
@@ -87,9 +87,9 @@ java -jar platform-java-launcher-1.1.jar --terminal-ui
 ### Programmatic Usage
 
 ```java
-import org.flossware.jplatform.api.PlatformManager;
-import org.flossware.jplatform.core.ApplicationManager;
-import org.flossware.jplatform.terminal.TerminalConsole;
+import org.flossware.platform.api.PlatformManager;
+import org.flossware.platform.core.ApplicationManager;
+import org.flossware.platform.terminal.TerminalConsole;
 
 public class Main {
     public static void main(String[] args) throws IOException {

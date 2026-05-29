@@ -79,7 +79,7 @@ public class SecurityEnforcer {
     private SecurityEnforcer() {
         this.policies = new ConcurrentHashMap<>();
         this.stackWalker = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
-        this.enabled = Boolean.getBoolean("jplatform.security.enforce");
+        this.enabled = Boolean.getBoolean("platform.security.enforce");
     }
 
     /**

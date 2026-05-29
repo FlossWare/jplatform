@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * per-application isolation:</p>
  *
  * <pre>
- * /var/jplatform/volumes/
+ * /var/platform/volumes/
  *   {applicationId}/
  *     {volumeName}/
  * </pre>
@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class FileSystemVolumeManager implements VolumeManager {
 
     private static final Logger logger = LoggerFactory.getLogger(FileSystemVolumeManager.class);
-    private static final String DEFAULT_BASE_PATH = "/var/jplatform/volumes";
+    private static final String DEFAULT_BASE_PATH = "/var/platform/volumes";
 
     private final String applicationId;
     private final Path basePath;
@@ -259,12 +259,12 @@ public class FileSystemVolumeManager implements VolumeManager {
 
     /**
      * Returns the configured base path for volumes.
-     * Checks system property first, then defaults to /var/jplatform/volumes.
+     * Checks system property first, then defaults to /var/platform/volumes.
      *
      * @return the base path for volumes
      */
     private static String getConfiguredBasePath() {
-        return System.getProperty("jplatform.volumes.dir", DEFAULT_BASE_PATH);
+        return System.getProperty("platform.volumes.dir", DEFAULT_BASE_PATH);
     }
 
     /**

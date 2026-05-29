@@ -68,7 +68,7 @@ When filing a bug report, please include:
 **Logs**:
 ```
 java.lang.NullPointerException
-    at org.flossware.jplatform.core.ApplicationManager.deploy(ApplicationManager.java:123)
+    at org.flossware.platform.core.ApplicationManager.deploy(ApplicationManager.java:123)
 ```
 ```
 
@@ -213,7 +213,7 @@ cd platform-java
 mvn clean install
 
 # Build specific module
-cd jplatform-core
+cd platform-core
 mvn clean install
 
 # Skip tests (faster, but not recommended)
@@ -227,13 +227,13 @@ mvn clean verify
 
 ```bash
 # Basic launcher
-java -jar jplatform-launcher/target/jplatform-launcher-1.1.jar
+java -jar platform-launcher/target/platform-launcher-1.1.jar
 
 # With REST API
-java -jar jplatform-launcher/target/jplatform-launcher-1.1.jar --rest-api
+java -jar platform-launcher/target/platform-launcher-1.1.jar --rest-api
 
 # With all features
-java -jar jplatform-launcher/target/jplatform-launcher-1.1.jar \
+java -jar platform-launcher/target/platform-launcher-1.1.jar \
   --rest-api --web-console --jmx-port 9999 --prometheus
 ```
 
@@ -295,7 +295,7 @@ public void myMethod()
 - **Classes**: `PascalCase` (e.g., `ApplicationManager`)
 - **Methods**: `camelCase` (e.g., `deployApplication()`)
 - **Constants**: `UPPER_SNAKE_CASE` (e.g., `MAX_RETRY_COUNT`)
-- **Packages**: lowercase, no underscores (e.g., `org.flossware.jplatform.core`)
+- **Packages**: lowercase, no underscores (e.g., `org.flossware.platform.core`)
 
 #### 3. Code Organization
 - **One class per file**

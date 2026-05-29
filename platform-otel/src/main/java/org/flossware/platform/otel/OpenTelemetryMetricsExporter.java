@@ -152,13 +152,13 @@ public class OpenTelemetryMetricsExporter implements MetricsExporter {
         MetricInstruments appInstruments = new MetricInstruments();
 
         // CPU time counter
-        appInstruments.cpuTimeCounter = meter.counterBuilder("jplatform.app.cpu_time_seconds")
+        appInstruments.cpuTimeCounter = meter.counterBuilder("platform.app.cpu_time_seconds")
                 .setDescription("Total CPU time consumed by the application")
                 .setUnit("s")
                 .build();
 
         // Heap usage gauge
-        appInstruments.heapGauge = meter.gaugeBuilder("jplatform.app.heap_used_bytes")
+        appInstruments.heapGauge = meter.gaugeBuilder("platform.app.heap_used_bytes")
                 .ofLongs()
                 .setDescription("Current heap memory usage")
                 .setUnit("bytes")
@@ -168,7 +168,7 @@ public class OpenTelemetryMetricsExporter implements MetricsExporter {
                 });
 
         // Thread count gauge
-        appInstruments.threadGauge = meter.gaugeBuilder("jplatform.app.thread_count")
+        appInstruments.threadGauge = meter.gaugeBuilder("platform.app.thread_count")
                 .ofLongs()
                 .setDescription("Current thread count")
                 .setUnit("threads")

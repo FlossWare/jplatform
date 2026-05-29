@@ -77,7 +77,7 @@ import java.util.*;
  * java -jar jplatform-launcher.jar --rest-api --web-console
  *
  * // Start with all features
- * java -jar jplatform-launcher.jar --rest-api --web-console --jmx-port 9999 --watch-dir /var/jplatform/apps
+ * java -jar jplatform-launcher.jar --rest-api --web-console --jmx-port 9999 --watch-dir /var/platform/apps
  *
  * // At the prompt:
  * jplatform> deploy myapp /path/to/app.jar com.example.MyApp
@@ -200,7 +200,7 @@ public class PlatformLauncher {
             System.out.println("  java -jar jplatform-launcher.jar --config production.yaml");
             System.out.println("  java -jar jplatform-launcher.jar --rest-api --web-console");
             System.out.println("  java -jar jplatform-launcher.jar --rest-api --port 9090 --jmx-port 9999");
-            System.out.println("  java -jar jplatform-launcher.jar --prometheus --watch-dir /var/jplatform/apps");
+            System.out.println("  java -jar jplatform-launcher.jar --prometheus --watch-dir /var/platform/apps");
         }
     }
 
