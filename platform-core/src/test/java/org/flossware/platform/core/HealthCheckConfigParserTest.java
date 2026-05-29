@@ -38,7 +38,10 @@ class HealthCheckConfigParserTest {
   @Test
   void testParseNotEnabled() {
     ApplicationDescriptor descriptor =
-        ApplicationDescriptor.builder().applicationId("test-app").mainClass("com.example.App").build();
+        ApplicationDescriptor.builder()
+            .applicationId("test-app")
+            .mainClass("com.example.App")
+            .build();
 
     Optional<HealthChecker.HealthCheckConfig> result = parser.parse(descriptor);
 

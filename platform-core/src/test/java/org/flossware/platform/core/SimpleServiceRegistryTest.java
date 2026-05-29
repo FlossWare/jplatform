@@ -175,48 +175,60 @@ class SimpleServiceRegistryTest {
   void testRegisterNullInterfaceThrows() {
     TestService service = new TestServiceImpl("test");
 
-    assertThrows(NullPointerException.class, () -> {
-      registry.registerService(null, service);
-    });
+    assertThrows(
+        NullPointerException.class,
+        () -> {
+          registry.registerService(null, service);
+        });
   }
 
   @Test
   void testRegisterNullImplementationThrows() {
-    assertThrows(NullPointerException.class, () -> {
-      registry.registerService(TestService.class, null);
-    });
+    assertThrows(
+        NullPointerException.class,
+        () -> {
+          registry.registerService(TestService.class, null);
+        });
   }
 
   @Test
   void testRegisterNonInterfaceThrows() {
     String notAnInterface = "test";
 
-    assertThrows(IllegalArgumentException.class, () -> {
-      registry.registerService((Class) String.class, notAnInterface);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          registry.registerService((Class) String.class, notAnInterface);
+        });
   }
 
   @Test
   void testRegisterIncompatibleImplementationThrows() {
     AnotherService wrongImpl = new AnotherServiceImpl();
 
-    assertThrows(IllegalArgumentException.class, () -> {
-      registry.registerService((Class) TestService.class, wrongImpl);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          registry.registerService((Class) TestService.class, wrongImpl);
+        });
   }
 
   @Test
   void testGetServiceWithNullInterfaceThrows() {
-    assertThrows(NullPointerException.class, () -> {
-      registry.getService(null);
-    });
+    assertThrows(
+        NullPointerException.class,
+        () -> {
+          registry.getService(null);
+        });
   }
 
   @Test
   void testGetAllServicesWithNullInterfaceThrows() {
-    assertThrows(NullPointerException.class, () -> {
-      registry.getAllServices(null);
-    });
+    assertThrows(
+        NullPointerException.class,
+        () -> {
+          registry.getAllServices(null);
+        });
   }
 
   @Test

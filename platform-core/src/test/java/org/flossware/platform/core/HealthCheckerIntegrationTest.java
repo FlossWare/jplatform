@@ -68,7 +68,8 @@ class HealthCheckerIntegrationTest {
     ApplicationContextImpl context =
         (ApplicationContextImpl) manager.getApplicationContext("no-healthcheck-app");
     assertNotNull(context);
-    assertFalse(context.getHealthChecker().isPresent(),
+    assertFalse(
+        context.getHealthChecker().isPresent(),
         "Should not create health checker when not enabled");
   }
 
@@ -89,8 +90,7 @@ class HealthCheckerIntegrationTest {
     ApplicationContextImpl context =
         (ApplicationContextImpl) manager.getApplicationContext("healthcheck-app");
     assertNotNull(context);
-    assertTrue(context.getHealthChecker().isPresent(),
-        "Should create health checker when enabled");
+    assertTrue(context.getHealthChecker().isPresent(), "Should create health checker when enabled");
 
     HealthChecker healthChecker = context.getHealthChecker().get();
     assertNotNull(healthChecker.getLastStatus());
@@ -200,9 +200,7 @@ class HealthCheckerIntegrationTest {
     ApplicationContextImpl context =
         (ApplicationContextImpl) manager.getApplicationContext("both-features-app");
     assertNotNull(context);
-    assertTrue(context.getHealthChecker().isPresent(),
-        "Should create health checker");
-    assertTrue(context.getRestartManager().isPresent(),
-        "Should create restart manager");
+    assertTrue(context.getHealthChecker().isPresent(), "Should create health checker");
+    assertTrue(context.getRestartManager().isPresent(), "Should create restart manager");
   }
 }

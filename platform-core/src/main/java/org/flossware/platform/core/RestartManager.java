@@ -223,11 +223,12 @@ public class RestartManager {
 
   private void performRestart() {
     lastRestartAttempt = Instant.now();
+    int attemptNumber = restartCount.get();
 
     LOGGER.info(
         "[{}] Performing restart (attempt {}/{})",
         context.getApplicationId(),
-        restartCount.get(),
+        attemptNumber,
         policy.getMaxRetries() == Integer.MAX_VALUE ? "unlimited" : policy.getMaxRetries());
 
     try {
@@ -241,6 +242,11 @@ public class RestartManager {
       applicationManager.start(context.getApplicationId());
 
       LOGGER.info("[{}] Restart completed successfully", context.getApplicationId());
+
+      // Notify lifecycle listeners
+      applicationManager.notifyListeners(
+          listener -> listener.onRestarted(context.getApplicationId(), attemptNumber + 1));
+
     } catch (Exception e) {
       LOGGER.error("[{}] Restart failed", context.getApplicationId(), e);
       throw new RuntimeException("Restart failed", e);

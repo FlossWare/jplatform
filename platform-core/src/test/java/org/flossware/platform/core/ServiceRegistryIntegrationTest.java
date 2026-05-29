@@ -91,12 +91,12 @@ class ServiceRegistryIntegrationTest {
     ApplicationContextImpl context =
         (ApplicationContextImpl) manager.getApplicationContext("service-app");
     assertNotNull(context);
-    assertTrue(context.getServiceRegistry().isPresent(),
+    assertTrue(
+        context.getServiceRegistry().isPresent(),
         "Service registry should be available when messaging enabled");
 
     ServiceRegistry appRegistry = context.getServiceRegistry().get();
-    assertSame(serviceRegistry, appRegistry,
-        "Application should get the shared service registry");
+    assertSame(serviceRegistry, appRegistry, "Application should get the shared service registry");
   }
 
   @Test
@@ -115,7 +115,8 @@ class ServiceRegistryIntegrationTest {
     ApplicationContextImpl context =
         (ApplicationContextImpl) manager.getApplicationContext("no-service-app");
     assertNotNull(context);
-    assertFalse(context.getServiceRegistry().isPresent(),
+    assertFalse(
+        context.getServiceRegistry().isPresent(),
         "Service registry should not be available when messaging disabled");
   }
 
@@ -156,14 +157,17 @@ class ServiceRegistryIntegrationTest {
     assertTrue(context1.getServiceRegistry().isPresent());
     assertTrue(context2.getServiceRegistry().isPresent());
 
-    Optional<TestService> service1 = context1.getServiceRegistry().get().getService(TestService.class);
-    Optional<TestService> service2 = context2.getServiceRegistry().get().getService(TestService.class);
+    Optional<TestService> service1 =
+        context1.getServiceRegistry().get().getService(TestService.class);
+    Optional<TestService> service2 =
+        context2.getServiceRegistry().get().getService(TestService.class);
 
     assertTrue(service1.isPresent());
     assertTrue(service2.isPresent());
     assertEquals("shared", service1.get().getName());
     assertEquals("shared", service2.get().getName());
-    assertSame(service1.get(), service2.get(), "Both applications should see the same service instance");
+    assertSame(
+        service1.get(), service2.get(), "Both applications should see the same service instance");
   }
 
   @Test
@@ -183,7 +187,8 @@ class ServiceRegistryIntegrationTest {
 
     ApplicationContextImpl context =
         (ApplicationContextImpl) managerNoRegistry.getApplicationContext("test-app");
-    assertFalse(context.getServiceRegistry().isPresent(),
+    assertFalse(
+        context.getServiceRegistry().isPresent(),
         "Service registry should not be available when manager created without one");
 
     managerNoRegistry.shutdown();
@@ -209,11 +214,8 @@ class ServiceRegistryIntegrationTest {
     assertNotNull(context);
 
     // Verify all three features are available
-    assertTrue(context.getServiceRegistry().isPresent(),
-        "Service registry should be available");
-    assertTrue(context.getHealthChecker().isPresent(),
-        "Health checker should be available");
-    assertTrue(context.getRestartManager().isPresent(),
-        "Restart manager should be available");
+    assertTrue(context.getServiceRegistry().isPresent(), "Service registry should be available");
+    assertTrue(context.getHealthChecker().isPresent(), "Health checker should be available");
+    assertTrue(context.getRestartManager().isPresent(), "Restart manager should be available");
   }
 }

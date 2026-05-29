@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,6 +73,9 @@ public class ApplicationManager implements PlatformManager {
   private final org.flossware.platform.vm.VmLauncher vmLauncher;
   private final RestartPolicyParser restartPolicyParser;
   private final HealthCheckConfigParser healthCheckConfigParser;
+  private final ConcurrentHashMap<String, org.flossware.platform.api.ApplicationLifecycleListener>
+      lifecycleListeners;
+  private final java.util.concurrent.ExecutorService listenerExecutor;
 
   /** Creates a new application manager without messaging support. */
   public ApplicationManager() {
@@ -96,6 +100,14 @@ public class ApplicationManager implements PlatformManager {
     this.containerLauncher = new ContainerLauncher();
     this.restartPolicyParser = new RestartPolicyParser();
     this.healthCheckConfigParser = new HealthCheckConfigParser();
+    this.lifecycleListeners = new ConcurrentHashMap<>();
+    this.listenerExecutor =
+        java.util.concurrent.Executors.newCachedThreadPool(
+            r -> {
+              Thread t = new Thread(r, "lifecycle-listener");
+              t.setDaemon(true);
+              return t;
+            });
 
     // Initialize VM launcher
     org.flossware.platform.vm.VmLauncher tempVmLauncher = null;
@@ -265,7 +277,7 @@ public class ApplicationManager implements PlatformManager {
             healthCheckConfigParser.parse(descriptor);
         if (healthCheckConfigOpt.isPresent()) {
           HealthChecker.HealthCheckConfig healthCheckConfig = healthCheckConfigOpt.get();
-          HealthChecker healthChecker = new HealthChecker(context, healthCheckConfig);
+          HealthChecker healthChecker = new HealthChecker(context, healthCheckConfig, this);
           context.setHealthChecker(healthChecker);
           healthChecker.start();
           LOGGER.info(
@@ -287,6 +299,10 @@ public class ApplicationManager implements PlatformManager {
         }
 
         LOGGER.info("[{}] Application deployed successfully", appId);
+
+        // Notify lifecycle listeners
+        final ApplicationDescriptor finalDescriptor = descriptor;
+        notifyListeners(listener -> listener.onDeployed(appId, finalDescriptor));
 
       } catch (Exception e) {
         LOGGER.error("[{}] Failed to deploy application", appId, e);
@@ -455,6 +471,9 @@ public class ApplicationManager implements PlatformManager {
 
           context.setState(ApplicationState.RUNNING);
           LOGGER.info("[{}] Application started successfully", applicationId);
+
+          // Notify lifecycle listeners
+          notifyListeners(listener -> listener.onStarted(applicationId));
         }
 
       } catch (Exception e) {
@@ -547,9 +566,16 @@ public class ApplicationManager implements PlatformManager {
         context.setState(ApplicationState.STOPPED);
         LOGGER.info("[{}] Application stopped successfully", applicationId);
 
+        // Notify lifecycle listeners (exitCode 0 = normal shutdown)
+        notifyListeners(listener -> listener.onStopped(applicationId, 0));
+
       } catch (Exception e) {
         context.setState(ApplicationState.FAILED);
         LOGGER.error("[{}] Failed to stop application", applicationId, e);
+
+        // Notify lifecycle listeners (exitCode 1 = error)
+        notifyListeners(listener -> listener.onStopped(applicationId, 1));
+
         throw new Exception("Failed to stop application: " + applicationId, e);
       }
     } finally {
@@ -726,6 +752,9 @@ public class ApplicationManager implements PlatformManager {
 
         LOGGER.info("[{}] Application undeployed successfully", applicationId);
 
+        // Notify lifecycle listeners
+        notifyListeners(listener -> listener.onUndeployed(applicationId));
+
       } catch (Exception e) {
         LOGGER.error("[{}] Failed to undeploy application", applicationId, e);
         throw new Exception("Failed to undeploy application: " + applicationId, e);
@@ -887,6 +916,52 @@ public class ApplicationManager implements PlatformManager {
   }
 
   /**
+   * Adds an application lifecycle listener.
+   *
+   * <p>Listeners are notified of application lifecycle events (deploy, start, stop, etc.). Listener
+   * methods are called asynchronously to avoid blocking lifecycle operations.
+   *
+   * @param name unique name for this listener
+   * @param listener the lifecycle listener to add
+   * @throws NullPointerException if name or listener is null
+   * @throws IllegalArgumentException if a listener with the same name already exists
+   */
+  public void addLifecycleListener(
+      String name, org.flossware.platform.api.ApplicationLifecycleListener listener) {
+    Objects.requireNonNull(name, "name cannot be null");
+    Objects.requireNonNull(listener, "listener cannot be null");
+
+    if (lifecycleListeners.putIfAbsent(name, listener) != null) {
+      throw new IllegalArgumentException("Listener already exists: " + name);
+    }
+
+    LOGGER.info("Added lifecycle listener: {}", name);
+  }
+
+  /**
+   * Removes an application lifecycle listener.
+   *
+   * @param name the name of the listener to remove
+   * @return true if the listener was removed, false if not found
+   */
+  public boolean removeLifecycleListener(String name) {
+    boolean removed = lifecycleListeners.remove(name) != null;
+    if (removed) {
+      LOGGER.info("Removed lifecycle listener: {}", name);
+    }
+    return removed;
+  }
+
+  /**
+   * Returns the number of registered lifecycle listeners.
+   *
+   * @return listener count
+   */
+  public int getLifecycleListenerCount() {
+    return lifecycleListeners.size();
+  }
+
+  /**
    * Shuts down the platform by undeploying all applications. Errors during individual application
    * undeployment are logged but do not stop the shutdown process.
    *
@@ -940,5 +1015,27 @@ public class ApplicationManager implements PlatformManager {
     return properties.containsKey("vm.disk")
         || properties.containsKey("vm.vcpu")
         || properties.containsKey("vm.memory");
+  }
+
+  /**
+   * Notifies all lifecycle listeners asynchronously.
+   *
+   * @param action the action to perform on each listener
+   */
+  void notifyListeners(
+      java.util.function.Consumer<org.flossware.platform.api.ApplicationLifecycleListener> action) {
+    lifecycleListeners
+        .values()
+        .forEach(
+            listener -> {
+              listenerExecutor.submit(
+                  () -> {
+                    try {
+                      action.accept(listener);
+                    } catch (Exception e) {
+                      LOGGER.error("Lifecycle listener threw exception", e);
+                    }
+                  });
+            });
   }
 }

@@ -54,6 +54,7 @@ public class HealthChecker {
   private final ScheduledExecutorService scheduler;
   private final HealthCheckConfig config;
   private final ApplicationContextImpl context;
+  private final ApplicationManager applicationManager;
   private volatile HealthStatus lastStatus;
   private volatile int consecutiveFailures;
 
@@ -62,10 +63,16 @@ public class HealthChecker {
    *
    * @param context the application context
    * @param config the health check configuration
+   * @param applicationManager the application manager for lifecycle notifications
    */
-  public HealthChecker(ApplicationContextImpl context, HealthCheckConfig config) {
+  public HealthChecker(
+      ApplicationContextImpl context,
+      HealthCheckConfig config,
+      ApplicationManager applicationManager) {
     this.context = Objects.requireNonNull(context, "context cannot be null");
     this.config = Objects.requireNonNull(config, "config cannot be null");
+    this.applicationManager =
+        Objects.requireNonNull(applicationManager, "applicationManager cannot be null");
     this.scheduler =
         Executors.newSingleThreadScheduledExecutor(
             r -> {
@@ -171,7 +178,14 @@ public class HealthChecker {
   }
 
   private void handleCheckResult(HealthStatus status) {
+    HealthStatus previousStatus = lastStatus;
     lastStatus = status;
+
+    // Notify listeners if status changed
+    if (previousStatus.isHealthy() != status.isHealthy()) {
+      applicationManager.notifyListeners(
+          listener -> listener.onHealthChanged(context.getApplicationId(), previousStatus, status));
+    }
 
     if (status.isHealthy()) {
       if (consecutiveFailures > 0) {
