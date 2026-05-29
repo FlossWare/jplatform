@@ -1,19 +1,21 @@
-# Quick Start: Autonomous Loop Mode
+# Auto-Resolve Mode - Quick Start
 
-**Get Claude Code working autonomously on your project in 5 minutes.**
+**Automatically resolve GitHub issues with Claude Code in 5 minutes.**
 
-## What is Autonomous Loop Mode?
+## What is Auto-Resolve Mode?
 
-Claude Code works independently to:
-- ✅ Review open GitHub issues
-- ✅ Pick highest priority items
-- ✅ Implement complete solutions with tests
-- ✅ Commit + push immediately after each fix
-- ✅ Close issues with detailed summaries
-- ✅ Continue to next issue automatically
-- ✅ Work even when you're not watching
+**Auto-Resolve** is a Claude Code workflow pattern where Claude automatically:
+- ✅ Reviews open GitHub issues
+- ✅ Picks highest priority items
+- ✅ Implements complete solutions with tests
+- ✅ Commits + pushes immediately after each fix
+- ✅ Closes issues with detailed summaries
+- ✅ Continues to next issue automatically
+- ✅ Works even when you're not watching
 
 **Result:** 3-5x faster issue resolution with zero human intervention.
+
+**Official Name:** Auto-Resolve Mode (formerly called "Autonomous Loop Mode")
 
 ---
 
@@ -153,7 +155,7 @@ Claude will:
 
 ---
 
-## What Makes This "Autonomous Loop Mode"?
+## What Makes This "Auto-Resolve Mode"?
 
 It's a **pattern**, not a built-in skill. The key elements:
 
@@ -202,10 +204,10 @@ gh issue list --state open --limit 20
 ## Example Session
 
 ```
-User: [Pastes autonomous mode prompt]
+User: [Pastes auto-resolve mode prompt]
 
 Claude:
-Autonomous mode activated. Checking open issues...
+Auto-resolve mode activated. Checking open issues...
 
 Found 12 open issues:
 - #342 (P1): Fix Swing compilation errors
@@ -341,7 +343,7 @@ Workflows are faster but use more tokens. Best for:
 ## Troubleshooting
 
 ### Problem: Claude is asking questions
-**Fix:** Re-paste the autonomous mode prompt to reinforce "zero questions" requirement
+**Fix:** Re-paste the auto-resolve mode prompt to reinforce "zero questions" requirement
 
 ### Problem: Commits failing tests
 **Fix:** Ensure your test suite is comprehensive and fast (<10 seconds)
@@ -359,7 +361,7 @@ Workflows are faster but use more tokens. Best for:
 
 ## Summary
 
-**To start autonomous loop mode:**
+**To start auto-resolve mode:**
 1. Paste the activation prompt (Step 1 above)
 2. Say "continue" to keep it going
 3. Review commits periodically
@@ -373,19 +375,19 @@ Workflows are faster but use more tokens. Best for:
 - ✅ Zero regressions (test-gated)
 - ✅ Work continues even when you're away
 
-**Key phrase to remember:**
+**To activate Auto-Resolve Mode:**
 ```
 "100% Autonomous Mode - auto-accept everything, zero questions"
 ```
 
-Then just say `continue` to keep the loop running!
+Then just say `continue` to keep the auto-resolve loop running!
 
 ---
 
 ## Full Guides
 
 For more details, see:
-- **[AUTONOMOUS_WORKFLOW_GUIDE.md](AUTONOMOUS_WORKFLOW_GUIDE.md)** - Complete autonomous mode documentation
+- **[AUTONOMOUS_WORKFLOW_GUIDE.md](AUTONOMOUS_WORKFLOW_GUIDE.md)** - Complete auto-resolve mode documentation
 - **[CONTINUOUS_REVIEW_GUIDE.md](CONTINUOUS_REVIEW_GUIDE.md)** - Automated code review patterns
 
 ---
