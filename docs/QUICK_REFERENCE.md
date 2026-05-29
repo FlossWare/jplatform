@@ -1,37 +1,37 @@
-# JPlatform Quick Reference
+# platform-java Quick Reference
 
 ## Commands
 
 ### Deployment
 ```bash
-jplatform deploy <app.yaml>          # Deploy application
-jplatform deploy <app.yaml> --dry-run # Validate without deploying
+platform-java deploy <app.yaml>          # Deploy application
+platform-java deploy <app.yaml> --dry-run # Validate without deploying
 ```
 
 ### Lifecycle
 ```bash
-jplatform start <app-id>             # Start application
-jplatform stop <app-id>              # Stop application
-jplatform restart <app-id>           # Restart application
-jplatform start-all                  # Start all deployed apps
-jplatform stop-all                   # Stop all running apps
+platform-java start <app-id>             # Start application
+platform-java stop <app-id>              # Stop application
+platform-java restart <app-id>           # Restart application
+platform-java start-all                  # Start all deployed apps
+platform-java stop-all                   # Stop all running apps
 ```
 
 ### Status & Monitoring
 ```bash
-jplatform status                     # List all applications
-jplatform status <app-id>            # Detailed status
-jplatform metrics <app-id>           # Resource usage
-jplatform logs <app-id>              # View logs
-jplatform logs <app-id> --follow     # Stream logs
+platform-java status                     # List all applications
+platform-java status <app-id>            # Detailed status
+platform-java metrics <app-id>           # Resource usage
+platform-java logs <app-id>              # View logs
+platform-java logs <app-id> --follow     # Stream logs
 ```
 
 ### Management
 ```bash
-jplatform undeploy <app-id>          # Remove application
-jplatform reload <app-id>            # Hot reload (Java apps)
-jplatform dependencies <app-id>      # Show dependencies
-jplatform startup-order              # Show startup sequence
+platform-java undeploy <app-id>          # Remove application
+platform-java reload <app-id>            # Hot reload (Java apps)
+platform-java dependencies <app-id>      # Show dependencies
+platform-java startup-order              # Show startup sequence
 ```
 
 ## YAML Descriptor Templates
@@ -43,7 +43,7 @@ name: My Virtual Machine
 properties:
   vm.vcpu: "4"
   vm.memory: "8192"
-  vm.disk: "/var/lib/jplatform/vms/my-vm.qcow2"
+  vm.disk: "/var/lib/platform-java/vms/my-vm.qcow2"
   vm.network: "bridge"
   vm.vnc.enabled: "true"
 resources:
@@ -75,7 +75,7 @@ applicationId: my-app
 name: My Java Application
 mainClass: "com.example.Main"
 classpath:
-  - "/var/lib/jplatform/apps/my-app/app.jar"
+  - "/var/lib/platform-java/apps/my-app/app.jar"
 properties:
   server.port: "8080"
 resources:
@@ -92,9 +92,9 @@ applicationId: my-binary
 name: My Native Binary
 nativeImage: true
 properties:
-  native.binary: "/var/lib/jplatform/apps/my-binary/app"
+  native.binary: "/var/lib/platform-java/apps/my-binary/app"
   native.args: "--config /etc/app.conf"
-  native.workdir: "/var/lib/jplatform/apps/my-binary"
+  native.workdir: "/var/lib/platform-java/apps/my-binary"
 resources:
   cpu: 2
   memory: 2048
@@ -211,10 +211,10 @@ properties:
   spring.datasource.username: "user"
   spring.datasource.password: "${DB_PASSWORD}"
   
-  # JPlatform
-  jplatform.messaging.enabled: "true"
-  jplatform.service.register: "true"
-  jplatform.service.name: "my-service"
+  # platform-java
+  platform-java.messaging.enabled: "true"
+  platform-java.service.register: "true"
+  platform-java.service.name: "my-service"
 ```
 
 ## Common Workflows
@@ -222,47 +222,47 @@ properties:
 ### Deploy Three-Tier App
 ```bash
 # Deploy database (VM)
-jplatform deploy database.yaml
+platform-java deploy database.yaml
 
 # Deploy app server (Java)
-jplatform deploy app-server.yaml
+platform-java deploy app-server.yaml
 
 # Deploy web server (Container)
-jplatform deploy web-server.yaml
+platform-java deploy web-server.yaml
 
-# Start all (JPlatform handles order)
-jplatform start database
-jplatform start app-server  # Waits for database
-jplatform start web-server  # Waits for app-server
+# Start all (platform-java handles order)
+platform-java start database
+platform-java start app-server  # Waits for database
+platform-java start web-server  # Waits for app-server
 ```
 
 ### Update Running App
 ```bash
 # For Java apps - hot reload
 mvn clean package
-cp target/app.jar /var/lib/jplatform/apps/my-app/
-jplatform reload my-app
+cp target/app.jar /var/lib/platform-java/apps/my-app/
+platform-java reload my-app
 
 # For VMs/containers - stop, redeploy, start
-jplatform stop my-app
-jplatform undeploy my-app
-jplatform deploy my-app-v2.yaml
-jplatform start my-app
+platform-java stop my-app
+platform-java undeploy my-app
+platform-java deploy my-app-v2.yaml
+platform-java start my-app
 ```
 
 ### Debug Application
 ```bash
 # Check status
-jplatform status my-app
+platform-java status my-app
 
 # View logs
-jplatform logs my-app --follow
+platform-java logs my-app --follow
 
 # Check resource usage
-jplatform metrics my-app
+platform-java metrics my-app
 
 # Check dependencies
-jplatform dependencies my-app
+platform-java dependencies my-app
 
 # For VMs - connect to console
 virsh vncdisplay my-vm-name
@@ -272,21 +272,21 @@ vncviewer localhost:5900
 ### Cleanup
 ```bash
 # Stop application
-jplatform stop my-app
+platform-java stop my-app
 
 # Remove from platform
-jplatform undeploy my-app
+platform-java undeploy my-app
 
 # Clean up data (manual)
-sudo rm -rf /var/lib/jplatform/apps/my-app
-sudo rm -f /var/lib/jplatform/vms/my-vm.qcow2
+sudo rm -rf /var/lib/platform-java/apps/my-app
+sudo rm -f /var/lib/platform-java/vms/my-vm.qcow2
 ```
 
 ## Environment Variables
 
 ```bash
-export JPLATFORM_HOME=/usr/local/lib/jplatform
-export JPLATFORM_DATA=/var/lib/jplatform
+export JPLATFORM_HOME=/usr/local/lib/platform-java
+export JPLATFORM_DATA=/var/lib/platform-java
 export JPLATFORM_LOG_LEVEL=DEBUG
 ```
 
@@ -299,11 +299,11 @@ curl http://localhost:9090/metrics
 
 Key metrics:
 ```
-jplatform_vm_cpu_time_seconds{vm="my-vm"}
-jplatform_vm_memory_mb{vm="my-vm"}
-jplatform_container_cpu_usage{container="my-container"}
-jplatform_app_heap_mb{app="my-app"}
-jplatform_app_thread_count{app="my-app"}
+platform-java_vm_cpu_time_seconds{vm="my-vm"}
+platform-java_vm_memory_mb{vm="my-vm"}
+platform-java_container_cpu_usage{container="my-container"}
+platform-java_app_heap_mb{app="my-app"}
+platform-java_app_thread_count{app="my-app"}
 ```
 
 ## Common Ports
@@ -316,20 +316,20 @@ jplatform_app_thread_count{app="my-app"}
 ## File Locations
 
 ```
-/usr/local/lib/jplatform/          # JPlatform binaries
-/var/lib/jplatform/apps/           # Application data
-/var/lib/jplatform/vms/            # VM disk images
-/var/lib/jplatform/volumes/        # Persistent volumes
-/etc/jplatform/                    # Configuration
-/var/log/jplatform/                # Logs (if configured)
+/usr/local/lib/platform-java/          # platform-java binaries
+/var/lib/platform-java/apps/           # Application data
+/var/lib/platform-java/vms/            # VM disk images
+/var/lib/platform-java/volumes/        # Persistent volumes
+/etc/platform-java/                    # Configuration
+/var/log/platform-java/                # Logs (if configured)
 ```
 
 ## Troubleshooting Quick Checks
 
 ```bash
 # Platform health
-jplatform status
-systemctl status jplatform  # If running as service
+platform-java status
+systemctl status platform-java  # If running as service
 
 # VM issues
 systemctl status libvirtd
@@ -349,14 +349,14 @@ nproc
 ## Getting Help
 
 ```bash
-jplatform help
-jplatform help deploy
-jplatform version
+platform-java help
+platform-java help deploy
+platform-java version
 ```
 
 Documentation:
 - [Full Documentation](../README.md)
 - [Architecture](ARCHITECTURE.md)
 - [Troubleshooting](TROUBLESHOOTING.md)
-- [VM Management](../jplatform-vm-management/README.md)
+- [VM Management](../platform-java-vm-management/README.md)
 - [Examples](../examples/multi-tier/)

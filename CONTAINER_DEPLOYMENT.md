@@ -1,6 +1,6 @@
 # Container Deployment
 
-JPlatform supports deploying applications as Docker, Podman, or LXC containers. This enables containerized workloads to be managed by the platform alongside JVM applications and native processes.
+platform-java supports deploying applications as Docker, Podman, or LXC containers. This enables containerized workloads to be managed by the platform alongside JVM applications and native processes.
 
 ## Overview
 

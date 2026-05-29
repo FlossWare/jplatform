@@ -1,14 +1,14 @@
-# JPlatform Implementation Complete
+# platform-java Implementation Complete
 
 ## Summary
 
-JPlatform is now a **fully functional, runnable platform** for running multiple isolated Java applications within a single JVM. All core features have been implemented and tested.
+platform-java is now a **fully functional, runnable platform** for running multiple isolated Java applications within a single JVM. All core features have been implemented and tested.
 
 ## Implemented Modules
 
 ### ✅ Core Platform (100% Complete)
 
-1. **jplatform-api** - All API interfaces defined
+1. **platform-java-api** - All API interfaces defined
    - Application, ApplicationContext, ApplicationDescriptor
    - Message, MessageBus, Subscription
    - ServiceRegistry
@@ -16,26 +16,26 @@ JPlatform is now a **fully functional, runnable platform** for running multiple 
    - All configuration classes (ThreadPoolConfig, SecurityConfig, ResourceConfig)
    - Complete type system (ApplicationState, ResourceQuota, etc.)
 
-2. **jplatform-core** - Full implementation
+2. **platform-java-core** - Full implementation
    - `ApplicationManager` - Complete lifecycle management (deploy, start, stop, undeploy)
    - `ApplicationContextImpl` - Context implementation with all features
    - Integration with all subsystems
    - Shutdown coordination
 
-3. **jplatform-classloader** - ClassLoader isolation
+3. **platform-java-classloader** - ClassLoader isolation
    - `IsolatedClassLoader` - Wraps FlossWare JClassLoader
    - Parent-last delegation for application isolation
-   - Platform API sharing (org.flossware.jplatform.api.*)
+   - Platform API sharing (org.flossware.platform-java.api.*)
    - System class sharing (java.*, javax.*)
 
-4. **jplatform-threadpool** - Thread pool management
+4. **platform-java-threadpool** - Thread pool management
    - `ManagedThreadPool` - Per-application thread pools
    - Configurable core/max sizes and queue capacity
    - Named threads (`<appId>-thread-N`)
    - Graceful shutdown with timeout
    - Uncaught exception handling
 
-5. **jplatform-monitoring** - Resource monitoring
+5. **platform-java-monitoring** - Resource monitoring
    - `ApplicationResourceMonitor` - Tracks CPU, memory, threads
    - Uses ThreadMXBean for accurate CPU time
    - Scheduled collection every 5 seconds
@@ -43,26 +43,26 @@ JPlatform is now a **fully functional, runnable platform** for running multiple 
    - Quota enforcement with listener notification
    - ResourceSnapshot and ResourceUsageHistory
 
-6. **jplatform-security** - Security policy
+6. **platform-java-security** - Security policy
    - `ApplicationSecurityPolicy` - Permission checking
    - File, socket, runtime permissions
    - Reflection and native code control
    - Per-application isolation
 
-7. **jplatform-messaging** - Inter-app communication
+7. **platform-java-messaging** - Inter-app communication
    - `InMemoryMessageBus` - Pub/sub messaging
    - Asynchronous message dispatch
    - Topic-based subscriptions
    - `ServiceRegistryImpl` - Service registration and lookup
    - Multiple implementations per interface
 
-8. **jplatform-launcher** - Platform entry point
+8. **platform-java-launcher** - Platform entry point
    - `PlatformLauncher` - Interactive console
    - Full command set (deploy, start, stop, undeploy, list, status)
    - Message bus and service registry initialization
    - Graceful shutdown
 
-9. **jplatform-samples** - Sample applications
+9. **platform-java-samples** - Sample applications
    - `hello-world` - Simple application demonstrating basic features
    - `messaging-app` - Demonstrates messaging and pub/sub
 
@@ -115,12 +115,12 @@ JPlatform is now a **fully functional, runnable platform** for running multiple 
 ### Component Integration
 
 **ApplicationManager** creates and coordinates:
-1. **IsolatedClassLoader** - From jplatform-classloader
-2. **ManagedThreadPool** - From jplatform-threadpool
-3. **ApplicationSecurityPolicy** - From jplatform-security
-4. **ApplicationResourceMonitor** - From jplatform-monitoring
-5. **InMemoryMessageBus** - From jplatform-messaging (shared)
-6. **ServiceRegistryImpl** - From jplatform-messaging (shared)
+1. **IsolatedClassLoader** - From platform-java-classloader
+2. **ManagedThreadPool** - From platform-java-threadpool
+3. **ApplicationSecurityPolicy** - From platform-java-security
+4. **ApplicationResourceMonitor** - From platform-java-monitoring
+5. **InMemoryMessageBus** - From platform-java-messaging (shared)
+6. **ServiceRegistryImpl** - From platform-java-messaging (shared)
 
 All components are packaged into **ApplicationContextImpl** which is passed to applications on startup.
 
@@ -129,7 +129,7 @@ All components are packaged into **ApplicationContextImpl** which is passed to a
 ### 1. Build Everything
 
 ```bash
-cd /home/sfloess/Development/github/FlossWare/jplatform
+cd /home/sfloess/Development/github/FlossWare/platform-java
 mvn clean install
 ```
 
@@ -138,7 +138,7 @@ mvn clean install
 ### 2. Run the Platform
 
 ```bash
-java -jar jplatform-launcher/target/jplatform-launcher-1.0.jar
+java -jar platform-java-launcher/target/platform-java-launcher-1.0.jar
 ```
 
 **Result:** Platform starts, shows interactive console
@@ -146,13 +146,13 @@ java -jar jplatform-launcher/target/jplatform-launcher-1.0.jar
 ### 3. Deploy and Run Sample Applications
 
 ```bash
-jplatform> deploy hello-world jplatform-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.jplatform.samples.helloworld.HelloWorldApp
-jplatform> start hello-world
-jplatform> deploy messaging-app jplatform-samples/messaging-app/target/sample-messaging-app-1.0.jar org.flossware.jplatform.samples.messaging.MessagingApp
-jplatform> start messaging-app
-jplatform> list
-jplatform> status hello-world
-jplatform> status messaging-app
+platform-java> deploy hello-world platform-java-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.platform-java.samples.helloworld.HelloWorldApp
+platform-java> start hello-world
+platform-java> deploy messaging-app platform-java-samples/messaging-app/target/sample-messaging-app-1.0.jar org.flossware.platform-java.samples.messaging.MessagingApp
+platform-java> start messaging-app
+platform-java> list
+platform-java> status hello-world
+platform-java> status messaging-app
 ```
 
 **Result:** Two isolated applications running in the same JVM
@@ -161,28 +161,28 @@ jplatform> status messaging-app
 
 ### Core Implementation Files
 
-1. `jplatform-core/src/main/java/org/flossware/jplatform/core/ApplicationContextImpl.java`
+1. `platform-java-core/src/main/java/org/flossware/platform-java/core/ApplicationContextImpl.java`
    - Complete implementation of ApplicationContext interface
    - Stores all application-specific resources
 
-2. `jplatform-core/src/main/java/org/flossware/jplatform/core/ApplicationManager.java`
+2. `platform-java-core/src/main/java/org/flossware/platform-java/core/ApplicationManager.java`
    - Central orchestrator for application lifecycle
    - Handles deploy, start, stop, undeploy operations
    - Coordinates all subsystems
 
-3. `jplatform-launcher/src/main/java/org/flossware/jplatform/launcher/PlatformLauncher.java`
+3. `platform-java-launcher/src/main/java/org/flossware/platform-java/launcher/PlatformLauncher.java`
    - Main entry point with interactive console
    - Command parsing and execution
    - Platform initialization and shutdown
 
 ### Sample Applications
 
-4. `jplatform-samples/hello-world/src/main/java/org/flossware/jplatform/samples/helloworld/HelloWorldApp.java`
+4. `platform-java-samples/hello-world/src/main/java/org/flossware/platform-java/samples/helloworld/HelloWorldApp.java`
    - Simple application demonstrating basic features
    - Periodic message printing
    - Proper lifecycle implementation
 
-5. `jplatform-samples/messaging-app/src/main/java/org/flossware/jplatform/samples/messaging/MessagingApp.java`
+5. `platform-java-samples/messaging-app/src/main/java/org/flossware/platform-java/samples/messaging/MessagingApp.java`
    - Demonstrates messaging capabilities
    - Publishes and subscribes to messages
    - Shows inter-application communication
@@ -203,26 +203,26 @@ mvn clean install
 # ✅ BUILD SUCCESS
 
 # 2. Launcher starts
-java -jar jplatform-launcher/target/jplatform-launcher-1.0.jar
-# ✅ Shows jplatform> prompt
+java -jar platform-java-launcher/target/platform-java-launcher-1.0.jar
+# ✅ Shows platform-java> prompt
 
 # 3. Samples deploy
-jplatform> deploy hello-world jplatform-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.jplatform.samples.helloworld.HelloWorldApp
+platform-java> deploy hello-world platform-java-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.platform-java.samples.helloworld.HelloWorldApp
 # ✅ Application deployed: hello-world
 
 # 4. Samples start
-jplatform> start hello-world
+platform-java> start hello-world
 # ✅ Application started: hello-world
-# ✅ Prints "Hello from JPlatform! Message #1, #2, ..."
+# ✅ Prints "Hello from platform-java! Message #1, #2, ..."
 
 # 5. Status reports work
-jplatform> status hello-world
+platform-java> status hello-world
 # ✅ Shows state, thread pool stats, resource usage
 
 # 6. Multiple apps run together
-jplatform> deploy messaging-app ...
-jplatform> start messaging-app
-jplatform> list
+platform-java> deploy messaging-app ...
+platform-java> start messaging-app
+platform-java> list
 # ✅ Shows both hello-world and messaging-app RUNNING
 ```
 
@@ -253,7 +253,7 @@ The user's original request was:
 
 ## Conclusion
 
-**JPlatform is now fully functional and ready to run applications.**
+**platform-java is now fully functional and ready to run applications.**
 
 The platform successfully provides:
 - Complete isolation between applications

@@ -408,7 +408,7 @@ public class PlatformLauncher {
     private void printWelcome() {
         System.out.println();
         System.out.println("========================================");
-        System.out.println("  JPlatform v1.0");
+        System.out.println("  platform-java v1.0");
         System.out.println("========================================");
         System.out.println();
 

@@ -1,10 +1,10 @@
-# JPlatform Swing UI
+# platform-java Swing UI
 
-Desktop management interface for JPlatform using Java Swing.
+Desktop management interface for platform-java using Java Swing.
 
 ## Overview
 
-The `jplatform-swing-ui` module provides a native desktop application for managing JPlatform instances. It offers a graphical alternative to the web console and REST API for users who prefer a desktop application.
+The `platform-java-swing-ui` module provides a native desktop application for managing platform-java instances. It offers a graphical alternative to the web console and REST API for users who prefer a desktop application.
 
 ## Features
 
@@ -44,22 +44,22 @@ Displays current operation status and application count.
 Run the Swing console as the main class:
 
 ```bash
-java -cp jplatform-swing-ui-1.1.jar:jplatform-api-1.1.jar:jplatform-core-1.1.jar \
-    org.flossware.jplatform.swing.SwingConsole
+java -cp platform-java-swing-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar \
+    org.flossware.platform-java.swing.SwingConsole
 ```
 
 Or with the JAR manifest (configured with Main-Class):
 
 ```bash
-java -jar jplatform-swing-ui-1.1.jar
+java -jar platform-java-swing-ui-1.1.jar
 ```
 
 ### Programmatically
 
 ```java
-import org.flossware.jplatform.api.PlatformManager;
-import org.flossware.jplatform.core.ApplicationManager;
-import org.flossware.jplatform.swing.SwingConsole;
+import org.flossware.platform-java.api.PlatformManager;
+import org.flossware.platform-java.core.ApplicationManager;
+import org.flossware.platform-java.swing.SwingConsole;
 
 public class Main {
     public static void main(String[] args) {
@@ -101,7 +101,7 @@ Full UI integration testing must be performed manually or in environments with d
 
 ## Dependencies
 
-- `jplatform-api` - Platform management API
+- `platform-java-api` - Platform management API
 - `slf4j-api` - Logging API
 - Java 21+ with Swing support
 
@@ -124,6 +124,6 @@ Manual testing covers:
 
 ## See Also
 
-- [Web Console](../jplatform-web-console/README.md) - Browser-based alternative
-- [REST API](../jplatform-rest-api/README.md) - Programmatic management interface
+- [Web Console](../platform-java-web-console/README.md) - Browser-based alternative
+- [REST API](../platform-java-rest-api/README.md) - Programmatic management interface
 - [Main README](../README.md) - Platform overview

@@ -1,8 +1,8 @@
-# JPlatform JavaDoc Status - Complete Summary
+# platform-java JavaDoc Status - Complete Summary
 
 ## Overview
 
-**Task**: Add comprehensive JavaDoc to all jplatform classes (Option A - Complete Coverage)  
+**Task**: Add comprehensive JavaDoc to all platform-java classes (Option A - Complete Coverage)  
 **Status**: In Progress  
 **Completion**: ~35% (12/35 files)
 
@@ -10,7 +10,7 @@
 
 ### Fully Documented Files (12/35)
 
-#### jplatform-api (12 files complete)
+#### platform-java-api (12 files complete)
 1. ✅ **Application.java** - Interface + 2 methods
 2. ✅ **ApplicationContext.java** - Interface + 10 methods  
 3. ✅ **ApplicationDescriptor.java** - Class-level (methods pending)
@@ -28,7 +28,7 @@
 
 ## Remaining Work ⏳
 
-### jplatform-api (10 files remaining)
+### platform-java-api (10 files remaining)
 
 Need complete JavaDoc:
 1. ⏳ **ApplicationLifecycleListener.java** - Interface + 4 default methods
@@ -48,32 +48,32 @@ Need method-level JavaDoc:
 
 **Estimated**: ~90 methods remaining in API
 
-### jplatform-core (2 files)
+### platform-java-core (2 files)
 1. ⏳ **ApplicationManager.java** - Has class doc, needs method docs (~8 methods)
 2. ⏳ **ApplicationContextImpl.java** - Needs full JavaDoc (~15 methods)
 
-### jplatform-classloader (3 files)
+### platform-java-classloader (3 files)
 1. ⏳ **IsolatedClassLoader.java** - Factory method + implementation
 2. ⏳ **PlatformClassLoadListener.java** - Listener implementation
 3. ⏳ **ClassLoaderStatistics.java** - Statistics tracking
 
-### jplatform-threadpool (1 file)
+### platform-java-threadpool (1 file)
 1. ⏳ **ManagedThreadPool.java** - Implementation + ~8 methods
 
-### jplatform-security (1 file)
+### platform-java-security (1 file)
 1. ⏳ **ApplicationSecurityPolicy.java** - Implementation + ~4 methods
 
-### jplatform-monitoring (1 file)
+### platform-java-monitoring (1 file)
 1. ⏳ **ApplicationResourceMonitor.java** - Implementation + ~8 methods
 
-### jplatform-messaging (2 files)
+### platform-java-messaging (2 files)
 1. ⏳ **InMemoryMessageBus.java** - Implementation + ~5 methods
 2. ⏳ **ServiceRegistryImpl.java** - Implementation + ~5 methods
 
-### jplatform-launcher (1 file)
+### platform-java-launcher (1 file)
 1. ⏳ **PlatformLauncher.java** - Main class + command handling
 
-### jplatform-samples (2 files)
+### platform-java-samples (2 files)
 1. ⏳ **HelloWorldApp.java** - Sample application
 2. ⏳ **MessagingApp.java** - Sample application
 
@@ -149,7 +149,7 @@ public ReturnType myMethod(Type1 param1, Type2 param2) {
 - All ClassSource implementations
 - 46 tests passing
 
-**JPlatform**: 🔄 35% JavaDoc complete
+**platform-java**: 🔄 35% JavaDoc complete
 - 12/35 files complete
 - ~40/150 methods documented
 - 0 tests (planned for future)
@@ -181,7 +181,7 @@ public ReturnType myMethod(Type1 param1, Type2 param2) {
 ## References
 
 - **JClassLoader Documentation**: `/home/sfloess/Development/github/FlossWare/jclassloader/DOCUMENTATION_COMPLETE.md`
-- **JPlatform User Docs**: `README.md`, `QUICKSTART.md`, `PLATFORM_COMPLETE.md`
+- **platform-java User Docs**: `README.md`, `QUICKSTART.md`, `PLATFORM_COMPLETE.md`
 - **Progress Tracking**: `JAVADOC_PROGRESS.md`
 
 ---

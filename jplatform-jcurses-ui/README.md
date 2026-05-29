@@ -1,10 +1,10 @@
-# JPlatform Terminal UI (JCurses-style)
+# platform-java Terminal UI (JCurses-style)
 
-Terminal-based management interface for JPlatform using Lanterna for curses-like text UI.
+Terminal-based management interface for platform-java using Lanterna for curses-like text UI.
 
 ## Overview
 
-The `jplatform-jcurses-ui` module provides a full-screen terminal interface for managing JPlatform instances. It uses Lanterna, a modern Java library that provides curses-like functionality without native dependencies. This UI is perfect for:
+The `platform-java-jcurses-ui` module provides a full-screen terminal interface for managing platform-java instances. It uses Lanterna, a modern Java library that provides curses-like functionality without native dependencies. This UI is perfect for:
 
 - SSH sessions and remote server management
 - Headless environments where GUI is unavailable
@@ -38,7 +38,7 @@ The `jplatform-jcurses-ui` module provides a full-screen terminal interface for 
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│ JPlatform Terminal Console                                          │
+│ platform-java Terminal Console                                          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │ Application ID       State        CPU (ms)        Heap (MB)  Threads│
@@ -77,19 +77,19 @@ The `jplatform-jcurses-ui` module provides a full-screen terminal interface for 
 
 ```bash
 # Run with platform manager instance
-java -cp jplatform-jcurses-ui-1.1.jar:jplatform-api-1.1.jar:jplatform-core-1.1.jar:lanterna-3.1.1.jar \
-    org.flossware.jplatform.jcurses.TerminalConsole
+java -cp platform-java-jcurses-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar:lanterna-3.1.1.jar \
+    org.flossware.platform-java.jcurses.TerminalConsole
 
 # Or integrate with launcher (recommended)
-java -jar jplatform-launcher-1.1.jar --terminal-ui
+java -jar platform-java-launcher-1.1.jar --terminal-ui
 ```
 
 ### Programmatic Usage
 
 ```java
-import org.flossware.jplatform.api.PlatformManager;
-import org.flossware.jplatform.core.ApplicationManager;
-import org.flossware.jplatform.jcurses.TerminalConsole;
+import org.flossware.platform-java.api.PlatformManager;
+import org.flossware.platform-java.core.ApplicationManager;
+import org.flossware.platform-java.jcurses.TerminalConsole;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -126,7 +126,7 @@ public class Main {
 
 1. **Launch Terminal UI**
    ```bash
-   java -jar jplatform-launcher-1.1.jar --terminal-ui
+   java -jar platform-java-launcher-1.1.jar --terminal-ui
    ```
 
 2. **Navigate Applications**
@@ -280,7 +280,7 @@ Manual test checklist:
 
 ## Dependencies
 
-- `jplatform-api` - Platform management API
+- `platform-java-api` - Platform management API
 - `lanterna` 3.1.1 - Terminal UI library
 - `slf4j-api` - Logging
 - Java 21+
@@ -305,9 +305,9 @@ Manual test checklist:
 
 ## See Also
 
-- [REST API](../jplatform-rest-api/README.md) - For deployment and programmatic control
-- [Web Console](../jplatform-web-console/README.md) - Browser-based alternative
-- [Swing UI](../jplatform-swing-ui/README.md) - Desktop GUI alternative
+- [REST API](../platform-java-rest-api/README.md) - For deployment and programmatic control
+- [Web Console](../platform-java-web-console/README.md) - Browser-based alternative
+- [Swing UI](../platform-java-swing-ui/README.md) - Desktop GUI alternative
 - [Lanterna Documentation](https://github.com/mabe02/lanterna) - Terminal UI library
 - [QUICKSTART](../QUICKSTART.md) - Quick start guide
 - [Main README](../README.md) - Platform overview

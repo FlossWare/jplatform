@@ -26,7 +26,7 @@ and this project adheres to X.Y semantic versioning.
   - Port mappings, volume mounts, environment variables, network configuration
   - Container output redirection to platform logging
   - Configuration via properties: container.runtime, container.image, container.ports, container.volumes
-- Swing Desktop UI (jplatform-swing-ui module)
+- Swing Desktop UI (platform-java-swing-ui module)
   - Native desktop management interface using Java Swing
   - Application deployment via file chooser dialog
   - Lifecycle controls: Deploy, Start, Stop, Undeploy
@@ -34,7 +34,7 @@ and this project adheres to X.Y semantic versioning.
   - Auto-refresh every 2 seconds
   - Input validation for application ID and main class
   - Native look and feel for the operating system
-- Terminal UI (jplatform-jcurses-ui module)
+- Terminal UI (platform-java-jcurses-ui module)
   - Full-screen terminal interface using Lanterna (modern curses-like library)
   - Keyboard-driven navigation (arrow keys and vi-style j/k)
   - Color-coded application states (green=running, yellow=stopped, red=failed)
@@ -58,12 +58,12 @@ and this project adheres to X.Y semantic versioning.
 - Significantly improved scalability and throughput
 
 ### Testing
-- Added comprehensive unit tests for jplatform-core module
+- Added comprehensive unit tests for platform-java-core module
 - Created ApplicationManagerConcurrencyTest to verify fine-grained locking
 - Added tests for DependencyResolver, ApplicationReloader, NativeLibraryLoader, ClassLoaderVersion
 - Added tests for NativeProcessLauncher and ContainerLauncher
-- Added tests for jplatform-swing-ui module (SwingConsoleTest, DeployDialogTest)
-- Added tests for jplatform-jcurses-ui module (TerminalConsoleTest)
+- Added tests for platform-java-swing-ui module (SwingConsoleTest, DeployDialogTest)
+- Added tests for platform-java-jcurses-ui module (TerminalConsoleTest)
 - Test coverage at 39% instruction coverage (74 tests across 12 test classes)
 - Focus on API contracts and configuration validation
 - Integration tests require actual executables/containers
@@ -73,11 +73,11 @@ and this project adheres to X.Y semantic versioning.
 ### Documentation
 - NATIVE_EXECUTION.md - Complete guide to native process deployment (GraalVM, Rust, Go, C++)
 - CONTAINER_DEPLOYMENT.md - Complete guide to container orchestration (Docker/Podman/LXC)
-- jplatform-core/README.md - Module documentation with all components and deployment modes
-- jplatform-rest-api/README.md - Complete REST API reference with all endpoints
-- jplatform-web-console/README.md - Browser-based UI documentation
-- jplatform-swing-ui/README.md - Desktop UI documentation
-- jplatform-jcurses-ui/README.md - Terminal UI documentation with keyboard controls
+- platform-java-core/README.md - Module documentation with all components and deployment modes
+- platform-java-rest-api/README.md - Complete REST API reference with all endpoints
+- platform-java-web-console/README.md - Browser-based UI documentation
+- platform-java-swing-ui/README.md - Desktop UI documentation
+- platform-java-jcurses-ui/README.md - Terminal UI documentation with keyboard controls
 - Updated README.md with all UI modules in management interfaces and deployment mechanisms
 - Updated QUICKSTART.md with all UI launch instructions (Web, Swing, Terminal)
 - All classes have complete Javadoc (NativeProcessLauncher, ContainerLauncher, SwingConsole, DeployDialog, TerminalConsole)

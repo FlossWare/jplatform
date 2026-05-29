@@ -3,7 +3,7 @@
 ## Summary
 
 **JClassLoader**: ✅ Fully documented (all delegation and lifecycle classes have comprehensive JavaDoc)  
-**JPlatform**: 🔄 In progress - adding JavaDoc to all classes
+**platform-java**: 🔄 In progress - adding JavaDoc to all classes
 
 ## JClassLoader Status ✅
 
@@ -28,9 +28,9 @@ All classes in jclassloader have comprehensive JavaDoc:
 
 **Reference**: See `/home/sfloess/Development/github/FlossWare/jclassloader/DOCUMENTATION_COMPLETE.md`
 
-## JPlatform Status 🔄
+## platform-java Status 🔄
 
-### API Module (jplatform-api)
+### API Module (platform-java-api)
 
 #### Completed ✅
 - `Application.java` - Interface and methods documented
@@ -58,35 +58,35 @@ All classes in jclassloader have comprehensive JavaDoc:
 - `ResourceQuotaExceededException.java`
 - `ApplicationLifecycleListener.java`
 
-### Core Module (jplatform-core)
+### Core Module (platform-java-core)
 
 - ✅ `ApplicationManager.java` - Has class-level JavaDoc
 - ⏳ `ApplicationContextImpl.java` - Needs JavaDoc
 
-### ClassLoader Module (jplatform-classloader)
+### ClassLoader Module (platform-java-classloader)
 
 - ⏳ `IsolatedClassLoader.java` - Needs JavaDoc
 - ⏳ `PlatformClassLoadListener.java` - Needs JavaDoc
 - ⏳ `ClassLoaderStatistics.java` - Needs JavaDoc
 
-### ThreadPool Module (jplatform-threadpool)
+### ThreadPool Module (platform-java-threadpool)
 
 - ⏳ `ManagedThreadPool.java` - Needs JavaDoc
 
-### Security Module (jplatform-security)
+### Security Module (platform-java-security)
 
 - ⏳ `ApplicationSecurityPolicy.java` - Needs JavaDoc
 
-### Monitoring Module (jplatform-monitoring)
+### Monitoring Module (platform-java-monitoring)
 
 - ⏳ `ApplicationResourceMonitor.java` - Needs JavaDoc
 
-### Messaging Module (jplatform-messaging)
+### Messaging Module (platform-java-messaging)
 
 - ⏳ `InMemoryMessageBus.java` - Needs JavaDoc
 - ⏳ `ServiceRegistryImpl.java` - Needs JavaDoc
 
-### Launcher Module (jplatform-launcher)
+### Launcher Module (platform-java-launcher)
 
 - ⏳ `PlatformLauncher.java` - Needs JavaDoc
 
@@ -107,7 +107,7 @@ Following the principle: **Only comment WHY, not WHAT**
 ### Current State
 
 **JClassLoader**: Clean code with minimal inline comments (WHY-only approach)  
-**JPlatform**: Clean code with minimal inline comments (WHY-only approach)
+**platform-java**: Clean code with minimal inline comments (WHY-only approach)
 
 Most code is self-documenting through:
 - Clear method names
@@ -123,7 +123,7 @@ Comments are only used for:
 ## Action Items
 
 ### High Priority (Public API)
-1. Add JavaDoc to all `jplatform-api` interfaces and classes
+1. Add JavaDoc to all `platform-java-api` interfaces and classes
 2. Add JavaDoc to `ApplicationManager` and `ApplicationContextImpl`
 3. Add JavaDoc to `PlatformLauncher`
 
@@ -192,7 +192,7 @@ mvn javadoc:javadoc 2>&1 | grep -i warning
 ## Progress
 
 - **JClassLoader**: 100% complete ✅
-- **JPlatform**: ~20% complete 🔄
+- **platform-java**: ~20% complete 🔄
   - API: ~25% (6/22 files)
   - Core: ~50% (1/2 files)
   - Implementations: 0%

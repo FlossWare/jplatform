@@ -1,29 +1,29 @@
-# JPlatform - Project Status
+# platform-java - Project Status
 
 ## Summary
 
-JPlatform is a Java application platform designed to run multiple independent Java applications within a single JVM with comprehensive isolation - similar to running them in separate terminal windows, but with managed resources and optional inter-app communication.
+platform-java is a Java application platform designed to run multiple independent Java applications within a single JVM with comprehensive isolation - similar to running them in separate terminal windows, but with managed resources and optional inter-app communication.
 
 ## What's Been Created
 
 ### ✅ Complete Maven Multi-Module Structure
 
 ```
-jplatform/
+platform-java/
 ├── pom.xml (parent aggregator)
-├── jplatform-api/              ✅ COMPLETE - 22 interface/class files
-├── jplatform-core/             📦 Structure ready
-├── jplatform-classloader/      📦 Structure ready
-├── jplatform-threadpool/       📦 Structure ready
-├── jplatform-security/         📦 Structure ready
-├── jplatform-monitoring/       📦 Structure ready
-├── jplatform-messaging/        📦 Structure ready
-├── jplatform-deployment/       📦 Structure ready
-├── jplatform-launcher/         📦 Structure ready
-└── jplatform-samples/          📦 Structure ready
+├── platform-java-api/              ✅ COMPLETE - 22 interface/class files
+├── platform-java-core/             📦 Structure ready
+├── platform-java-classloader/      📦 Structure ready
+├── platform-java-threadpool/       📦 Structure ready
+├── platform-java-security/         📦 Structure ready
+├── platform-java-monitoring/       📦 Structure ready
+├── platform-java-messaging/        📦 Structure ready
+├── platform-java-deployment/       📦 Structure ready
+├── platform-java-launcher/         📦 Structure ready
+└── platform-java-samples/          📦 Structure ready
 ```
 
-### ✅ Complete API Module (jplatform-api)
+### ✅ Complete API Module (platform-java-api)
 
 **Core Application APIs:**
 - `Application` - Application lifecycle interface
@@ -60,7 +60,7 @@ jplatform/
 
 #### ClassLoader Isolation
 ```
-PlatformSharedClassLoader (jplatform-api - shared)
+PlatformSharedClassLoader (platform-java-api - shared)
     ├── App1ClassLoader (parent-last delegation)
     ├── App2ClassLoader (parent-last delegation)
     └── App3ClassLoader (parent-last delegation)
@@ -95,24 +95,24 @@ PlatformSharedClassLoader (jplatform-api - shared)
 ## Next Steps
 
 ### Immediate (Phase 1 - MVP)
-1. **Implement IsolatedClassLoader** (jplatform-classloader)
+1. **Implement IsolatedClassLoader** (platform-java-classloader)
    - Parent-last delegation for app classes
    - Parent-first for platform APIs
    - Resource tracking for cleanup
 
-2. **Implement ManagedThreadPool** (jplatform-threadpool)
+2. **Implement ManagedThreadPool** (platform-java-threadpool)
    - Wrapper around java.util.concurrent.ThreadPoolExecutor
    - Thread naming with applicationId
    - Graceful shutdown
    - Statistics tracking
 
-3. **Implement ApplicationManager** (jplatform-core)
+3. **Implement ApplicationManager** (platform-java-core)
    - Application registry
    - Lifecycle state machine
    - Coordination of isolation subsystems
    - ApplicationContext implementation
 
-4. **Basic Platform Launcher** (jplatform-launcher)
+4. **Basic Platform Launcher** (platform-java-launcher)
    - Bootstrap process
    - Configuration loading
    - Shutdown hooks

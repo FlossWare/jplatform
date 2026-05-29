@@ -1,6 +1,6 @@
-# JPlatform Config - Etcd
+# platform-java Config - Etcd
 
-Etcd-based configuration source implementation for JPlatform.
+Etcd-based configuration source implementation for platform-java.
 
 ## Features
 
@@ -15,8 +15,8 @@ Etcd-based configuration source implementation for JPlatform.
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-config-etcd</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-config-etcd</artifactId>
     <version>1.1</version>
 </dependency>
 ```

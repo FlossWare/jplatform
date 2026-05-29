@@ -1,15 +1,15 @@
-# jplatform-classloader Design
+# platform-java-classloader Design
 
 ## Purpose
-Platform-specific class loading that integrates with JPlatform's application lifecycle, security, and resource management.
+Platform-specific class loading that integrates with platform-java's application lifecycle, security, and resource management.
 
-## What jplatform-classloader Does (Platform-Specific)
+## What platform-java-classloader Does (Platform-Specific)
 
 ### 1. ApplicationDescriptor Integration
-Translates JPlatform's application configuration into jclassloader sources.
+Translates platform-java's application configuration into jclassloader sources.
 
 ### 2. Platform API Isolation
-Ensures `org.flossware.jplatform.api.*` classes are shared across all applications.
+Ensures `org.flossware.platform-java.api.*` classes are shared across all applications.
 
 ### 3. Application Lifecycle Coordination
 Integrates with ApplicationManager for deploy/undeploy operations.
@@ -23,7 +23,7 @@ Coordinates with ThreadPoolExecutor, SecurityPolicy, ResourceMonitor.
 ## Architecture
 
 ```
-IsolatedClassLoader (jplatform-specific)
+IsolatedClassLoader (platform-java-specific)
     ↓ uses
 JClassLoader (reusable from jclassloader)
     ↓ uses
@@ -34,12 +34,12 @@ ClassSource implementations (reusable from jclassloader)
 
 ## Implementation
 
-### Package: org.flossware.jplatform.classloader
+### Package: org.flossware.platform-java.classloader
 
 ```java
 /**
  * Platform-specific class loader for isolated application execution.
- * Extends JClassLoader with JPlatform-specific integration.
+ * Extends JClassLoader with platform-java-specific integration.
  */
 public class IsolatedClassLoader extends JClassLoader implements AutoCloseable {
     
@@ -72,9 +72,9 @@ public class IsolatedClassLoader extends JClassLoader implements AutoCloseable {
         // Build JClassLoader with platform-specific configuration
         JClassLoader.Builder builder = JClassLoader.builder()
             .parent(platformSharedLoader)
-            // Platform-specific: parent-last with JPlatform API exception
+            // Platform-specific: parent-last with platform-java API exception
             .parentLast(
-                "org.flossware.jplatform.api.",  // Platform API
+                "org.flossware.platform-java.api.",  // Platform API
                 "java.", "javax.", "sun.", "jdk."  // System classes
             )
             .addListener(tracker)
@@ -144,7 +144,7 @@ public class IsolatedClassLoader extends JClassLoader implements AutoCloseable {
      * Platform-specific: Get cache directory for this application.
      */
     private static String getCacheDir(String applicationId) {
-        return System.getProperty("jplatform.cache.dir", "/var/jplatform/cache")
+        return System.getProperty("platform-java.cache.dir", "/var/platform-java/cache")
             + "/" + applicationId;
     }
     
@@ -204,7 +204,7 @@ public class IsolatedClassLoader extends JClassLoader implements AutoCloseable {
 }
 
 /**
- * Platform-specific listener that integrates with JPlatform monitoring.
+ * Platform-specific listener that integrates with platform-java monitoring.
  */
 class PlatformClassLoadListener implements ClassLoaderLifecycleListener {
     private final String applicationId;
@@ -255,7 +255,7 @@ public class ClassLoaderStatistics {
 // Platform-specific utilities (stubs - would integrate with platform services)
 class PlatformMetrics {
     static void recordClassLoad(String appId, String className, long nanos) {
-        // Integrate with jplatform-monitoring
+        // Integrate with platform-java-monitoring
     }
 }
 
@@ -269,7 +269,7 @@ class PlatformLogger {
 ## Usage Example (Platform-Specific)
 
 ```java
-// In jplatform-core - ApplicationManager
+// In platform-java-core - ApplicationManager
 public class ApplicationManager {
     
     public ApplicationContext deploy(ApplicationDescriptor descriptor) {
@@ -329,9 +329,9 @@ public class ApplicationManager {
 
 ## What's Platform-Specific vs. Reusable
 
-### Platform-Specific (stays in jplatform-classloader):
+### Platform-Specific (stays in platform-java-classloader):
 1. ✅ ApplicationDescriptor → ClassSource translation
-2. ✅ Platform API isolation rules (`org.flossware.jplatform.api.*`)
+2. ✅ Platform API isolation rules (`org.flossware.platform-java.api.*`)
 3. ✅ Integration with ApplicationManager lifecycle
 4. ✅ Integration with platform logging/metrics
 5. ✅ Platform-specific cache directory structure
@@ -350,10 +350,10 @@ public class ApplicationManager {
 
 ### For jclassloader:
 - Remains general-purpose and reusable
-- No dependencies on jplatform
+- No dependencies on platform-java
 - Useful for plugin systems, OSGi, testing frameworks, etc.
 
-### For jplatform:
+### For platform-java:
 - Thin wrapper focused on platform concerns
 - Leverages jclassloader's 20+ class sources
 - Doesn't reinvent class loading mechanics
@@ -363,4 +363,4 @@ public class ApplicationManager {
 - Clear separation of concerns
 - Each project has a focused responsibility
 - Changes to general class loading go to jclassloader
-- Changes to platform integration go to jplatform-classloader
+- Changes to platform integration go to platform-java-classloader

@@ -1,10 +1,10 @@
-# JPlatform Cluster - Consul
+# platform-java Cluster - Consul
 
-Consul-based clustering implementation for distributed JPlatform deployments.
+Consul-based clustering implementation for distributed platform-java deployments.
 
 ## Overview
 
-`jplatform-cluster-consul` provides a Consul-backed implementation of JPlatform's `ClusterManager` and `ClusterStateStore` interfaces, enabling applications to form clusters across multiple nodes using HashiCorp Consul as the coordination service.
+`platform-java-cluster-consul` provides a Consul-backed implementation of platform-java's `ClusterManager` and `ClusterStateStore` interfaces, enabling applications to form clusters across multiple nodes using HashiCorp Consul as the coordination service.
 
 ## Features
 
@@ -22,8 +22,8 @@ Consul-based clustering implementation for distributed JPlatform deployments.
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-cluster-consul</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-cluster-consul</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -31,15 +31,15 @@ Consul-based clustering implementation for distributed JPlatform deployments.
 ### Basic Example
 
 ```java
-import org.flossware.jplatform.api.*;
-import org.flossware.jplatform.cluster.consul.*;
+import org.flossware.platform-java.api.*;
+import org.flossware.platform-java.cluster.consul.*;
 
 // 1. Configure Consul connection
 ConsulConfig consulConfig = ConsulConfig.builder()
     .consulHost("localhost")
     .consulPort(8500)
     .sessionTtl(10)  // seconds
-    .serviceName("jplatform-cluster")
+    .serviceName("platform-java-cluster")
     .build();
 
 // 2. Configure cluster
@@ -88,7 +88,7 @@ cluster.close();
 | `consulHost` | String | No | "localhost" | Consul agent hostname or IP address |
 | `consulPort` | int | No | 8500 | Consul HTTP API port |
 | `sessionTtl` | int | No | 10 | Session TTL in seconds (range: 10-86400) |
-| `serviceName` | String | No | "jplatform-cluster" | Service name for cluster membership |
+| `serviceName` | String | No | "platform-java-cluster" | Service name for cluster membership |
 | `datacenter` | String | No | null | Consul datacenter (uses default if null) |
 | `token` | String | No | null | Consul ACL token for authentication |
 
@@ -99,7 +99,7 @@ ConsulConfig config = ConsulConfig.builder()
     .consulHost("consul.example.com")
     .consulPort(8500)
     .sessionTtl(30)
-    .serviceName("jplatform-prod")
+    .serviceName("platform-java-prod")
     .datacenter("dc1")
     .token("your-acl-token")
     .build();
@@ -112,8 +112,8 @@ ConsulConfig config = ConsulConfig.builder()
 Nodes register as Consul services with unique service IDs:
 
 ```
-Service ID: jplatform-cluster-<uuid>
-Service Name: jplatform-cluster (configurable)
+Service ID: platform-java-cluster-<uuid>
+Service Name: platform-java-cluster (configurable)
 Health Check: TTL-based, renewed every 5 seconds
 ```
 
@@ -122,7 +122,7 @@ Health Check: TTL-based, renewed every 5 seconds
 Leader election uses Consul's distributed locking mechanism:
 
 1. Each node creates a Consul session with configured TTL
-2. Nodes attempt to acquire lock on key: `jplatform/leader/<cluster-name>`
+2. Nodes attempt to acquire lock on key: `platform-java/leader/<cluster-name>`
 3. The node that acquires the lock becomes the leader
 4. If leader fails, session expires and lock is released
 5. Other nodes automatically compete for leadership
@@ -133,8 +133,8 @@ Application state and descriptors are stored in Consul KV:
 
 | Data Type | Consul KV Path | Format |
 |-----------|---------------|--------|
-| Application State | `jplatform/state/<app-id>` | Enum name (e.g., "RUNNING") |
-| Application Descriptor | `jplatform/descriptor/<app-id>` | JSON-serialized descriptor |
+| Application State | `platform-java/state/<app-id>` | Enum name (e.g., "RUNNING") |
+| Application Descriptor | `platform-java/descriptor/<app-id>` | JSON-serialized descriptor |
 
 ### Session Renewal
 
@@ -278,7 +278,7 @@ open http://localhost:8500/ui
 The module includes comprehensive unit tests (42 tests, 77% coverage):
 
 ```bash
-mvn test -pl jplatform-cluster-consul
+mvn test -pl platform-java-cluster-consul
 ```
 
 ### Test Coverage
@@ -350,11 +350,11 @@ docker stop consul-test && docker rm consul-test
 
 ## License
 
-Part of the JPlatform project. See parent project for license information.
+Part of the platform-java project. See parent project for license information.
 
 ## See Also
 
-- [JPlatform Cluster - Hazelcast](../jplatform-cluster/README.md) - In-memory clustering alternative
+- [platform-java Cluster - Hazelcast](../platform-java-cluster/README.md) - In-memory clustering alternative
 - [Consul Documentation](https://www.consul.io/docs) - Official Consul documentation
-- [ClusterManager API](../jplatform-api/src/main/java/org/flossware/jplatform/api/ClusterManager.java)
-- [ClusterStateStore API](../jplatform-api/src/main/java/org/flossware/jplatform/api/ClusterStateStore.java)
+- [ClusterManager API](../platform-java-api/src/main/java/org/flossware/platform-java/api/ClusterManager.java)
+- [ClusterStateStore API](../platform-java-api/src/main/java/org/flossware/platform-java/api/ClusterStateStore.java)

@@ -1,24 +1,24 @@
-# JPlatform Quick Start Guide
+# platform-java Quick Start Guide
 
-Get up and running with JPlatform in 5 minutes!
+Get up and running with platform-java in 5 minutes!
 
 ## Prerequisites
 
 - Java 11 or later
 - Maven 3.6+
 
-## Build JPlatform
+## Build platform-java
 
 ```bash
 # Clone the repository
-git clone https://github.com/FlossWare/jplatform.git
-cd jplatform
+git clone https://github.com/FlossWare/platform-java.git
+cd platform-java
 
 # Build all modules (takes ~2 minutes)
 mvn clean install
 
 # Launcher JAR will be at:
-# jplatform-launcher/target/jplatform-launcher-1.0.jar
+# platform-java-launcher/target/platform-java-launcher-1.0.jar
 ```
 
 ## Quick Start: Interactive Mode
@@ -26,8 +26,8 @@ mvn clean install
 The simplest way to get started is with the interactive console:
 
 ```bash
-cd jplatform-launcher/target
-java -jar jplatform-launcher-1.0.jar
+cd platform-java-launcher/target
+java -jar platform-java-launcher-1.0.jar
 ```
 
 You'll see:
@@ -40,10 +40,10 @@ You'll see:
    _| |_| |    | | (_| | |_| || (_) | |  | | | | | |
   |_____|_|    |_|\__,_|\__|_| \___/|_|  |_| |_| |_|
 
-JPlatform 1.0 - Java Application Platform
+platform-java 1.0 - Java Application Platform
 Type 'help' for commands
 
-jplatform>
+platform-java>
 ```
 
 ### Deploy Your First Application
@@ -52,23 +52,23 @@ Let's deploy the Hello World sample:
 
 ```bash
 # Build the sample
-cd ../../jplatform-samples/hello-world
+cd ../../platform-java-samples/hello-world
 mvn clean package
-cd ../../jplatform-launcher/target
+cd ../../platform-java-launcher/target
 
 # Launch platform and deploy
-java -jar jplatform-launcher-1.0.jar
+java -jar platform-java-launcher-1.0.jar
 
-jplatform> deploy hello-world ../../jplatform-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.jplatform.samples.helloworld.HelloWorldApp
+platform-java> deploy hello-world ../../platform-java-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.platform-java.samples.helloworld.HelloWorldApp
 Application deployed: hello-world
 
-jplatform> start hello-world
-[hello-world] Hello from JPlatform!
+platform-java> start hello-world
+[hello-world] Hello from platform-java!
 [hello-world] Application ID: hello-world
 [hello-world] Running in thread: hello-world-pool-1
 Application started: hello-world
 
-jplatform> status hello-world
+platform-java> status hello-world
 Application ID: hello-world
 State: RUNNING
 CPU Time: 1234567 ns
@@ -78,14 +78,14 @@ Active Threads: 2
 Queued Tasks: 0
 Completed Tasks: 1
 
-jplatform> stop hello-world
+platform-java> stop hello-world
 Application stopped: hello-world
 
-jplatform> list
+platform-java> list
 Applications:
   hello-world - STOPPED
 
-jplatform> exit
+platform-java> exit
 Shutting down platform...
 ```
 
@@ -118,10 +118,10 @@ properties:
 Deploy it:
 
 ```bash
-jplatform> deploy-yaml /path/to/my-app.yaml
+platform-java> deploy-yaml /path/to/my-app.yaml
 Application deployed from YAML: my-app
 
-jplatform> start my-app
+platform-java> start my-app
 ```
 
 ## Enable Web Console
@@ -129,7 +129,7 @@ jplatform> start my-app
 For a graphical management interface:
 
 ```bash
-java -jar jplatform-launcher-1.0.jar --rest-api --web-console
+java -jar platform-java-launcher-1.0.jar --rest-api --web-console
 
 # Open browser to:
 http://localhost:8080/console
@@ -146,11 +146,11 @@ The web console provides:
 For a native desktop management interface:
 
 ```bash
-java -cp jplatform-swing-ui-1.1.jar:jplatform-api-1.1.jar:jplatform-core-1.1.jar \
-    org.flossware.jplatform.swing.SwingConsole
+java -cp platform-java-swing-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar \
+    org.flossware.platform-java.swing.SwingConsole
 
 # Or if using the executable JAR:
-java -jar jplatform-swing-ui-1.1.jar
+java -jar platform-java-swing-ui-1.1.jar
 ```
 
 The Swing UI provides:
@@ -167,11 +167,11 @@ The Swing UI provides:
 For a full-screen terminal interface perfect for SSH sessions:
 
 ```bash
-java -cp jplatform-jcurses-ui-1.1.jar:jplatform-api-1.1.jar:jplatform-core-1.1.jar:lanterna-3.1.1.jar \
-    org.flossware.jplatform.jcurses.TerminalConsole
+java -cp platform-java-jcurses-ui-1.1.jar:platform-java-api-1.1.jar:platform-java-core-1.1.jar:lanterna-3.1.1.jar \
+    org.flossware.platform-java.jcurses.TerminalConsole
 
 # Or integrated with launcher:
-java -jar jplatform-launcher-1.1.jar --terminal-ui
+java -jar platform-java-launcher-1.1.jar --terminal-ui
 ```
 
 The Terminal UI provides:
@@ -198,19 +198,19 @@ The Terminal UI provides:
 ### JMX Metrics (JConsole, VisualVM)
 
 ```bash
-java -jar jplatform-launcher-1.0.jar --jmx-port 9999
+java -jar platform-java-launcher-1.0.jar --jmx-port 9999
 
 # In another terminal:
 jconsole localhost:9999
 
-# Navigate to MBeans tab → org.flossware.jplatform
+# Navigate to MBeans tab → org.flossware.platform-java
 # See per-application metrics and operations
 ```
 
 ### Prometheus Metrics
 
 ```bash
-java -jar jplatform-launcher-1.0.jar --prometheus
+java -jar platform-java-launcher-1.0.jar --prometheus
 
 # Metrics endpoint:
 curl http://localhost:9090/metrics
@@ -218,18 +218,18 @@ curl http://localhost:9090/metrics
 
 Output:
 ```prometheus
-# HELP jplatform_app_cpu_time_seconds Total CPU time used by application
-# TYPE jplatform_app_cpu_time_seconds counter
-jplatform_app_cpu_time_seconds{app_id="my-app"} 123.45
+# HELP platform-java_app_cpu_time_seconds Total CPU time used by application
+# TYPE platform-java_app_cpu_time_seconds counter
+platform-java_app_cpu_time_seconds{app_id="my-app"} 123.45
 
-# HELP jplatform_app_heap_used_bytes Heap memory used by application
-# TYPE jplatform_app_heap_used_bytes gauge
-jplatform_app_heap_used_bytes{app_id="my-app"} 134217728
+# HELP platform-java_app_heap_used_bytes Heap memory used by application
+# TYPE platform-java_app_heap_used_bytes gauge
+platform-java_app_heap_used_bytes{app_id="my-app"} 134217728
 
-# HELP jplatform_app_state Application lifecycle state
-# TYPE jplatform_app_state gauge
-jplatform_app_state{app_id="my-app",state="running"} 1.0
-jplatform_app_state{app_id="my-app",state="stopped"} 0.0
+# HELP platform-java_app_state Application lifecycle state
+# TYPE platform-java_app_state gauge
+platform-java_app_state{app_id="my-app",state="running"} 1.0
+platform-java_app_state{app_id="my-app",state="stopped"} 0.0
 ```
 
 ## Auto-Deployment via Filesystem Watcher
@@ -238,17 +238,17 @@ Enable automatic deployment when descriptor files are added:
 
 ```bash
 # Create watch directory
-mkdir /var/jplatform/apps
+mkdir /var/platform-java/apps
 
 # Start launcher with watcher
-java -jar jplatform-launcher-1.0.jar --watch-dir /var/jplatform/apps
+java -jar platform-java-launcher-1.0.jar --watch-dir /var/platform-java/apps
 
 # In another terminal, drop descriptor files:
-cp my-app.yaml /var/jplatform/apps/
+cp my-app.yaml /var/platform-java/apps/
 
 # Application automatically deploys and starts!
 # Remove file to undeploy:
-rm /var/jplatform/apps/my-app.yaml
+rm /var/platform-java/apps/my-app.yaml
 ```
 
 ## REST API Usage
@@ -256,7 +256,7 @@ rm /var/jplatform/apps/my-app.yaml
 Start with REST API enabled:
 
 ```bash
-java -jar jplatform-launcher-1.0.jar --rest-api
+java -jar platform-java-launcher-1.0.jar --rest-api
 ```
 
 ### Deploy Application
@@ -308,14 +308,14 @@ curl -X DELETE http://localhost:8080/api/applications/api-app
 For production use, enable all features via command-line:
 
 ```bash
-java -jar jplatform-launcher-1.0.jar \
+java -jar platform-java-launcher-1.0.jar \
   --rest-api \
   --port 8080 \
   --web-console \
   --jmx-port 9999 \
   --prometheus \
   --prometheus-port 9090 \
-  --watch-dir /var/jplatform/apps
+  --watch-dir /var/platform-java/apps
 ```
 
 Or better yet, use a configuration file (`platform.yaml`):
@@ -330,7 +330,7 @@ metrics:
   jmx:
     enabled: true
     port: 9999
-    domain: org.flossware.jplatform
+    domain: org.flossware.platform-java
   prometheus:
     enabled: true
     port: 9090
@@ -338,7 +338,7 @@ metrics:
 
 watcher:
   enabled: true
-  watchDirectory: /var/jplatform/apps
+  watchDirectory: /var/platform-java/apps
   autoStart: true
   autoDeploy: true
 ```
@@ -346,7 +346,7 @@ watcher:
 Then launch with:
 
 ```bash
-java -jar jplatform-launcher-1.0.jar --config platform.yaml
+java -jar platform-java-launcher-1.0.jar --config platform.yaml
 ```
 
 This gives you:
@@ -354,18 +354,18 @@ This gives you:
 - Web console at http://localhost:8080/console
 - JMX metrics on port 9999
 - Prometheus metrics on port 9090
-- Auto-deployment from /var/jplatform/apps
+- Auto-deployment from /var/platform-java/apps
 
 Command-line flags override configuration file settings:
 
 ```bash
 # Override port from config file
-java -jar jplatform-launcher-1.0.jar --config platform.yaml --port 9000
+java -jar platform-java-launcher-1.0.jar --config platform.yaml --port 9000
 ```
 
 ## Deployment Modes
 
-JPlatform supports three deployment modes:
+platform-java supports three deployment modes:
 
 ### 1. JVM Applications (Default)
 
@@ -419,5 +419,5 @@ See [CONTAINER_DEPLOYMENT.md](CONTAINER_DEPLOYMENT.md) for details.
 - Learn about [Native Execution](NATIVE_EXECUTION.md) - GraalVM and compiled binaries
 - Learn about [Container Deployment](CONTAINER_DEPLOYMENT.md) - Docker/Podman/LXC
 - Check [examples/applications](examples/applications) for sample descriptors
-- Explore sample applications in [jplatform-samples](jplatform-samples)
-- Review API documentation in [jplatform-api](jplatform-api)
+- Explore sample applications in [platform-java-samples](platform-java-samples)
+- Review API documentation in [platform-java-api](platform-java-api)

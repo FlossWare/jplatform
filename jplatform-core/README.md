@@ -1,10 +1,10 @@
-# JPlatform Core
+# platform-java Core
 
 Core platform module providing application lifecycle management, dependency resolution, and process orchestration.
 
 ## Overview
 
-The `jplatform-core` module is the heart of JPlatform, implementing the central `ApplicationManager` and supporting components for deploying, starting, stopping, and managing applications. It orchestrates classloader isolation, thread pools, security policies, resource monitoring, and now native process and container execution.
+The `platform-java-core` module is the heart of platform-java, implementing the central `ApplicationManager` and supporting components for deploying, starting, stopping, and managing applications. It orchestrates classloader isolation, thread pools, security policies, resource monitoring, and now native process and container execution.
 
 ## Key Components
 
@@ -144,7 +144,7 @@ Tracks classloader versions during hot reload:
 
 ## Deployment Modes
 
-JPlatform supports **three deployment modes** managed by ApplicationManager:
+platform-java supports **three deployment modes** managed by ApplicationManager:
 
 ### 1. JVM Applications (Default)
 - Run in isolated classloaders within the JVM
@@ -217,12 +217,12 @@ public void start(String applicationId) {
 
 ## Dependencies
 
-- `jplatform-api` - Public interfaces and contracts
-- `jplatform-classloader` - Isolated classloader implementation
-- `jplatform-threadpool` - Managed thread pool per application
-- `jplatform-security` - Security policy enforcement
-- `jplatform-monitoring` - Resource monitoring and quotas
-- `jplatform-storage` - Volume management (2.0+)
+- `platform-java-api` - Public interfaces and contracts
+- `platform-java-classloader` - Isolated classloader implementation
+- `platform-java-threadpool` - Managed thread pool per application
+- `platform-java-security` - Security policy enforcement
+- `platform-java-monitoring` - Resource monitoring and quotas
+- `platform-java-storage` - Volume management (2.0+)
 
 ## Usage Examples
 

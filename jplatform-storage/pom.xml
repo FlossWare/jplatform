@@ -7,21 +7,21 @@
 
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
 
-    <artifactId>jplatform-storage</artifactId>
+    <artifactId>platform-java-storage</artifactId>
     <packaging>jar</packaging>
 
-    <name>JPlatform Storage</name>
+    <name>platform-java Storage</name>
     <description>Persistent and ephemeral volume management for applications</description>
 
     <dependencies>
         <!-- JPlatform API -->
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
         </dependency>
 
         <!-- Logging -->

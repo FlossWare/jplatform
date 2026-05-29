@@ -2,11 +2,11 @@
 
 ## Status: In Progress
 
-Adding comprehensive JavaDoc to all jplatform classes following Option A (complete all JavaDoc now).
+Adding comprehensive JavaDoc to all platform-java classes following Option A (complete all JavaDoc now).
 
 ## Completed ✅
 
-### jplatform-api
+### platform-java-api
 1. ✅ `Application.java` - Interface with method docs
 2. ✅ `ApplicationContext.java` - Interface with all 10 method docs
 3. ✅ `ApplicationDescriptor.java` - Class-level doc (methods pending)
@@ -18,7 +18,7 @@ Adding comprehensive JavaDoc to all jplatform classes following Option A (comple
 
 ## In Progress 🔄
 
-### jplatform-api (Remaining)
+### platform-java-api (Remaining)
 - ⏳ `MessageBus.java` - Methods need docs
 - ⏳ `ThreadPoolExecutor.java` - Full interface
 - ⏳ `ThreadPoolConfig.java` - Builder methods
@@ -37,32 +37,32 @@ Adding comprehensive JavaDoc to all jplatform classes following Option A (comple
 
 ## Pending ⏹️
 
-### jplatform-core
+### platform-java-core
 - ApplicationManager.java
 - ApplicationContextImpl.java
 
-### jplatform-classloader
+### platform-java-classloader
 - IsolatedClassLoader.java
 - PlatformClassLoadListener.java
 - ClassLoaderStatistics.java
 
-### jplatform-threadpool
+### platform-java-threadpool
 - ManagedThreadPool.java
 
-### jplatform-security
+### platform-java-security
 - ApplicationSecurityPolicy.java
 
-### jplatform-monitoring
+### platform-java-monitoring
 - ApplicationResourceMonitor.java
 
-### jplatform-messaging
+### platform-java-messaging
 - InMemoryMessageBus.java
 - ServiceRegistryImpl.java
 
-### jplatform-launcher
+### platform-java-launcher
 - PlatformLauncher.java
 
-### jplatform-samples
+### platform-java-samples
 - HelloWorldApp.java
 - MessagingApp.java
 

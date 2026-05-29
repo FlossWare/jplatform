@@ -1,6 +1,6 @@
-# JPlatform Storage - Redis
+# platform-java Storage - Redis
 
-Redis-based storage backend for JPlatform volumes. Provides fast, in-memory persistent storage with support for Redis standalone and cluster modes.
+Redis-based storage backend for platform-java volumes. Provides fast, in-memory persistent storage with support for Redis standalone and cluster modes.
 
 ## Features
 
@@ -17,8 +17,8 @@ Redis-based storage backend for JPlatform volumes. Provides fast, in-memory pers
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-storage-redis</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-storage-redis</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -95,7 +95,7 @@ RedisStorageConfig prodConfig = RedisStorageConfig.builder()
 | `maxTotal` | int | `10` | Maximum pool connections |
 | `maxIdle` | int | `10` | Maximum idle connections |
 | `minIdle` | int | `5` | Minimum idle connections |
-| `keyPrefix` | String | `jplatform:` | Key prefix for isolation |
+| `keyPrefix` | String | `platform-java:` | Key prefix for isolation |
 
 ## Architecture
 
@@ -111,9 +111,9 @@ Redis uses a hierarchical key structure:
 
 Example:
 ```
-jplatform:volume:data:files               -> {"config.json":"42", "app.jar":"1024"}
-jplatform:volume:data:file:config.json    -> {"key":"value"}
-jplatform:volume:data:metadata           -> {"created":"1234567890", "maxSize":"1048576"}
+platform-java:volume:data:files               -> {"config.json":"42", "app.jar":"1024"}
+platform-java:volume:data:file:config.json    -> {"key":"value"}
+platform-java:volume:data:metadata           -> {"created":"1234567890", "maxSize":"1048576"}
 ```
 
 ### Volume Operations
@@ -230,7 +230,7 @@ This module requires:
 Tests use mocked Jedis client:
 
 ```bash
-mvn test -pl jplatform-storage-redis
+mvn test -pl platform-java-storage-redis
 ```
 
 For integration tests with real Redis (optional):
@@ -240,7 +240,7 @@ For integration tests with real Redis (optional):
 docker run -d -p 6379:6379 --name redis-test redis:7
 
 # Run tests
-mvn verify -pl jplatform-storage-redis
+mvn verify -pl platform-java-storage-redis
 
 # Stop Redis
 docker stop redis-test && docker rm redis-test
@@ -265,4 +265,4 @@ docker stop redis-test && docker rm redis-test
 
 ## License
 
-Part of JPlatform - see main project for license details.
+Part of platform-java - see main project for license details.

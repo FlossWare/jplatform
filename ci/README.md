@@ -1,10 +1,10 @@
 # CI/CD Configuration
 
-This directory contains scripts and documentation for the JPlatform CI/CD pipeline.
+This directory contains scripts and documentation for the platform-java CI/CD pipeline.
 
 ## Versioning Strategy
 
-JPlatform uses **X.Y semantic versioning** (e.g., 1.1, 1.2, 1.3):
+platform-java uses **X.Y semantic versioning** (e.g., 1.1, 1.2, 1.3):
 - **X**: Major version (manual increments for breaking changes)
 - **Y**: Minor version (auto-incremented on every commit to main)
 
@@ -45,8 +45,8 @@ This script:
 
 Artifacts are published to:
 - **Repository**: https://packagecloud.io/flossware/java/maven2/
-- **GroupId**: org.flossware.jplatform
-- **ArtifactId**: Various (jplatform-api, jplatform-core, etc.)
+- **GroupId**: org.flossware.platform-java
+- **ArtifactId**: Various (platform-java-api, platform-java-core, etc.)
 - **Version**: X.Y format
 
 ## Maven Configuration
@@ -62,8 +62,8 @@ Users can consume published artifacts by adding to their `pom.xml`:
 </repositories>
 
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-api</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-api</artifactId>
     <version>1.2</version>
 </dependency>
 ```

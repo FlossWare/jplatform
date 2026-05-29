@@ -262,7 +262,7 @@ public class SecurityEnforcer {
      * Trusted classloaders are:
      * <ul>
      *   <li>Platform classloader - loads platform modules</li>
-     *   <li>System classloader - loads JPlatform core classes</li>
+     *   <li>System classloader - loads platform-java core classes</li>
      * </ul>
      *
      * @param cl the ClassLoader to check

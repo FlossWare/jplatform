@@ -2,7 +2,7 @@
 
 ## Overview
 
-JPlatform supports declarative application dependencies, allowing applications to specify which services they require from other applications. The platform automatically:
+platform-java supports declarative application dependencies, allowing applications to specify which services they require from other applications. The platform automatically:
 
 - Validates dependencies at deploy time
 - Detects circular dependencies
@@ -14,8 +14,8 @@ JPlatform supports declarative application dependencies, allowing applications t
 ### In Java (ApplicationDescriptor)
 
 ```java
-import org.flossware.jplatform.api.ApplicationDependency;
-import org.flossware.jplatform.api.ApplicationDependency.DependencyType;
+import org.flossware.platform-java.api.ApplicationDependency;
+import org.flossware.platform-java.api.ApplicationDependency.DependencyType;
 
 ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
     .applicationId("order-service")
@@ -139,7 +139,7 @@ Use `"latest"` to accept any version:
 
 ### Deploy-Time Validation
 
-When you deploy an application, JPlatform:
+When you deploy an application, platform-java:
 
 1. **Validates all REQUIRED dependencies** exist in ServiceRegistry
 2. **Checks version compatibility** (if specified)
@@ -151,7 +151,7 @@ If validation fails, deployment is rejected with detailed error message.
 ### Example: Validation Success
 
 ```bash
-$ java -jar jplatform-launcher.jar deploy --yaml order-service.yaml
+$ java -jar platform-java-launcher.jar deploy --yaml order-service.yaml
 INFO  Validating dependencies for order-service...
 INFO  ✓ Found com.example.DatabaseService v1.0.0 (REQUIRED)
 INFO  ✓ Found com.example.CacheService v2.1.0 (OPTIONAL)
@@ -162,7 +162,7 @@ INFO  Application deployed successfully
 ### Example: Validation Failure
 
 ```bash
-$ java -jar jplatform-launcher.jar deploy --yaml order-service.yaml
+$ java -jar platform-java-launcher.jar deploy --yaml order-service.yaml
 ERROR Dependency validation failed for order-service
 ERROR ✗ Required dependency not found: com.example.DatabaseService
 ERROR Deployment aborted
@@ -170,7 +170,7 @@ ERROR Deployment aborted
 
 ## Ordered Startup
 
-JPlatform automatically starts applications in dependency order.
+platform-java automatically starts applications in dependency order.
 
 ### Example Dependency Graph
 
@@ -185,7 +185,7 @@ order-service (depends on cache-service and database-service)
 ### Startup Sequence
 
 ```bash
-$ java -jar jplatform-launcher.jar start --app-id order-service
+$ java -jar platform-java-launcher.jar start --app-id order-service
 INFO  Computing startup order...
 INFO  Startup sequence: [database-service, cache-service, order-service]
 INFO  Starting database-service...
@@ -198,7 +198,7 @@ INFO  order-service is now RUNNING
 
 ## Circular Dependency Detection
 
-JPlatform detects circular dependencies at deploy time:
+platform-java detects circular dependencies at deploy time:
 
 ### Example: Circular Dependency
 
@@ -217,7 +217,7 @@ ERROR Deployment aborted
 
 ### Algorithm
 
-JPlatform uses **Depth-First Search (DFS)** with recursion stack to detect cycles in O(V + E) time.
+platform-java uses **Depth-First Search (DFS)** with recursion stack to detect cycles in O(V + E) time.
 
 ## Service Registry Integration
 
@@ -282,9 +282,9 @@ Applications can implement `HealthCheck` to report service health:
 ```java
 package com.example;
 
-import org.flossware.jplatform.api.Application;
-import org.flossware.jplatform.api.HealthCheck;
-import org.flossware.jplatform.api.ApplicationContext;
+import org.flossware.platform-java.api.Application;
+import org.flossware.platform-java.api.HealthCheck;
+import org.flossware.platform-java.api.ApplicationContext;
 
 public class DatabaseService implements Application, HealthCheck {
     
@@ -462,12 +462,12 @@ dependencies:
 
 ```bash
 # Deploy all services (order doesn't matter)
-$ jplatform-launcher.jar deploy --yaml database-service.yaml
-$ jplatform-launcher.jar deploy --yaml cache-service.yaml
-$ jplatform-launcher.jar deploy --yaml order-service.yaml
+$ platform-java-launcher.jar deploy --yaml database-service.yaml
+$ platform-java-launcher.jar deploy --yaml cache-service.yaml
+$ platform-java-launcher.jar deploy --yaml order-service.yaml
 
 # Start top-level service (dependencies auto-start)
-$ jplatform-launcher.jar start --app-id order-service
+$ platform-java-launcher.jar start --app-id order-service
 
 # Output:
 # INFO  Computing startup order...

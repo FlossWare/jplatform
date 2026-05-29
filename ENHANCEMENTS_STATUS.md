@@ -1,4 +1,4 @@
-# JPlatform Enhancements - Implementation Status
+# platform-java Enhancements - Implementation Status
 
 ## Overview
 
@@ -34,15 +34,15 @@ Implementation of 7 major platform enhancements is in progress. This document tr
 ## Phase 1: YAML/JSON Descriptor Parsing ✅
 
 **Status**: COMPLETE  
-**Module**: `jplatform-config`
+**Module**: `platform-java-config`
 
 ### Files Created
 
-**API Interfaces** (in `jplatform-api`):
+**API Interfaces** (in `platform-java-api`):
 - `ApplicationDescriptorParser.java` - Parser interface
 - `ParseException.java` - Parse error exception
 
-**Implementation** (in `jplatform-config`):
+**Implementation** (in `platform-java-config`):
 - `ApplicationDescriptorDTO.java` - DTO for Jackson deserialization with nested configs
 - `AbstractDescriptorParser.java` - Base parser implementation
 - `YamlDescriptorParser.java` - YAML format support
@@ -57,7 +57,7 @@ Implementation of 7 major platform enhancements is in progress. This document tr
 
 ### Verification
 ```bash
-mvn clean compile -pl jplatform-config  # ✅ SUCCESS
+mvn clean compile -pl platform-java-config  # ✅ SUCCESS
 ```
 
 ---
@@ -65,16 +65,16 @@ mvn clean compile -pl jplatform-config  # ✅ SUCCESS
 ## Phase 2: Filesystem Watcher ✅
 
 **Status**: COMPLETE  
-**Module**: `jplatform-fs-watcher`
+**Module**: `platform-java-fs-watcher`
 
 ### Files Created
 
-**API Interfaces** (in `jplatform-api`):
+**API Interfaces** (in `platform-java-api`):
 - `DeploymentWatcher.java` - Watcher interface
 - `DeploymentEventListener.java` - Event listener interface
 - `WatcherConfig.java` - Configuration class with builder
 
-**Implementation** (in `jplatform-fs-watcher`):
+**Implementation** (in `platform-java-fs-watcher`):
 - `FileSystemDeploymentWatcher.java` - Main watcher using Java NIO WatchService
 - `AutoDeploymentHandler.java` - Automatic deployment integration
 - `DescriptorRegistry.java` - Descriptor file → app ID mapping
@@ -89,7 +89,7 @@ mvn clean compile -pl jplatform-config  # ✅ SUCCESS
 
 ### Verification
 ```bash
-mvn clean compile -pl jplatform-fs-watcher  # ✅ SUCCESS
+mvn clean compile -pl platform-java-fs-watcher  # ✅ SUCCESS
 ```
 
 ---
@@ -97,15 +97,15 @@ mvn clean compile -pl jplatform-fs-watcher  # ✅ SUCCESS
 ## Phase 3: REST API ✅
 
 **Status**: COMPLETE  
-**Module**: `jplatform-rest-api`
+**Module**: `platform-java-rest-api`
 
 ### Files Created
 
-**API Interfaces** (in `jplatform-api`):
+**API Interfaces** (in `platform-java-api`):
 - `PlatformApiServer.java` - API server interface
 - `ApiServerConfig.java` - Configuration class with builder
 
-**Implementation** (in `jplatform-rest-api`):
+**Implementation** (in `platform-java-rest-api`):
 - `JdkHttpApiServer.java` - HTTP server using JDK's built-in HttpServer
 - `ApplicationApiHandler.java` - Application management endpoints
 - `PlatformApiHandler.java` - Platform info endpoints
@@ -138,7 +138,7 @@ mvn clean compile -pl jplatform-fs-watcher  # ✅ SUCCESS
 
 ### Verification
 ```bash
-mvn clean compile -pl jplatform-rest-api  # ✅ SUCCESS
+mvn clean compile -pl platform-java-rest-api  # ✅ SUCCESS
 curl http://localhost:8080/api/health     # After server start
 ```
 
@@ -147,7 +147,7 @@ curl http://localhost:8080/api/health     # After server start
 ## Phase 4: Web UI ✅
 
 **Status**: COMPLETE  
-**Module**: `jplatform-web-console`
+**Module**: `platform-java-web-console`
 
 ### Files Created
 - `WebConsoleHandler.java` - Static file server
@@ -166,7 +166,7 @@ curl http://localhost:8080/api/health     # After server start
 
 ### Verification
 ```bash
-mvn clean compile -pl jplatform-web-console  # ✅ SUCCESS
+mvn clean compile -pl platform-java-web-console  # ✅ SUCCESS
 ```
 
 ---
@@ -174,29 +174,29 @@ mvn clean compile -pl jplatform-web-console  # ✅ SUCCESS
 ## Phase 5: JMX Metrics Exporter ✅
 
 **Status**: COMPLETE  
-**Module**: `jplatform-metrics-jmx`
+**Module**: `platform-java-metrics-jmx`
 
-**Note**: Prometheus exporter module (`jplatform-metrics-prometheus`) has not yet been implemented.
+**Note**: Prometheus exporter module (`platform-java-metrics-prometheus`) has not yet been implemented.
 
 ### Files Created
 
-**API Interfaces** (in `jplatform-api`):
+**API Interfaces** (in `platform-java-api`):
 - `MetricsExporter.java` - Exporter interface
 - `JmxExporterConfig.java` - JMX configuration
 - `PrometheusExporterConfig.java` - Prometheus configuration
 
-**JMX Implementation** (in `jplatform-metrics-jmx`):
+**JMX Implementation** (in `platform-java-metrics-jmx`):
 - `ApplicationMBean.java` - MBean interface
 - `ApplicationMBeanImpl.java` - MBean implementation
 - `JmxMetricsExporter.java` - JMX exporter
 
-**Prometheus Implementation** (in `jplatform-metrics-prometheus`):
+**Prometheus Implementation** (in `platform-java-metrics-prometheus`):
 - `PrometheusMetricsExporter.java` - Prometheus exporter
 - `PrometheusFormatter.java` - Prometheus text format helper
 - `ApplicationMetricsCollector.java` - Metrics collector
 
 ### JMX Features
-- ObjectName pattern: `org.flossware.jplatform:type=Application,id={appId}`
+- ObjectName pattern: `org.flossware.platform-java:type=Application,id={appId}`
 - Attributes: applicationId, state, cpuTimeNanos, heapUsedBytes, threadCount, etc.
 - Operations: start(), stop(), getResourceHistory(minutes)
 - Optional RMI registry for remote JMX
@@ -204,19 +204,19 @@ mvn clean compile -pl jplatform-web-console  # ✅ SUCCESS
 ### Prometheus Features
 - HTTP endpoint at configured port/path (default: :9090/metrics)
 - Metrics exported:
-  - `jplatform_app_cpu_time_seconds` (counter)
-  - `jplatform_app_heap_used_bytes` (gauge)
-  - `jplatform_app_thread_count` (gauge)
-  - `jplatform_app_state` (gauge)
-  - `jplatform_app_threadpool_active` (gauge)
-  - `jplatform_app_threadpool_queued` (gauge)
-  - `jplatform_app_threadpool_completed` (counter)
+  - `platform-java_app_cpu_time_seconds` (counter)
+  - `platform-java_app_heap_used_bytes` (gauge)
+  - `platform-java_app_thread_count` (gauge)
+  - `platform-java_app_state` (gauge)
+  - `platform-java_app_threadpool_active` (gauge)
+  - `platform-java_app_threadpool_queued` (gauge)
+  - `platform-java_app_threadpool_completed` (counter)
 - All metrics include `app_id` label
 
 ### Verification
 ```bash
-mvn clean compile -pl jplatform-metrics-jmx         # ✅ SUCCESS
-mvn clean compile -pl jplatform-metrics-prometheus  # ✅ SUCCESS
+mvn clean compile -pl platform-java-metrics-jmx         # ✅ SUCCESS
+mvn clean compile -pl platform-java-metrics-prometheus  # ✅ SUCCESS
 
 # After server start:
 jconsole localhost:9999                   # JMX console
@@ -228,16 +228,16 @@ curl http://localhost:9090/metrics        # Prometheus scrape
 ## Phase 6: JVMTI Agent (Optional) ⏸️
 
 **Status**: NOT STARTED  
-**Module**: `jplatform-jvmti-agent` (not yet created)
+**Module**: `platform-java-jvmti-agent` (not yet created)
 
 ### Files Created
 
-**API Interface** (in `jplatform-monitoring`):
+**API Interface** (in `platform-java-monitoring`):
 - `HeapProfiler.java` - Interface with getHeapUsageBytes(), getHeapByClass(), enableProfiling(), disableProfiling()
 
-**Implementation** (in `jplatform-jvmti-agent`):
+**Implementation** (in `platform-java-jvmti-agent`):
 - `JvmtiHeapProfiler.java` - JNI wrapper implementing HeapProfiler
-- `jplatform_agent.c` - Native JVMTI implementation with Agent_OnLoad and heap iteration
+- `platform-java_agent.c` - Native JVMTI implementation with Agent_OnLoad and heap iteration
 - `README.md` - Build instructions and usage documentation
 
 ### Features
@@ -249,9 +249,9 @@ curl http://localhost:9090/metrics        # Prometheus scrape
 
 ### Verification
 ```bash
-mvn clean compile -pl jplatform-jvmti-agent  # ✅ SUCCESS
-# Native library created: target/libjplatform-agent.so
-# Load with: java -agentpath:/path/to/libjplatform-agent.so
+mvn clean compile -pl platform-java-jvmti-agent  # ✅ SUCCESS
+# Native library created: target/libplatform-java-agent.so
+# Load with: java -agentpath:/path/to/libplatform-java-agent.so
 ```
 
 **Note**: Native compilation requires GCC and JDK headers. Can be skipped with `-DskipNative=true`.
@@ -261,25 +261,25 @@ mvn clean compile -pl jplatform-jvmti-agent  # ✅ SUCCESS
 ## Phase 7: Clustering Support ✅
 
 **Status**: COMPLETE  
-**Module**: `jplatform-cluster`
+**Module**: `platform-java-cluster`
 
 ### Files Created
 
-**API Interfaces** (in `jplatform-api`):
+**API Interfaces** (in `platform-java-api`):
 - `ClusterNode.java` - Cluster node with NodeState enum (JOINING, ACTIVE, SUSPECT, LEAVING, DEAD)
 - `ClusterManager.java` - Interface with join(), leave(), getNodes(), isLeader(), addListener()
 - `ClusterEventListener.java` - Event listener for node join/leave/leader change
 - `ClusterConfig.java` - Configuration with Builder, fields: clusterName, bindAddress, bindPort, seedNodes
 - `ClusterStateStore.java` - Distributed state store for ApplicationState and ApplicationDescriptor
 
-**Implementation** (in `jplatform-cluster`):
+**Implementation** (in `platform-java-cluster`):
 - `HazelcastClusterManager.java` - Hazelcast IMDG integration with TCP/IP discovery
 - `HazelcastStateStore.java` - Hazelcast IMap-backed state store with Jackson serialization
 - `ClusteredApplicationManager.java` - Extends ApplicationManager with cluster-aware deploy/start/stop/undeploy
 - `ApplicationScheduler.java` - Leader-based scheduling with ROUND_ROBIN and LEAST_LOADED strategies
 - `ApplicationDescriptorJsonModule.java` - Custom Jackson serializer/deserializer for ApplicationDescriptor
 
-**Test Classes** (in `jplatform-cluster/src/test`):
+**Test Classes** (in `platform-java-cluster/src/test`):
 - `HazelcastClusterManagerTest.java` - 22 tests for cluster manager
 - `HazelcastStateStoreTest.java` - 23 tests for distributed state store
 - `ClusteredApplicationManagerTest.java` - 29 tests for clustered app manager
@@ -307,8 +307,8 @@ mvn clean compile -pl jplatform-jvmti-agent  # ✅ SUCCESS
 
 ### Verification
 ```bash
-mvn clean test -pl jplatform-cluster  # ✅ SUCCESS - 76/76 tests passing
-mvn clean compile -pl jplatform-cluster -am  # ✅ SUCCESS
+mvn clean test -pl platform-java-cluster  # ✅ SUCCESS - 76/76 tests passing
+mvn clean compile -pl platform-java-cluster -am  # ✅ SUCCESS
 ```
 
 ---
@@ -325,12 +325,12 @@ mvn clean compile -pl jplatform-cluster -am  # ✅ SUCCESS
 
 | Module | Test Classes | Tests | Status |
 |--------|--------------|-------|--------|
-| jplatform-config | 2 | 23 | ✅ ALL PASS |
-| jplatform-fs-watcher | 3 | 79 | ✅ 75 PASS, 4 SKIP |
-| jplatform-rest-api | 4 | 82 | ✅ ALL PASS |
-| jplatform-web-console | 1 | 16 | ✅ ALL PASS |
-| jplatform-metrics-jmx | 0 | 0 | ⚠️ NO TESTS |
-| jplatform-cluster | 4 | 76 | ✅ ALL PASS |
+| platform-java-config | 2 | 23 | ✅ ALL PASS |
+| platform-java-fs-watcher | 3 | 79 | ✅ 75 PASS, 4 SKIP |
+| platform-java-rest-api | 4 | 82 | ✅ ALL PASS |
+| platform-java-web-console | 1 | 16 | ✅ ALL PASS |
+| platform-java-metrics-jmx | 0 | 0 | ⚠️ NO TESTS |
+| platform-java-cluster | 4 | 76 | ✅ ALL PASS |
 | **TOTAL** | **14** | **276** | **✅ 272 PASS, 4 SKIP** |
 
 ### Code Coverage Analysis
@@ -343,10 +343,10 @@ mvn clean compile -pl jplatform-cluster -am  # ✅ SUCCESS
 
 | Module | Instruction Coverage | Branch Coverage | Line Coverage | Status |
 |--------|---------------------|-----------------|---------------|--------|
-| jplatform-config | 72% | 62% | 81% | ✅ PASS |
-| jplatform-fs-watcher | 91% | 84% | 89% | ✅ PASS |
-| jplatform-rest-api | 91% | 84% | 93% | ✅ PASS |
-| jplatform-web-console | 90% | 75% | 90% | ✅ PASS |
+| platform-java-config | 72% | 62% | 81% | ✅ PASS |
+| platform-java-fs-watcher | 91% | 84% | 89% | ✅ PASS |
+| platform-java-rest-api | 91% | 84% | 93% | ✅ PASS |
+| platform-java-web-console | 90% | 75% | 90% | ✅ PASS |
 
 **Coverage Reports**: Generated at `{module}/target/site/jacoco/index.html`
 
@@ -367,7 +367,7 @@ mvn clean compile -pl jplatform-cluster -am  # ✅ SUCCESS
 
 ### Test Coverage Highlights
 
-**jplatform-config (23 tests)**:
+**platform-java-config (23 tests)**:
 - Valid YAML/JSON parsing with all configuration options
 - Error handling for invalid JSON/YAML syntax
 - Missing required field validation
@@ -375,7 +375,7 @@ mvn clean compile -pl jplatform-cluster -am  # ✅ SUCCESS
 - Nested configuration objects (ThreadPool, Security, Resources)
 - Complete descriptor parsing with all optional fields
 
-**jplatform-fs-watcher (79 tests, 4 skipped)**:
+**platform-java-fs-watcher (79 tests, 4 skipped)**:
 - File creation, modification, deletion events
 - Descriptor registry operations (add, remove, lookup)
 - Auto-deployment handler integration with ApplicationManager
@@ -385,7 +385,7 @@ mvn clean compile -pl jplatform-cluster -am  # ✅ SUCCESS
 - Thread-safe listener management
 - 4 tests disabled due to platform-specific WatchService timing issues
 
-**jplatform-rest-api (82 tests)**:
+**platform-java-rest-api (82 tests)**:
 - All REST endpoints (POST, GET, DELETE)
 - Application deployment via JSON
 - Application lifecycle (start, stop, undeploy)
@@ -396,7 +396,7 @@ mvn clean compile -pl jplatform-cluster -am  # ✅ SUCCESS
 - CORS configuration
 - Server lifecycle (start, stop, isRunning)
 
-**jplatform-web-console (16 tests)**:
+**platform-java-web-console (16 tests)**:
 - Root path serving (/, /console → index.html)
 - Static file serving (CSS, JS)
 - Content-Type headers (HTML, CSS, JS)
@@ -410,13 +410,13 @@ mvn clean compile -pl jplatform-cluster -am  # ✅ SUCCESS
 
 ```bash
 # Run all tests
-mvn clean test -pl jplatform-config,jplatform-fs-watcher,jplatform-rest-api,jplatform-web-console
+mvn clean test -pl platform-java-config,platform-java-fs-watcher,platform-java-rest-api,platform-java-web-console
 
 # Run with coverage
-mvn verify -pl jplatform-config,jplatform-fs-watcher,jplatform-rest-api,jplatform-web-console
+mvn verify -pl platform-java-config,platform-java-fs-watcher,platform-java-rest-api,platform-java-web-console
 
 # Generate JavaDoc
-mvn javadoc:javadoc -pl jplatform-config,jplatform-fs-watcher,jplatform-rest-api,jplatform-web-console
+mvn javadoc:javadoc -pl platform-java-config,platform-java-fs-watcher,platform-java-rest-api,platform-java-web-console
 ```
 
 ---
@@ -435,27 +435,27 @@ mvn clean compile
 
 ### Active Modules
 
-1. ✅ jplatform-parent (parent POM)
-2. ✅ jplatform-api
-3. ✅ jplatform-classloader
-4. ✅ jplatform-threadpool
-5. ✅ jplatform-security
-6. ✅ jplatform-monitoring
-7. ✅ jplatform-core
-8. ✅ jplatform-messaging
-9. ✅ jplatform-config (NEW)
-10. ✅ jplatform-fs-watcher (NEW)
-11. ✅ jplatform-deployment
-12. ✅ jplatform-rest-api (NEW)
-13. ✅ jplatform-web-console (NEW)
-14. ✅ jplatform-metrics-jmx (NEW)
-15. ✅ jplatform-metrics-prometheus (NEW)
-16. ✅ jplatform-jvmti-agent (NEW)
-17. ✅ jplatform-cluster (NEW)
-18. ✅ jplatform-storage (NEW - Platform 2.0)
-19. ✅ jplatform-otel (NEW - Platform 2.0)
-20. ✅ jplatform-launcher
-21. ✅ jplatform-samples
+1. ✅ platform-java-parent (parent POM)
+2. ✅ platform-java-api
+3. ✅ platform-java-classloader
+4. ✅ platform-java-threadpool
+5. ✅ platform-java-security
+6. ✅ platform-java-monitoring
+7. ✅ platform-java-core
+8. ✅ platform-java-messaging
+9. ✅ platform-java-config (NEW)
+10. ✅ platform-java-fs-watcher (NEW)
+11. ✅ platform-java-deployment
+12. ✅ platform-java-rest-api (NEW)
+13. ✅ platform-java-web-console (NEW)
+14. ✅ platform-java-metrics-jmx (NEW)
+15. ✅ platform-java-metrics-prometheus (NEW)
+16. ✅ platform-java-jvmti-agent (NEW)
+17. ✅ platform-java-cluster (NEW)
+18. ✅ platform-java-storage (NEW - Platform 2.0)
+19. ✅ platform-java-otel (NEW - Platform 2.0)
+20. ✅ platform-java-launcher
+21. ✅ platform-java-samples
 22. ✅ sample-hello-world
 23. ✅ sample-messaging-app
 
@@ -473,13 +473,13 @@ mvn clean compile
 - `simpleclient:0.16.0` - For Prometheus (optional)
 
 **Module References** (all added and uncommented):
-- `jplatform-config`
-- `jplatform-fs-watcher`
-- `jplatform-rest-api`
-- `jplatform-web-console`
-- `jplatform-metrics-jmx`
-- `jplatform-jvmti-agent`
-- `jplatform-cluster`
+- `platform-java-config`
+- `platform-java-fs-watcher`
+- `platform-java-rest-api`
+- `platform-java-web-console`
+- `platform-java-metrics-jmx`
+- `platform-java-jvmti-agent`
+- `platform-java-cluster`
 
 ---
 
@@ -501,9 +501,9 @@ Pending enhancements:
 ### Remaining Work
 
 #### Priority 1: Complete Remaining Features
-- Implement jplatform-metrics-prometheus module (optional)
-- Implement jplatform-jvmti-agent module (optional)
-- Add tests for jplatform-metrics-jmx (currently 0 tests)
+- Implement platform-java-metrics-prometheus module (optional)
+- Implement platform-java-jvmti-agent module (optional)
+- Add tests for platform-java-metrics-jmx (currently 0 tests)
 
 #### Priority 2: Integration
 - Update PlatformLauncher to initialize all features (config, fs-watcher, REST API, web console, JMX)
@@ -512,7 +512,7 @@ Pending enhancements:
 - Create comprehensive platform.yaml configuration file
 
 #### Priority 3: Testing and Verification
-- Add unit tests for jplatform-metrics-jmx
+- Add unit tests for platform-java-metrics-jmx
 - Integration tests connecting all modules
 - End-to-end testing scenarios
 - Performance testing
@@ -534,7 +534,7 @@ Pending enhancements:
 **Completed Work**:
 - ✅ 6 original features fully implemented and tested (YAML/JSON, Filesystem Watcher, REST API, Web UI, JMX/Prometheus Metrics, Clustering)
 - ✅ 6 platform-level features (2.0) fully implemented (Hot Reload, Resource Enforcement, Dependencies, Volumes, Native Binaries, OpenTelemetry)
-- ✅ 8 new modules created: jplatform-config, jplatform-fs-watcher, jplatform-rest-api, jplatform-web-console, jplatform-metrics-jmx, jplatform-metrics-prometheus, jplatform-cluster, jplatform-storage, jplatform-otel
+- ✅ 8 new modules created: platform-java-config, platform-java-fs-watcher, platform-java-rest-api, platform-java-web-console, platform-java-metrics-jmx, platform-java-metrics-prometheus, platform-java-cluster, platform-java-storage, platform-java-otel
 - ✅ 276 comprehensive unit tests (272 passing, 4 skipped)
 - ✅ 80%+ code coverage on all modules (verified with JaCoCo)
 - ✅ 100% JavaDoc coverage - all public APIs documented
@@ -549,7 +549,7 @@ Pending enhancements:
 - **Test Classes**: 14
 - **Test Cases**: 276 (272 passing, 4 skipped)
 - **Lines of Code**: ~7,500+ production code + ~4,500+ test code
-- **API Interfaces**: 30+ new interfaces in jplatform-api
+- **API Interfaces**: 30+ new interfaces in platform-java-api
 - **Platform Features**: All 6 platform-level features (Hot Reload, Resource Enforcement, Dependencies, Volumes, Native Binaries, OpenTelemetry)
 - **Technologies**: Jackson (YAML/JSON), Java NIO WatchService, JDK HttpServer, Chart.js CDN, JMX, Prometheus, Hazelcast IMDG 5.3.0, OpenTelemetry 1.32.0
 
@@ -562,7 +562,7 @@ Pending enhancements:
 **Remaining Work**:
 - Prometheus metrics exporter module (Optional, ~4-6 hours)
 - JVMTI native agent module (Optional, ~8-10 hours)
-- Add tests for jplatform-metrics-jmx (~2-3 hours)
+- Add tests for platform-java-metrics-jmx (~2-3 hours)
 - Integration with PlatformLauncher (~2-3 hours)
 - End-to-end integration testing (~3-4 hours)
 
@@ -575,20 +575,20 @@ Pending enhancements:
 ### Feature 2: Resource Limits Enforcement ✅
 
 **Status**: COMPLETE  
-**Modules**: `jplatform-api`, `jplatform-monitoring`, `jplatform-core`
+**Modules**: `platform-java-api`, `platform-java-monitoring`, `platform-java-core`
 
 #### Files Created/Modified
 
-**API (in `jplatform-api`)**:
+**API (in `platform-java-api`)**:
 - `EnforcementAction.java` - Enum defining enforcement actions (NOTIFY, THROTTLE, SHUTDOWN, KILL)
 - `ResourceConfig.java` - Extended with enforcement action fields and grace period
 
-**Implementation (in `jplatform-monitoring`)**:
+**Implementation (in `platform-java-monitoring`)**:
 - `EnforcementPolicy.java` - Grace period tracking and violation history
 - `ResourceEnforcer.java` - Enforcement engine executing configured actions
 - `ApplicationResourceMonitor.java` - Modified to integrate ResourceEnforcer
 
-**Integration (in `jplatform-core`)**:
+**Integration (in `platform-java-core`)**:
 - `ApplicationManager.java` - Creates ResourceEnforcer and wires into monitor, adds forceKill() method
 
 #### Features
@@ -618,7 +618,7 @@ ResourceConfig.builder()
 
 #### Verification
 ```bash
-mvn clean compile -pl jplatform-monitoring,jplatform-core  # ✅ SUCCESS
+mvn clean compile -pl platform-java-monitoring,platform-java-core  # ✅ SUCCESS
 ```
 
 ---
@@ -626,27 +626,27 @@ mvn clean compile -pl jplatform-monitoring,jplatform-core  # ✅ SUCCESS
 ### Feature 4: Persistent State / Data Volumes ✅
 
 **Status**: COMPLETE  
-**Module**: `jplatform-storage` (NEW)
+**Module**: `platform-java-storage` (NEW)
 
 #### Files Created/Modified
 
-**API (in `jplatform-api`)**:
+**API (in `platform-java-api`)**:
 - `VolumeMount.java` - Volume descriptor with name, mountPath, persistent flag, size limit
 - `VolumeManager.java` - Interface for managing volumes
 - `ApplicationDescriptor.java` - Extended with volumes field and addVolume() builder method
 - `ApplicationContext.java` - Extended with getVolumeManager() method
 
-**Implementation (in `jplatform-storage`)**:
+**Implementation (in `platform-java-storage`)**:
 - `FileSystemVolumeManager.java` - Filesystem-based volume manager implementation
 - `pom.xml` - New module POM with dependencies
 
-**Integration (in `jplatform-core`)**:
+**Integration (in `platform-java-core`)**:
 - `ApplicationContextImpl.java` - Added volumeManager field and getVolumeManager() method
 - `ApplicationManager.java` - Creates FileSystemVolumeManager during deploy, cleans up ephemeral volumes on undeploy
 
 #### Features
 - Persistent and ephemeral volume support per application
-- Filesystem-based storage at `/var/jplatform/volumes/{applicationId}/{volumeName}`
+- Filesystem-based storage at `/var/platform-java/volumes/{applicationId}/{volumeName}`
 - Automatic directory creation on application deployment
 - Volume usage tracking via filesystem walk
 - Size limits with validation
@@ -655,7 +655,7 @@ mvn clean compile -pl jplatform-monitoring,jplatform-core  # ✅ SUCCESS
   - **Ephemeral volumes**: Automatically deleted on undeploy
 - Thread-safe using ConcurrentHashMap for volume registration
 - Optional size limits (maxSizeMB) with enforcement capability
-- Configurable base path via system property `jplatform.volumes.dir`
+- Configurable base path via system property `platform-java.volumes.dir`
 
 #### Volume Configuration Example
 ```java
@@ -682,7 +682,7 @@ public class MyApp implements Application {
 
 #### Verification
 ```bash
-mvn clean compile -pl jplatform-storage,jplatform-core  # ✅ SUCCESS
+mvn clean compile -pl platform-java-storage,platform-java-core  # ✅ SUCCESS
 ```
 
 ---
@@ -690,15 +690,15 @@ mvn clean compile -pl jplatform-storage,jplatform-core  # ✅ SUCCESS
 ### Feature 1: Hot Code Reload / Dynamic Updates ✅
 
 **Status**: COMPLETE  
-**Modules**: `jplatform-api`, `jplatform-core`
+**Modules**: `platform-java-api`, `platform-java-core`
 
 #### Files Created/Modified
 
-**API (in `jplatform-api`)**:
+**API (in `platform-java-api`)**:
 - `ReloadableApplication.java` - Interface for applications that support state preservation during reload
 - `ApplicationDescriptor.java` - Extended with hotReloadEnabled and preserveState fields
 
-**Implementation (in `jplatform-core`)**:
+**Implementation (in `platform-java-core`)**:
 - `ClassLoaderVersion.java` - Version tracking for classloaders with reference counting
 - `ApplicationReloader.java` - Manages hot reload process with state capture/restore
 - `ApplicationManager.java` - Added reload() method
@@ -745,7 +745,7 @@ public class MyApp implements ReloadableApplication {
 
 #### Verification
 ```bash
-mvn clean compile -pl jplatform-core  # ✅ SUCCESS
+mvn clean compile -pl platform-java-core  # ✅ SUCCESS
 ```
 
 ---
@@ -753,16 +753,16 @@ mvn clean compile -pl jplatform-core  # ✅ SUCCESS
 ### Feature 3: Application Dependencies / Service Registry Enhancement ✅
 
 **Status**: COMPLETE  
-**Modules**: `jplatform-api`, `jplatform-core`
+**Modules**: `platform-java-api`, `platform-java-core`
 
 #### Files Created/Modified
 
-**API (in `jplatform-api`)**:
+**API (in `platform-java-api`)**:
 - `ApplicationDependency.java` - Dependency descriptor with REQUIRED/OPTIONAL types
 - `HealthCheck.java` - Interface for service health reporting
 - `ApplicationDescriptor.java` - Extended with dependencies field
 
-**Implementation (in `jplatform-core`)**:
+**Implementation (in `platform-java-core`)**:
 - `DependencyGraph.java` - Graph structure with cycle detection and topological sort
 - `DependencyResolver.java` - Validates dependencies and computes ordered startup sequence
 - `ApplicationManager.java` - Validates dependencies during deploy, starts in dependency order
@@ -797,7 +797,7 @@ ApplicationDescriptor.builder()
 
 #### Verification
 ```bash
-mvn clean compile -pl jplatform-core  # ✅ SUCCESS
+mvn clean compile -pl platform-java-core  # ✅ SUCCESS
 ```
 
 ---
@@ -805,16 +805,16 @@ mvn clean compile -pl jplatform-core  # ✅ SUCCESS
 ### Feature 5: Native Binary Support ✅
 
 **Status**: COMPLETE  
-**Modules**: `jplatform-api`, `jplatform-core`
+**Modules**: `platform-java-api`, `platform-java-core`
 
 #### Files Created/Modified
 
-**API (in `jplatform-api`)**:
+**API (in `platform-java-api`)**:
 - `Platform.java` - Enum for OS/architecture combinations (LINUX_X64, WINDOWS_X64, MACOS_ARM64, etc.)
 - `NativeLibrary.java` - Descriptor for platform-specific native libraries
 - `ApplicationDescriptor.java` - Extended with nativeLibraries field and nativeImage flag
 
-**Implementation (in `jplatform-core`)**:
+**Implementation (in `platform-java-core`)**:
 - `NativeLibraryLoader.java` - Platform detection and library extraction
 - `ApplicationManager.java` - Integrated native library loading in deploy/undeploy
 
@@ -823,7 +823,7 @@ mvn clean compile -pl jplatform-core  # ✅ SUCCESS
 - Automatic platform detection:
   - OS detection via `System.getProperty("os.name")`
   - Architecture detection via `System.getProperty("os.arch")`
-- Library extraction to isolated directory per application: `/var/jplatform/natives/{appId}/`
+- Library extraction to isolated directory per application: `/var/platform-java/natives/{appId}/`
 - Automatic `java.library.path` configuration
 - Support for multiple platforms in single descriptor
 - Thread-safe library loading with synchronized initialization
@@ -863,7 +863,7 @@ public class MyApp implements Application {
 
 #### Verification
 ```bash
-mvn clean compile -pl jplatform-core  # ✅ SUCCESS
+mvn clean compile -pl platform-java-core  # ✅ SUCCESS
 ```
 
 ---
@@ -871,34 +871,34 @@ mvn clean compile -pl jplatform-core  # ✅ SUCCESS
 ### Feature 6: Enhanced Monitoring (OpenTelemetry) ✅
 
 **Status**: COMPLETE  
-**Module**: `jplatform-otel` (NEW)
+**Module**: `platform-java-otel` (NEW)
 
 #### Files Created/Modified
 
 **Module Structure**:
-- `jplatform-otel/pom.xml` - New module with OpenTelemetry dependencies
-- `jplatform-otel/src/main/java/org/flossware/jplatform/otel/OpenTelemetryMetricsExporter.java` - OTLP exporter
+- `platform-java-otel/pom.xml` - New module with OpenTelemetry dependencies
+- `platform-java-otel/src/main/java/org/flossware/platform-java/otel/OpenTelemetryMetricsExporter.java` - OTLP exporter
 
 **Parent POM**:
 - Added OpenTelemetry dependencies (opentelemetry-api, opentelemetry-sdk, opentelemetry-exporter-otlp) version 1.32.0
-- Added jplatform-otel module
+- Added platform-java-otel module
 
 **Launcher Integration**:
 - `PlatformConfig.java` - Added OpenTelemetryConfig with enabled/endpoint fields
 - `PlatformLauncher.java` - Integrated OpenTelemetry exporter initialization
-- `jplatform-launcher/pom.xml` - Added jplatform-otel dependency
+- `platform-java-launcher/pom.xml` - Added platform-java-otel dependency
 
 #### Features
 - OpenTelemetry OTLP exporter for metrics
 - Exports to OpenTelemetry Collector via gRPC
 - Periodic export every 60 seconds
 - Metrics exported:
-  - `jplatform.app.cpu_time_seconds` - Counter for CPU time
-  - `jplatform.app.heap_used_bytes` - Gauge for heap memory
-  - `jplatform.app.thread_count` - Gauge for thread count
+  - `platform-java.app.cpu_time_seconds` - Counter for CPU time
+  - `platform-java.app.heap_used_bytes` - Gauge for heap memory
+  - `platform-java.app.thread_count` - Gauge for thread count
 - All metrics include `app_id` attribute for filtering
 - Configurable OTLP endpoint (default: http://localhost:4317)
-- Service name: "jplatform"
+- Service name: "platform-java"
 - Implements MetricsExporter interface (registerApplication, unregisterApplication, start, stop)
 - Thread-safe concurrent metrics registration
 
@@ -926,13 +926,13 @@ exporter.registerApplication("my-app", context);
 
 #### Verification
 ```bash
-mvn clean compile -pl jplatform-otel  # ✅ SUCCESS
+mvn clean compile -pl platform-java-otel  # ✅ SUCCESS
 
 # Start OpenTelemetry Collector
 docker run -p 4317:4317 otel/opentelemetry-collector
 
 # Start platform with OpenTelemetry enabled
-java -jar jplatform-launcher.jar --config platform.yaml
+java -jar platform-java-launcher.jar --config platform.yaml
 ```
 
 #### Future Enhancements (Documented but not yet implemented)
@@ -967,14 +967,14 @@ mvn clean compile  # ✅ SUCCESS - all modules compile with Java 21
 ### Issue #2: ClassLoader Leak Prevention ✅ RESOLVED
 
 **Status**: COMPLETE  
-**Components**: `jplatform-classloader`, `jplatform-core`
+**Components**: `platform-java-classloader`, `platform-java-core`
 
 #### Files Created/Modified
 
-**New Utility (in `jplatform-classloader`)**:
+**New Utility (in `platform-java-classloader`)**:
 - `ClassLoaderCleanupUtil.java` - Comprehensive cleanup utility for preventing memory leaks
 
-**Modified (in `jplatform-core`)**:
+**Modified (in `platform-java-core`)**:
 - `ApplicationManager.java` - Integrated cleanup into undeploy() and forceKill()
 
 **Documentation**:
@@ -1002,7 +1002,7 @@ Automatic cleanup on undeploy:
 #### Enable Leak Detection
 
 ```bash
-java -Djplatform.debug.detectLeaks=true -jar jplatform-launcher.jar
+java -Dplatform-java.debug.detectLeaks=true -jar platform-java-launcher.jar
 ```
 
 When enabled, logs warning if ClassLoader is not garbage collected after undeploy.
@@ -1020,7 +1020,7 @@ Created comprehensive best practices document covering:
 
 #### Verification
 ```bash
-mvn clean compile -pl jplatform-classloader,jplatform-core  # ✅ SUCCESS
+mvn clean compile -pl platform-java-classloader,platform-java-core  # ✅ SUCCESS
 ```
 
 ---
@@ -1028,14 +1028,14 @@ mvn clean compile -pl jplatform-classloader,jplatform-core  # ✅ SUCCESS
 ### Issue #3: SecurityManager Replacement ✅ RESOLVED
 
 **Status**: COMPLETE  
-**Components**: `jplatform-security`, `jplatform-core`
+**Components**: `platform-java-security`, `platform-java-core`
 
 #### Files Created/Modified
 
-**New Component (in `jplatform-security`)**:
+**New Component (in `platform-java-security`)**:
 - `SecurityEnforcer.java` - Modern StackWalker-based security enforcement
 
-**Modified (in `jplatform-core`)**:
+**Modified (in `platform-java-core`)**:
 - `ApplicationManager.java` - Registers/unregisters security policies automatically
 
 **Documentation**:
@@ -1076,7 +1076,7 @@ enforcer.checkNativeAccess("mylib");
 #### Enable Global Enforcement
 
 ```bash
-java -Djplatform.security.enforce=true -jar jplatform-launcher.jar
+java -Dplatform-java.security.enforce=true -jar platform-java-launcher.jar
 ```
 
 Or programmatically:
@@ -1110,7 +1110,7 @@ SecurityEnforcer.getInstance()
 
 #### Verification
 ```bash
-mvn clean compile -pl jplatform-security,jplatform-core  # ✅ SUCCESS
+mvn clean compile -pl platform-java-security,platform-java-core  # ✅ SUCCESS
 ```
 
 ---

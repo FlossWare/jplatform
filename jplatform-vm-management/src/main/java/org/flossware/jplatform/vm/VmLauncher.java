@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Launches and manages virtual machines via libvirt/KVM/QEMU.
  *
- * <p>Enables JPlatform to manage VMs alongside containers, Java apps, and native binaries,
+ * <p>Enables platform-java to manage VMs alongside containers, Java apps, and native binaries,
  * providing unified orchestration across all workload types.</p>
  *
  * <p>VM Configuration via Properties:</p>

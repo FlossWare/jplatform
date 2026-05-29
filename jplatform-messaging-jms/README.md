@@ -1,14 +1,14 @@
-# JPlatform Messaging - JMS
+# platform-java Messaging - JMS
 
 JMS-backed MessageBus implementation for distributed multi-node messaging.
 
 ## Overview
 
-`jplatform-messaging-jms` provides a JMS 3.0+ implementation of the JPlatform `MessageBus` interface, enabling applications to communicate across multiple JPlatform nodes via a JMS broker.
+`platform-java-messaging-jms` provides a JMS 3.0+ implementation of the platform-java `MessageBus` interface, enabling applications to communicate across multiple platform-java nodes via a JMS broker.
 
 ## Features
 
-- **Multi-node messaging** - Applications on different JPlatform instances can exchange messages
+- **Multi-node messaging** - Applications on different platform-java instances can exchange messages
 - **Persistent messages** - Messages survive broker restarts
 - **Guaranteed delivery** - JMS broker handles message durability and acknowledgment
 - **Broker-agnostic** - Works with any JMS 3.0+ broker (ActiveMQ Artemis, etc.)
@@ -21,8 +21,8 @@ JMS-backed MessageBus implementation for distributed multi-node messaging.
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-messaging-jms</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-messaging-jms</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -32,17 +32,17 @@ JMS-backed MessageBus implementation for distributed multi-node messaging.
 ```java
 import jakarta.jms.ConnectionFactory;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
-import org.flossware.jplatform.api.Message;
-import org.flossware.jplatform.api.Subscription;
-import org.flossware.jplatform.messaging.jms.JmsConfig;
-import org.flossware.jplatform.messaging.jms.JmsMessageBus;
+import org.flossware.platform-java.api.Message;
+import org.flossware.platform-java.api.Subscription;
+import org.flossware.platform-java.messaging.jms.JmsConfig;
+import org.flossware.platform-java.messaging.jms.JmsMessageBus;
 
 // 1. Configure JMS connection
 JmsConfig config = JmsConfig.builder()
     .brokerUrl("tcp://localhost:61616")
     .username("admin")
     .password("admin")
-    .clientId("jplatform-node-1")
+    .clientId("platform-java-node-1")
     .build();
 
 // 2. Create connection factory (Artemis example)
@@ -91,9 +91,9 @@ messageBus.close();
 ```java
 JmsConfig config = JmsConfig.builder()
     .brokerUrl("tcp://broker.example.com:61616")
-    .username("jplatform")
+    .username("platform-java")
     .password("secret")
-    .clientId("jplatform-prod-node-1")
+    .clientId("platform-java-prod-node-1")
     .acknowledgeMode(Session.CLIENT_ACKNOWLEDGE)
     .transacted(false)
     .build();
@@ -143,7 +143,7 @@ JmsConfig config = JmsConfig.builder()
     .brokerUrl("tcp://192.168.1.5:61616")
     .username("admin")
     .password("admin")
-    .clientId("jplatform-node-" + nodeId)  // Unique per node
+    .clientId("platform-java-node-" + nodeId)  // Unique per node
     .build();
 ```
 
@@ -201,7 +201,7 @@ docker run -d \
 The module includes comprehensive unit tests (38 tests, 77%+ coverage):
 
 ```bash
-mvn test -pl jplatform-messaging-jms
+mvn test -pl platform-java-messaging-jms
 ```
 
 ### Integration Testing
@@ -249,10 +249,10 @@ embedded.stop();
 
 ## License
 
-Part of the JPlatform project. See parent project for license information.
+Part of the platform-java project. See parent project for license information.
 
 ## See Also
 
-- [JPlatform Messaging](../jplatform-messaging/README.md) - In-memory MessageBus implementation
-- [MessageBus API](../jplatform-api/src/main/java/org/flossware/jplatform/api/MessageBus.java)
+- [platform-java Messaging](../platform-java-messaging/README.md) - In-memory MessageBus implementation
+- [MessageBus API](../platform-java-api/src/main/java/org/flossware/platform-java/api/MessageBus.java)
 - [ActiveMQ Artemis](https://activemq.apache.org/components/artemis/)

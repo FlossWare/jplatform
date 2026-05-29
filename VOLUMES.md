@@ -2,7 +2,7 @@
 
 ## Overview
 
-JPlatform 2.0 introduces **persistent storage volumes**, allowing applications to store data that survives restarts and redeployments. Each application can mount one or more volumes for database files, caches, logs, or any persistent data.
+platform-java 2.0 introduces **persistent storage volumes**, allowing applications to store data that survives restarts and redeployments. Each application can mount one or more volumes for database files, caches, logs, or any persistent data.
 
 ## Key Concepts
 
@@ -31,12 +31,12 @@ Each volume has:
 Volumes are stored on the filesystem at:
 
 ```
-/var/jplatform/volumes/{applicationId}/{volumeName}/
+/var/platform-java/volumes/{applicationId}/{volumeName}/
 ```
 
 Example:
 ```
-/var/jplatform/volumes/
+/var/platform-java/volumes/
   my-app/
     database/       ← Persistent database files
     cache/          ← Ephemeral cache files
@@ -45,7 +45,7 @@ Example:
 
 The base path can be customized via system property:
 ```bash
-java -Djplatform.volumes.dir=/custom/path -jar jplatform-launcher.jar
+java -Dplatform-java.volumes.dir=/custom/path -jar platform-java-launcher.jar
 ```
 
 ## Configuration Examples
@@ -263,7 +263,7 @@ When an application is deployed:
 
 1. Platform reads volume definitions from ApplicationDescriptor
 2. Creates FileSystemVolumeManager for the application
-3. Creates volume directories at `/var/jplatform/volumes/{appId}/{volumeName}`
+3. Creates volume directories at `/var/platform-java/volumes/{appId}/{volumeName}`
 4. Adds VolumeManager to ApplicationContext
 
 ```java
@@ -299,7 +299,7 @@ When an application is undeployed:
 ```java
 // During ApplicationManager.undeploy()
 volumeManager.cleanupEphemeralVolumes();
-// Persistent volumes remain at /var/jplatform/volumes/{appId}/
+// Persistent volumes remain at /var/platform-java/volumes/{appId}/
 ```
 
 ### Redeploy
@@ -358,13 +358,13 @@ Platform administrators can manually delete persistent volumes:
 
 ```bash
 # List volumes
-ls /var/jplatform/volumes/
+ls /var/platform-java/volumes/
 
 # Delete specific application's volumes
-rm -rf /var/jplatform/volumes/my-app/
+rm -rf /var/platform-java/volumes/my-app/
 
 # Delete specific volume
-rm -rf /var/jplatform/volumes/my-app/old-cache/
+rm -rf /var/platform-java/volumes/my-app/old-cache/
 ```
 
 ### Monitoring Volume Usage
@@ -479,11 +479,11 @@ Implement backup strategies for critical data:
 ```bash
 #!/bin/bash
 # Backup script for persistent volumes
-BACKUP_DIR=/backups/jplatform
+BACKUP_DIR=/backups/platform-java
 DATE=$(date +%Y%m%d)
 
 # Backup all persistent volumes
-for app in /var/jplatform/volumes/*; do
+for app in /var/platform-java/volumes/*; do
     app_id=$(basename $app)
     tar czf $BACKUP_DIR/${app_id}-${DATE}.tar.gz $app
 done
@@ -496,28 +496,28 @@ find $BACKUP_DIR -name "*.tar.gz" -mtime +7 -delete
 
 ### Components
 
-1. **VolumeMount** (in `jplatform-api`):
+1. **VolumeMount** (in `platform-java-api`):
    - Value object describing volume configuration
    - Immutable with validation
 
-2. **VolumeManager** (interface in `jplatform-api`):
+2. **VolumeManager** (interface in `platform-java-api`):
    - Defines volume management operations
    - Accessed via `ApplicationContext.getVolumeManager()`
 
-3. **FileSystemVolumeManager** (in `jplatform-storage`):
+3. **FileSystemVolumeManager** (in `platform-java-storage`):
    - Filesystem-based VolumeManager implementation
    - Uses Java NIO for directory operations
    - Thread-safe using ConcurrentHashMap
 
-4. **ApplicationDescriptor** (in `jplatform-api`):
+4. **ApplicationDescriptor** (in `platform-java-api`):
    - Extended with volumes list
    - Builder pattern with `addVolume()` method
 
-5. **ApplicationContext** (in `jplatform-api`):
+5. **ApplicationContext** (in `platform-java-api`):
    - Extended with `getVolumeManager()` method
    - Returns `Optional<VolumeManager>`
 
-6. **ApplicationManager** (in `jplatform-core`):
+6. **ApplicationManager** (in `platform-java-core`):
    - Creates FileSystemVolumeManager during deploy
    - Cleans up ephemeral volumes on undeploy
 
@@ -530,7 +530,7 @@ ApplicationManager.deploy()
   ↓
 new FileSystemVolumeManager(appId, volumes)
   ↓
-Creates directories at /var/jplatform/volumes/{appId}/{volumeName}
+Creates directories at /var/platform-java/volumes/{appId}/{volumeName}
   ↓
 ApplicationContextImpl.Builder.volumeManager(vm)
   ↓
@@ -546,7 +546,7 @@ File I/O operations
 ### VolumeMount
 
 ```java
-package org.flossware.jplatform.api;
+package org.flossware.platform-java.api;
 
 public class VolumeMount {
     public VolumeMount(String name, String mountPath, boolean persistent, long maxSizeMB);
@@ -562,7 +562,7 @@ public class VolumeMount {
 ### VolumeManager Interface
 
 ```java
-package org.flossware.jplatform.api;
+package org.flossware.platform-java.api;
 
 public interface VolumeManager {
     Path getVolumePath(String volumeName);
@@ -577,7 +577,7 @@ public interface VolumeManager {
 ### FileSystemVolumeManager
 
 ```java
-package org.flossware.jplatform.storage;
+package org.flossware.platform-java.storage;
 
 public class FileSystemVolumeManager implements VolumeManager {
     public FileSystemVolumeManager(String applicationId, List<VolumeMount> volumes) throws IOException;
@@ -598,7 +598,7 @@ public class FileSystemVolumeManager implements VolumeManager {
 ### ApplicationContext Extension
 
 ```java
-package org.flossware.jplatform.api;
+package org.flossware.platform-java.api;
 
 public interface ApplicationContext {
     // Existing methods...
@@ -612,12 +612,12 @@ public interface ApplicationContext {
 }
 ```
 
-## Migration from JPlatform 1.0
+## Migration from platform-java 1.0
 
 Applications without volumes continue to work without changes:
 
 ```java
-// JPlatform 1.0 application (no volumes)
+// platform-java 1.0 application (no volumes)
 public class MyApp implements Application {
     @Override
     public void start(ApplicationContext context) {
@@ -629,7 +629,7 @@ public class MyApp implements Application {
 Add volumes incrementally:
 
 ```java
-// JPlatform 2.0 application (with volumes)
+// platform-java 2.0 application (with volumes)
 ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
     .applicationId("my-app")
     .mainClass("com.example.MyApp")
@@ -663,8 +663,8 @@ public class MyApp implements Application {
 **Cause**: Insufficient filesystem permissions.
 
 **Solution**:
-1. Ensure platform has write access to `/var/jplatform/volumes/`
-2. Check directory ownership: `chown -R jplatform:jplatform /var/jplatform/volumes`
+1. Ensure platform has write access to `/var/platform-java/volumes/`
+2. Check directory ownership: `chown -R platform-java:platform-java /var/platform-java/volumes`
 3. Check SELinux/AppArmor policies
 
 ### Volume Quota Exceeded

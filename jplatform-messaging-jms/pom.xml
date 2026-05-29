@@ -6,19 +6,19 @@
 
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
 
-    <artifactId>jplatform-messaging-jms</artifactId>
-    <name>JPlatform Messaging - JMS</name>
+    <artifactId>platform-java-messaging-jms</artifactId>
+    <name>platform-java Messaging - JMS</name>
     <description>JMS-backed MessageBus implementation for distributed multi-node messaging</description>
 
     <dependencies>
         <!-- JPlatform API -->
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
         </dependency>
 
         <!-- JMS API -->

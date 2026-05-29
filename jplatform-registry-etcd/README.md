@@ -1,6 +1,6 @@
-# JPlatform Registry - etcd
+# platform-java Registry - etcd
 
-etcd-based service registry implementation for JPlatform using distributed key-value storage.
+etcd-based service registry implementation for platform-java using distributed key-value storage.
 
 ## Features
 
@@ -15,8 +15,8 @@ etcd-based service registry implementation for JPlatform using distributed key-v
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-registry-etcd</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-registry-etcd</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -59,7 +59,7 @@ registry.close();
 Services are stored as etcd keys with JSON metadata:
 
 ```
-Key:   /jplatform/services/{interface}/{uuid}
+Key:   /platform-java/services/{interface}/{uuid}
 Value: {"interface": "...", "implementation": "...", "timestamp": "..."}
 Lease: TTL seconds (auto-expires if not renewed)
 ```
@@ -67,10 +67,10 @@ Lease: TTL seconds (auto-expires if not renewed)
 ## Testing
 
 ```bash
-mvn test -pl jplatform-registry-etcd
+mvn test -pl platform-java-registry-etcd
 ```
 
 ## See Also
 
-- [jplatform-registry-consul](../jplatform-registry-consul) - Consul service registry
-- [jplatform-cluster-etcd](../jplatform-cluster-etcd) - etcd clustering
+- [platform-java-registry-consul](../platform-java-registry-consul) - Consul service registry
+- [platform-java-cluster-etcd](../platform-java-cluster-etcd) - etcd clustering

@@ -1,6 +1,6 @@
-# JPlatform Cluster - Etcd
+# platform-java Cluster - Etcd
 
-Etcd-based clustering implementation for JPlatform using distributed etcd primitives for leader election and membership management.
+Etcd-based clustering implementation for platform-java using distributed etcd primitives for leader election and membership management.
 
 ## Features
 
@@ -17,8 +17,8 @@ Etcd-based clustering implementation for JPlatform using distributed etcd primit
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-cluster-etcd</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-cluster-etcd</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -71,7 +71,7 @@ EtcdConfig config = EtcdConfig.builder()
     .addEndpoint("https://etcd.example.com:2379")
     .username("admin")
     .password("secret")
-    .namespace("jplatform")
+    .namespace("platform-java")
     .leaseTtl(10)
     .build();
 ```
@@ -147,8 +147,8 @@ The etcd cluster manager uses etcd leases for leader election:
 
 EtcdStateStore provides distributed state management:
 
-- **Application States**: Stored as etcd keys under `/jplatform/states/{appId}`
-- **Application Descriptors**: Stored as etcd keys under `/jplatform/descriptors/{appId}`
+- **Application States**: Stored as etcd keys under `/platform-java/states/{appId}`
+- **Application Descriptors**: Stored as etcd keys under `/platform-java/descriptors/{appId}`
 - **JSON Serialization**: Uses Jackson ObjectMapper for complex objects
 - **Prefix Queries**: Efficient retrieval of all states using etcd prefix scans
 - **Listeners**: ConcurrentHashMap-based listener management for state change notifications
@@ -252,7 +252,7 @@ This module requires:
 Tests use mocked etcd client:
 
 ```bash
-mvn test -pl jplatform-cluster-etcd
+mvn test -pl platform-java-cluster-etcd
 ```
 
 For integration tests with real etcd (optional):
@@ -262,7 +262,7 @@ For integration tests with real etcd (optional):
 docker run -d -p 2379:2379 --name etcd-test quay.io/coreos/etcd:latest
 
 # Run tests
-mvn verify -pl jplatform-cluster-etcd
+mvn verify -pl platform-java-cluster-etcd
 
 # Stop etcd
 docker stop etcd-test && docker rm etcd-test
@@ -270,4 +270,4 @@ docker stop etcd-test && docker rm etcd-test
 
 ## License
 
-Part of JPlatform - see main project for license details.
+Part of platform-java - see main project for license details.

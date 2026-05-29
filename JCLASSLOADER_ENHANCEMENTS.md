@@ -1,7 +1,7 @@
 # Proposed Enhancements to jclassloader
 
 ## Goal
-Add reusable isolation and lifecycle management features to jclassloader that benefit any project needing custom class loading behavior (not just jplatform).
+Add reusable isolation and lifecycle management features to jclassloader that benefit any project needing custom class loading behavior (not just platform-java).
 
 ## Enhancements to Add
 
@@ -408,7 +408,7 @@ public class JClassLoader extends ClassLoader {
 - **Use case 2**: Plugin systems needing isolation
 - **Use case 3**: Multi-tenant applications
 - **Use case 4**: Testing frameworks needing class isolation
-- **Use case 5**: JPlatform application isolation
+- **Use case 5**: platform-java application isolation
 
 ### Lifecycle Hooks
 - **Use case 1**: Security auditing (track what classes are loaded)
@@ -469,7 +469,7 @@ JClassLoader moduleLoader = JClassLoader.builder()
 - ✅ Debugging and monitoring capabilities
 - ✅ Still simple for basic use cases
 
-### For jplatform:
+### For platform-java:
 - ✅ Gets parent-last isolation for free
 - ✅ Gets resource tracking for cleanup
 - ✅ No need to reimplement class loading

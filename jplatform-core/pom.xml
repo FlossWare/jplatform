@@ -6,43 +6,43 @@
 
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
 
-    <artifactId>jplatform-core</artifactId>
-    <name>JPlatform Core</name>
+    <artifactId>platform-java-core</artifactId>
+    <name>platform-java Core</name>
     <description>Core platform implementation - ApplicationManager and lifecycle management</description>
 
     <dependencies>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-classloader</artifactId>
+            <artifactId>platform-java-classloader</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-threadpool</artifactId>
+            <artifactId>platform-java-threadpool</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-security</artifactId>
+            <artifactId>platform-java-security</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-monitoring</artifactId>
+            <artifactId>platform-java-monitoring</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-storage</artifactId>
+            <artifactId>platform-java-storage</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-vm-management</artifactId>
+            <artifactId>platform-java-vm-management</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

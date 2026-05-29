@@ -1,6 +1,6 @@
-# JPlatform Cluster - Redis
+# platform-java Cluster - Redis
 
-Redis-based clustering implementation for JPlatform using distributed Redis primitives for leader election and membership management.
+Redis-based clustering implementation for platform-java using distributed Redis primitives for leader election and membership management.
 
 ## Features
 
@@ -16,8 +16,8 @@ Redis-based clustering implementation for JPlatform using distributed Redis prim
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-cluster-redis</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-cluster-redis</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -160,7 +160,7 @@ The Redis cluster manager uses the SETNX (SET if Not eXists) pattern for leader 
 5. If leader fails, key expires and another node can claim leadership
 
 ```
-Key: jplatform:leader:{clusterName}
+Key: platform-java:leader:{clusterName}
 Value: {nodeId}
 TTL: {leaseTtl} seconds
 ```
@@ -170,7 +170,7 @@ TTL: {leaseTtl} seconds
 Member nodes are tracked in a Redis hash:
 
 ```
-Key: jplatform:members:{clusterName}
+Key: platform-java:members:{clusterName}
 Field: {nodeId}
 Value: {timestamp}
 TTL: 2 * {leaseTtl} seconds
@@ -186,8 +186,8 @@ Each node:
 Application state and descriptors are stored in separate Redis hashes:
 
 ```
-States:      jplatform:states
-Descriptors: jplatform:descriptors
+States:      platform-java:states
+Descriptors: platform-java:descriptors
 ```
 
 Data is serialized to JSON using Jackson ObjectMapper.
@@ -252,7 +252,7 @@ stateStore.putApplicationState("app1", state);
 ### Unit Tests
 
 ```bash
-mvn test -pl jplatform-cluster-redis
+mvn test -pl platform-java-cluster-redis
 ```
 
 ### Integration Tests
@@ -350,17 +350,17 @@ Test with redis-cli: redis-cli -a password ping
 Check TTL is sufficient (min 5 seconds)
 Verify network connectivity to Redis
 Check Redis logs for errors
-Monitor key expiration: redis-cli TTL jplatform:leader:cluster-name
+Monitor key expiration: redis-cli TTL platform-java:leader:cluster-name
 ```
 
 ## License
 
-This module is part of JPlatform and uses the same license as the parent project.
+This module is part of platform-java and uses the same license as the parent project.
 
 ## See Also
 
-- [jplatform-cluster](../jplatform-cluster) - Hazelcast-based clustering
-- [jplatform-cluster-consul](../jplatform-cluster-consul) - Consul-based clustering
-- [jplatform-cluster-etcd](../jplatform-cluster-etcd) - etcd-based clustering
+- [platform-java-cluster](../platform-java-cluster) - Hazelcast-based clustering
+- [platform-java-cluster-consul](../platform-java-cluster-consul) - Consul-based clustering
+- [platform-java-cluster-etcd](../platform-java-cluster-etcd) - etcd-based clustering
 - [Redis Documentation](https://redis.io/documentation)
 - [Jedis GitHub](https://github.com/redis/jedis)

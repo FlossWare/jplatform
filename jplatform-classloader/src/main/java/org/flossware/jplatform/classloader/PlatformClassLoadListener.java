@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Platform-specific listener that integrates class loading events with JPlatform logging and monitoring.
+ * Platform-specific listener that integrates class loading events with platform-java logging and monitoring.
  */
 public class PlatformClassLoadListener implements ClassLoaderLifecycleListener {
 

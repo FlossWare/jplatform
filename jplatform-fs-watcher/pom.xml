@@ -6,27 +6,27 @@
 
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
 
-    <artifactId>jplatform-fs-watcher</artifactId>
-    <name>JPlatform Filesystem Watcher</name>
+    <artifactId>platform-java-fs-watcher</artifactId>
+    <name>platform-java Filesystem Watcher</name>
     <description>Automatic application deployment from filesystem monitoring</description>
 
     <dependencies>
         <!-- JPlatform modules -->
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-core</artifactId>
+            <artifactId>platform-java-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-config</artifactId>
+            <artifactId>platform-java-config</artifactId>
         </dependency>
 
         <!-- Logging -->

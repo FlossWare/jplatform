@@ -1,6 +1,6 @@
-# JPlatform Config - ZooKeeper
+# platform-java Config - ZooKeeper
 
-Apache ZooKeeper configuration source for JPlatform. Provides dynamic, distributed configuration management with hierarchical key-value storage and real-time change notifications.
+Apache ZooKeeper configuration source for platform-java. Provides dynamic, distributed configuration management with hierarchical key-value storage and real-time change notifications.
 
 ## Features
 
@@ -15,8 +15,8 @@ Apache ZooKeeper configuration source for JPlatform. Provides dynamic, distribut
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-config-zookeeper</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-config-zookeeper</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -151,7 +151,7 @@ The module includes comprehensive tests using Curator's TestingServer:
 
 Run tests:
 ```bash
-mvn test -pl jplatform-config-zookeeper
+mvn test -pl platform-java-config-zookeeper
 ```
 
 ## Dependencies

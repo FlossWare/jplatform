@@ -1,6 +1,6 @@
-# JPlatform Registry - Eureka
+# platform-java Registry - Eureka
 
-Netflix Eureka service discovery integration for JPlatform. Provides dynamic service registration and discovery using Eureka servers.
+Netflix Eureka service discovery integration for platform-java. Provides dynamic service registration and discovery using Eureka servers.
 
 ## Features
 
@@ -16,8 +16,8 @@ Netflix Eureka service discovery integration for JPlatform. Provides dynamic ser
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-registry-eureka</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-registry-eureka</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -80,7 +80,7 @@ registry.start();
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | serviceUrls | List<String> | ["http://localhost:8761/eureka"] | Eureka server URLs |
-| appName | String | jplatform-app | Application name in Eureka |
+| appName | String | platform-java-app | Application name in Eureka |
 | instanceId | String | auto-generated | Unique instance identifier |
 | renewalIntervalSeconds | int | 30 | Heartbeat interval in seconds |
 | leaseExpirationSeconds | int | 90 | Time before Eureka removes inactive instance |
@@ -165,7 +165,7 @@ The module includes comprehensive tests with 60%+ coverage:
 
 Run tests:
 ```bash
-mvn test -pl jplatform-registry-eureka
+mvn test -pl platform-java-registry-eureka
 ```
 
 ## Integration with Eureka Server

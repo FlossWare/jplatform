@@ -1,15 +1,15 @@
-# JPlatform Release Notes
+# platform-java Release Notes
 
 ---
 
-# JPlatform 1.1 - Release Notes
+# platform-java 1.1 - Release Notes
 
 **Release Date:** May 2026  
 **Status:** Production Ready
 
 ## Overview
 
-JPlatform 1.1 resolves three critical GitHub issues focused on build consistency, memory leak prevention, and future Java compatibility. This release ensures JPlatform is ready for Java 21+ and provides robust ClassLoader cleanup and modern security enforcement.
+platform-java 1.1 resolves three critical GitHub issues focused on build consistency, memory leak prevention, and future Java compatibility. This release ensures platform-java is ready for Java 21+ and provides robust ClassLoader cleanup and modern security enforcement.
 
 ## What's New in 1.1
 
@@ -42,7 +42,7 @@ Comprehensive cleanup system to prevent memory leaks after application undeploy.
 **Integration**:
 - Automatic cleanup in `ApplicationManager.undeploy()`
 - Cleanup in `ApplicationManager.forceKill()`
-- Enable leak detection: `-Djplatform.debug.detectLeaks=true`
+- Enable leak detection: `-Dplatform-java.debug.detectLeaks=true`
 
 **Documentation**:
 - [ClassLoader Best Practices](CLASSLOADER_BEST_PRACTICES.md) - Complete developer guide
@@ -70,7 +70,7 @@ Modern security enforcement using StackWalker API instead of deprecated Security
 - ✅ Future-proof (won't be removed from Java)
 
 **Configuration**:
-- Enable enforcement: `-Djplatform.security.enforce=true`
+- Enable enforcement: `-Dplatform-java.security.enforce=true`
 - Automatic policy registration/unregistration
 
 **Documentation**:
@@ -87,10 +87,10 @@ Modern security enforcement using StackWalker API instead of deprecated Security
 **Optional**: Enable new features via system properties:
 ```bash
 # Enable leak detection
-java -Djplatform.debug.detectLeaks=true -jar jplatform-launcher.jar
+java -Dplatform-java.debug.detectLeaks=true -jar platform-java-launcher.jar
 
 # Enable security enforcement
-java -Djplatform.security.enforce=true -jar jplatform-launcher.jar
+java -Dplatform-java.security.enforce=true -jar platform-java-launcher.jar
 ```
 
 ## Build Status
@@ -102,13 +102,13 @@ java -Djplatform.security.enforce=true -jar jplatform-launcher.jar
 
 ---
 
-# JPlatform 2.0 - Planned Features
+# platform-java 2.0 - Planned Features
 
 **Status:** DOCUMENTED - Implementation Complete, Testing In Progress
 
 ## Overview
 
-JPlatform 2.0 will add six major platform-level features that align with the platform's core mission as an application runtime (similar to Kubernetes/YARN for JVM processes). These features focus on platform concerns—hot code reload, resource enforcement, dependency management, persistent storage, native binaries, and enhanced observability.
+platform-java 2.0 will add six major platform-level features that align with the platform's core mission as an application runtime (similar to Kubernetes/YARN for JVM processes). These features focus on platform concerns—hot code reload, resource enforcement, dependency management, persistent storage, native binaries, and enhanced observability.
 
 ## Planned Features for 2.0
 
@@ -136,7 +136,7 @@ preserveState: true
 curl -X POST http://localhost:8080/api/applications/my-app/reload -d @updated-app.json
 
 # Reload via CLI
-java -jar jplatform-launcher.jar reload --app-id my-app --yaml updated-app.yaml
+java -jar platform-java-launcher.jar reload --app-id my-app --yaml updated-app.yaml
 ```
 
 **[Full Documentation](HOT_RELOAD.md)**
@@ -211,7 +211,7 @@ order-service (depends on cache-service and database-service)
 Per-application persistent and ephemeral volumes with lifecycle management.
 
 **Features**:
-- Filesystem-based storage at `/var/jplatform/volumes/{appId}/{volumeName}`
+- Filesystem-based storage at `/var/platform-java/volumes/{appId}/{volumeName}`
 - Persistent volumes survive restarts and redeployments
 - Ephemeral volumes deleted on undeploy
 - Configurable size limits with enforcement
@@ -249,7 +249,7 @@ Load platform-specific native libraries with automatic platform detection.
 
 **Features**:
 - Platform detection (Linux x64, Windows x64, macOS ARM64, etc.)
-- Per-application library isolation at `/var/jplatform/natives/{appId}/`
+- Per-application library isolation at `/var/platform-java/natives/{appId}/`
 - No version conflicts between applications
 - Support for multiple platforms in single descriptor
 - Automatic `java.library.path` configuration
@@ -288,7 +288,7 @@ Export metrics to OpenTelemetry Collector via OTLP protocol.
 - Periodic export every 60 seconds
 - Metrics: CPU time (counter), heap usage (gauge), thread count (gauge)
 - All metrics labeled with `app_id`
-- Service name: "jplatform"
+- Service name: "platform-java"
 - Integration with Prometheus, Grafana, Jaeger
 
 **Configuration**:
@@ -300,9 +300,9 @@ metrics:
 ```
 
 **Exported Metrics**:
-- `jplatform.app.cpu_time_seconds` - Total CPU time (counter)
-- `jplatform.app.heap_used_bytes` - Current heap usage (gauge)
-- `jplatform.app.thread_count` - Current thread count (gauge)
+- `platform-java.app.cpu_time_seconds` - Total CPU time (counter)
+- `platform-java.app.heap_used_bytes` - Current heap usage (gauge)
+- `platform-java.app.thread_count` - Current thread count (gauge)
 
 **Future Enhancements** (documented but not yet implemented):
 - Distributed tracing with trace context propagation
@@ -316,8 +316,8 @@ metrics:
 
 ## New Modules in 2.0
 
-- **jplatform-storage**: Persistent volume management
-- **jplatform-otel**: OpenTelemetry metrics exporter
+- **platform-java-storage**: Persistent volume management
+- **platform-java-otel**: OpenTelemetry metrics exporter
 
 ## Dependencies Added
 
@@ -339,7 +339,7 @@ All 2.0 features are **opt-in** and **backward compatible**:
 
 ## Migration from 1.0 to 2.0
 
-**No migration required.** JPlatform 2.0 is fully backward compatible with 1.0.
+**No migration required.** platform-java 2.0 is fully backward compatible with 1.0.
 
 To use new features, update your application descriptors:
 
@@ -392,14 +392,14 @@ metrics:
 
 ---
 
-# JPlatform 1.0 - Release Notes
+# platform-java 1.0 - Release Notes
 
 **Release Date:** May 2026  
 **Status:** Production Ready (Superseded by 2.0)
 
 ## Overview
 
-JPlatform 1.0 is a production-ready Java application platform that enables running multiple isolated Java applications within a single JVM. This release includes all core features plus advanced deployment, management, and monitoring capabilities.
+platform-java 1.0 is a production-ready Java application platform that enables running multiple isolated Java applications within a single JVM. This release includes all core features plus advanced deployment, management, and monitoring capabilities.
 
 ## What's New in 1.0
 
@@ -474,22 +474,22 @@ GET    /api/health                    - Health check
 ## Module Summary
 
 ### Production Modules
-- `jplatform-api` - Public APIs and interfaces (20+ interfaces)
-- `jplatform-core` - Core platform logic (ApplicationManager, lifecycle)
-- `jplatform-classloader` - Isolated ClassLoader with parent-last delegation
-- `jplatform-threadpool` - Managed thread pools per application
-- `jplatform-security` - Security policy enforcement
-- `jplatform-monitoring` - Resource tracking and quotas
-- `jplatform-messaging` - Event bus and service registry
-- `jplatform-config` - YAML/JSON descriptor parsing (NEW)
-- `jplatform-fs-watcher` - Filesystem monitoring (NEW)
-- `jplatform-rest-api` - HTTP REST API server (NEW)
-- `jplatform-web-console` - Browser-based UI (NEW)
-- `jplatform-metrics-jmx` - JMX metrics exporter (NEW)
-- `jplatform-metrics-prometheus` - Prometheus exporter (NEW)
-- `jplatform-cluster` - Multi-node clustering support (NEW)
-- `jplatform-launcher` - Platform bootstrap and CLI
-- `jplatform-samples` - Sample applications
+- `platform-java-api` - Public APIs and interfaces (20+ interfaces)
+- `platform-java-core` - Core platform logic (ApplicationManager, lifecycle)
+- `platform-java-classloader` - Isolated ClassLoader with parent-last delegation
+- `platform-java-threadpool` - Managed thread pools per application
+- `platform-java-security` - Security policy enforcement
+- `platform-java-monitoring` - Resource tracking and quotas
+- `platform-java-messaging` - Event bus and service registry
+- `platform-java-config` - YAML/JSON descriptor parsing (NEW)
+- `platform-java-fs-watcher` - Filesystem monitoring (NEW)
+- `platform-java-rest-api` - HTTP REST API server (NEW)
+- `platform-java-web-console` - Browser-based UI (NEW)
+- `platform-java-metrics-jmx` - JMX metrics exporter (NEW)
+- `platform-java-metrics-prometheus` - Prometheus exporter (NEW)
+- `platform-java-cluster` - Multi-node clustering support (NEW)
+- `platform-java-launcher` - Platform bootstrap and CLI
+- `platform-java-samples` - Sample applications
 
 ### Test Coverage
 - **623 unit and integration tests** across all modules
@@ -501,7 +501,7 @@ GET    /api/health                    - Health check
 
 ### Platform Configuration File (NEW)
 
-JPlatform supports loading configuration from a YAML file (`platform.yaml`):
+platform-java supports loading configuration from a YAML file (`platform.yaml`):
 
 ```yaml
 api:
@@ -516,12 +516,12 @@ metrics:
     port: 9090
 watcher:
   enabled: true
-  watchDirectory: /var/jplatform/apps
+  watchDirectory: /var/platform-java/apps
 ```
 
 Load with:
 ```bash
-java -jar jplatform-launcher-1.0.jar --config platform.yaml
+java -jar platform-java-launcher-1.0.jar --config platform.yaml
 ```
 
 ### Command-Line Flags
@@ -540,16 +540,16 @@ java -jar jplatform-launcher-1.0.jar --config platform.yaml
 --watch-dir <path>          # Enable filesystem watcher
 
 # Production example (command-line)
-java -jar jplatform-launcher-1.0.jar \
+java -jar platform-java-launcher-1.0.jar \
   --rest-api --web-console \
   --jmx-port 9999 --prometheus \
-  --watch-dir /var/jplatform/apps
+  --watch-dir /var/platform-java/apps
 
 # Production example (config file)
-java -jar jplatform-launcher-1.0.jar --config platform.yaml
+java -jar platform-java-launcher-1.0.jar --config platform.yaml
 
 # Override config file settings
-java -jar jplatform-launcher-1.0.jar --config platform.yaml --port 9000
+java -jar platform-java-launcher-1.0.jar --config platform.yaml --port 9000
 ```
 
 ## Supported Deployment Formats
@@ -631,11 +631,11 @@ Basic usage:
 mvn clean install
 
 # Run
-java -jar jplatform-launcher/target/jplatform-launcher-1.0.jar
+java -jar platform-java-launcher/target/platform-java-launcher-1.0.jar
 
 # Deploy sample
-jplatform> deploy hello jplatform-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.jplatform.samples.helloworld.HelloWorldApp
-jplatform> start hello
+platform-java> deploy hello platform-java-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.platform-java.samples.helloworld.HelloWorldApp
+platform-java> start hello
 ```
 
 ## Documentation
@@ -648,13 +648,13 @@ jplatform> start hello
 
 ## Support
 
-- **GitHub Issues**: https://github.com/FlossWare/jplatform/issues
-- **Documentation**: https://github.com/FlossWare/jplatform
-- **Examples**: See `jplatform-samples` directory
+- **GitHub Issues**: https://github.com/FlossWare/platform-java/issues
+- **Documentation**: https://github.com/FlossWare/platform-java
+- **Examples**: See `platform-java-samples` directory
 
 ## Contributors
 
-JPlatform is developed by FlossWare and contributors.
+platform-java is developed by FlossWare and contributors.
 
 ## License
 
@@ -675,6 +675,6 @@ See [LICENSE](LICENSE) file for details.
 
 ---
 
-**Thank you for using JPlatform!**
+**Thank you for using platform-java!**
 
 For questions or feedback, please open an issue on GitHub.

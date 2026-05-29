@@ -10,10 +10,10 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Simple hello world application demonstrating JPlatform usage.
+ * Simple hello world application demonstrating platform-java usage.
  * Prints a message every 5 seconds.
  * <p>
- * This sample application demonstrates the basic lifecycle of a JPlatform application:
+ * This sample application demonstrates the basic lifecycle of a platform-java application:
  * starting, running in a background thread, and graceful shutdown. It serves as a
  * minimal example for new application development.
  * <p>

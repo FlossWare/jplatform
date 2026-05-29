@@ -1,10 +1,10 @@
-# JPlatform JVMTI Agent
+# platform-java JVMTI Agent
 
 Native JVMTI-based heap profiler for precise memory tracking by ClassLoader.
 
 ## Overview
 
-The jplatform-jvmti-agent module provides a native JVMTI (JVM Tool Interface) agent that enables precise heap profiling for JPlatform applications. Unlike estimation-based approaches, this agent directly iterates through the JVM heap to measure exact memory usage for objects loaded by specific ClassLoaders.
+The platform-java-jvmti-agent module provides a native JVMTI (JVM Tool Interface) agent that enables precise heap profiling for platform-java applications. Unlike estimation-based approaches, this agent directly iterates through the JVM heap to measure exact memory usage for objects loaded by specific ClassLoaders.
 
 ## Requirements
 
@@ -27,20 +27,20 @@ The jplatform-jvmti-agent module provides a native JVMTI (JVM Tool Interface) ag
 If you have GCC and JDK headers installed:
 
 ```bash
-cd /path/to/jplatform
-mvn clean install -pl jplatform-jvmti-agent
+cd /path/to/platform-java
+mvn clean install -pl platform-java-jvmti-agent
 ```
 
 The compiled native library will be placed in:
-- `target/libjplatform-agent.so`
-- `target/classes/native/linux-x64/libjplatform-agent.so` (packaged in JAR)
+- `target/libplatform-java-agent.so`
+- `target/classes/native/linux-x64/libplatform-java-agent.so` (packaged in JAR)
 
 ### Skip Native Compilation
 
 If native build tools are not available, you can build without native compilation:
 
 ```bash
-mvn clean install -pl jplatform-jvmti-agent -DskipNative=true
+mvn clean install -pl platform-java-jvmti-agent -DskipNative=true
 ```
 
 This will build the Java wrapper classes but skip native library compilation. The profiler will not be functional but won't break the build.
@@ -54,21 +54,21 @@ The JVMTI agent must be loaded when the JVM starts. There are two approaches:
 #### Option 1: Command Line Argument
 
 ```bash
-java -agentpath:/path/to/libjplatform-agent.so -jar your-application.jar
+java -agentpath:/path/to/libplatform-java-agent.so -jar your-application.jar
 ```
 
 #### Option 2: Environment Variable
 
 ```bash
-export JAVA_TOOL_OPTIONS="-agentpath:/path/to/libjplatform-agent.so"
+export JAVA_TOOL_OPTIONS="-agentpath:/path/to/libplatform-java-agent.so"
 java -jar your-application.jar
 ```
 
 ### Java Code
 
 ```java
-import org.flossware.jplatform.jvmti.JvmtiHeapProfiler;
-import org.flossware.jplatform.monitoring.HeapProfiler;
+import org.flossware.platform-java.jvmti.JvmtiHeapProfiler;
+import org.flossware.platform-java.monitoring.HeapProfiler;
 
 // Check if JVMTI agent is available
 if (JvmtiHeapProfiler.isAvailable()) {
@@ -94,7 +94,7 @@ if (JvmtiHeapProfiler.isAvailable()) {
 }
 ```
 
-### Integration with JPlatform
+### Integration with platform-java
 
 The ApplicationResourceMonitor can automatically detect and use JVMTI profiling:
 
@@ -119,13 +119,13 @@ ApplicationResourceMonitor monitor = new ApplicationResourceMonitor(
 ## Architecture
 
 ```
-jplatform-jvmti-agent/
+platform-java-jvmti-agent/
 ├── pom.xml                          # Maven build configuration
 ├── src/main/java/
-│   └── org/flossware/jplatform/jvmti/
+│   └── org/flossware/platform-java/jvmti/
 │       └── JvmtiHeapProfiler.java   # Java wrapper for native calls
 └── src/main/c/
-    └── jplatform_agent.c            # Native JVMTI implementation
+    └── platform-java_agent.c            # Native JVMTI implementation
 ```
 
 ## Troubleshooting
@@ -133,7 +133,7 @@ jplatform-jvmti-agent/
 ### Native Library Not Found
 
 ```
-java.lang.UnsatisfiedLinkError: no jplatform-agent in java.library.path
+java.lang.UnsatisfiedLinkError: no platform-java-agent in java.library.path
 ```
 
 **Solution**: Ensure the agent is loaded at startup with `-agentpath`, not via `System.loadLibrary()`.
@@ -165,10 +165,10 @@ Can be adapted for:
 
 ## License
 
-Part of the JPlatform project. See parent LICENSE file.
+Part of the platform-java project. See parent LICENSE file.
 
 ## See Also
 
-- [jplatform-monitoring](../jplatform-monitoring) - Monitoring interfaces and estimation-based profiling
-- [jplatform-api](../jplatform-api) - Core JPlatform API
+- [platform-java-monitoring](../platform-java-monitoring) - Monitoring interfaces and estimation-based profiling
+- [platform-java-api](../platform-java-api) - Core platform-java API
 - [JVMTI Documentation](https://docs.oracle.com/en/java/javase/17/docs/specs/jvmti.html)

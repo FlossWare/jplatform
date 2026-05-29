@@ -1,10 +1,10 @@
 # Native Process Execution
 
-JPlatform supports deploying and managing native executable applications alongside JVM applications. This enables running GraalVM native images, compiled binaries (C, C++, Rust, Go), and other native executables within the platform's lifecycle management.
+platform-java supports deploying and managing native executable applications alongside JVM applications. This enables running GraalVM native images, compiled binaries (C, C++, Rust, Go), and other native executables within the platform's lifecycle management.
 
 ## Overview
 
-Native applications run as **separate OS processes** (not in the JVM), but are managed by JPlatform with the same lifecycle controls as JVM applications. The platform handles process launching, monitoring, graceful shutdown, and output redirection.
+Native applications run as **separate OS processes** (not in the JVM), but are managed by platform-java with the same lifecycle controls as JVM applications. The platform handles process launching, monitoring, graceful shutdown, and output redirection.
 
 ## Configuration
 
@@ -26,7 +26,7 @@ Native applications support these configuration properties:
 | Property | Description | Example |
 |----------|-------------|---------|
 | `native.executable.path` | Explicit path to the native executable | `/usr/local/bin/myapp` |
-| `native.workdir` | Working directory for the process | `/var/jplatform/apps/myapp` |
+| `native.workdir` | Working directory for the process | `/var/platform-java/apps/myapp` |
 | `native.args` | Command-line arguments to pass | `--server --port=8080` |
 | `native.env.*` | Environment variables (strip prefix) | `native.env.DATABASE_URL=jdbc:...` |
 

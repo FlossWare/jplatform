@@ -1,6 +1,6 @@
 # Multi-Tier Application Examples
 
-This directory contains complete multi-tier application examples showcasing JPlatform's unified orchestration across VMs, containers, Java applications, and native binaries.
+This directory contains complete multi-tier application examples showcasing platform-java's unified orchestration across VMs, containers, Java applications, and native binaries.
 
 ## Examples
 
@@ -118,7 +118,7 @@ On-Premises (VirtOS)          Cloud (AWS/Azure/GCP)
 ```
 
 **Workload Types:**
-- On-Premises: VirtOS running JPlatform
+- On-Premises: VirtOS running platform-java
   * Legacy database: VM with existing Oracle/SQL Server
   * Web application: Java Spring Boot
 - Cloud: Managed services
@@ -139,23 +139,23 @@ On-Premises (VirtOS)          Cloud (AWS/Azure/GCP)
 ```bash
 cd three-tier-webapp
 
-# Deploy all tiers (JPlatform handles dependency order)
-jplatform deploy database-tier.yaml
-jplatform deploy app-tier.yaml
-jplatform deploy web-tier.yaml
+# Deploy all tiers (platform-java handles dependency order)
+platform-java deploy database-tier.yaml
+platform-java deploy app-tier.yaml
+platform-java deploy web-tier.yaml
 
-# Start the stack (JPlatform starts in dependency order)
-jplatform start postgres-db    # Database starts first
-jplatform start spring-app     # App waits for database
-jplatform start nginx-web      # Web waits for app
+# Start the stack (platform-java starts in dependency order)
+platform-java start postgres-db    # Database starts first
+platform-java start spring-app     # App waits for database
+platform-java start nginx-web      # Web waits for app
 
 # Check status
-jplatform status
+platform-java status
 
 # View metrics for all tiers
-jplatform metrics postgres-db
-jplatform metrics spring-app
-jplatform metrics nginx-web
+platform-java metrics postgres-db
+platform-java metrics spring-app
+platform-java metrics nginx-web
 
 # Access the application
 curl http://localhost:8080
@@ -168,14 +168,14 @@ cd microservices
 
 # Deploy all services at once
 for yaml in *.yaml; do
-  jplatform deploy $yaml
+  platform-java deploy $yaml
 done
 
-# Start all services (JPlatform handles dependencies)
-jplatform start-all
+# Start all services (platform-java handles dependencies)
+platform-java start-all
 
 # View service mesh
-jplatform status
+platform-java status
 
 # Test API
 curl http://localhost:8000/api/v1/products
@@ -206,7 +206,7 @@ Each example includes:
 
 ## Dependencies Between Workload Types
 
-JPlatform allows dependencies across all workload types:
+platform-java allows dependencies across all workload types:
 
 ```yaml
 # Example: Java app depends on VM database and container cache
@@ -251,12 +251,12 @@ All tiers export metrics to Prometheus:
 
 ```bash
 # Aggregate metrics across all tiers
-curl http://localhost:9090/metrics | grep jplatform
+curl http://localhost:9090/metrics | grep platform-java
 
 # Metrics include:
-# - jplatform_vm_cpu_time_seconds{vm="postgres-db"}
-# - jplatform_container_cpu_usage{container="nginx-web"}
-# - jplatform_app_heap_mb{app="spring-app"}
+# - platform-java_vm_cpu_time_seconds{vm="postgres-db"}
+# - platform-java_container_cpu_usage{container="nginx-web"}
+# - platform-java_app_heap_mb{app="spring-app"}
 ```
 
 ## Cross-Workload Communication
@@ -265,7 +265,7 @@ curl http://localhost:9090/metrics | grep jplatform
 ```yaml
 # Enable messaging in all workloads
 properties:
-  jplatform.messaging.enabled: "true"
+  platform-java.messaging.enabled: "true"
 
 # Publish events from any workload type
 # - VMs can publish to Java apps
@@ -277,9 +277,9 @@ properties:
 ```yaml
 # Register services from any workload
 properties:
-  jplatform.service.register: "true"
-  jplatform.service.name: "user-service"
-  jplatform.service.port: "8080"
+  platform-java.service.register: "true"
+  platform-java.service.name: "user-service"
+  platform-java.service.port: "8080"
 
 # Discover services from any other workload
 # - Java apps can find VMs
@@ -308,28 +308,28 @@ cd three-tier-webapp
 
 ### Check Dependency Order
 ```bash
-jplatform startup-order
+platform-java startup-order
 ```
 
 ### View Workload Logs
 ```bash
-jplatform logs <workload-id>
+platform-java logs <workload-id>
 ```
 
 ### Check Resource Usage
 ```bash
-jplatform metrics <workload-id>
+platform-java metrics <workload-id>
 ```
 
 ### Verify Dependencies
 ```bash
-jplatform dependencies <workload-id>
+platform-java dependencies <workload-id>
 ```
 
 ## Further Reading
 
-- [JPlatform Documentation](../../README.md)
-- [VM Management](../../jplatform-vm-management/README.md)
+- [platform-java Documentation](../../README.md)
+- [VM Management](../../platform-java-vm-management/README.md)
 - [Container Deployment](../../CONTAINER_DEPLOYMENT.md)
 - [Application Dependencies](../../APPLICATION_DEPENDENCIES.md)
 - [Resource Enforcement](../../RESOURCE_ENFORCEMENT.md)

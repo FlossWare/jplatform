@@ -1,6 +1,6 @@
 # Three-Tier Web Application Example
 
-Complete three-tier web application demonstrating JPlatform's unified orchestration across VMs, Java applications, and containers.
+Complete three-tier web application demonstrating platform-java's unified orchestration across VMs, Java applications, and containers.
 
 ## Architecture
 
@@ -67,7 +67,7 @@ Complete three-tier web application demonstrating JPlatform's unified orchestrat
 - Docker or Podman
 - libvirt and QEMU
 - Java 21+ (for Spring Boot)
-- JPlatform 1.1+
+- platform-java 1.1+
 
 ### Verification
 ```bash
@@ -80,8 +80,8 @@ virsh list --all
 # Check container runtime
 docker --version || podman --version
 
-# Check JPlatform
-jplatform --version
+# Check platform-java
+platform-java --version
 ```
 
 ## Quick Start
@@ -90,25 +90,25 @@ jplatform --version
 
 ```bash
 # Create VM disk image
-sudo mkdir -p /var/lib/jplatform/vms
-sudo qemu-img create -f qcow2 /var/lib/jplatform/vms/postgres-db.qcow2 500G
+sudo mkdir -p /var/lib/platform-java/vms
+sudo qemu-img create -f qcow2 /var/lib/platform-java/vms/postgres-db.qcow2 500G
 
 # Or use Ubuntu cloud image
 wget https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img
-sudo cp ubuntu-22.04-server-cloudimg-amd64.img /var/lib/jplatform/vms/postgres-db.qcow2
-sudo qemu-img resize /var/lib/jplatform/vms/postgres-db.qcow2 500G
+sudo cp ubuntu-22.04-server-cloudimg-amd64.img /var/lib/platform-java/vms/postgres-db.qcow2
+sudo qemu-img resize /var/lib/platform-java/vms/postgres-db.qcow2 500G
 
 # Create application directories
-sudo mkdir -p /var/lib/jplatform/apps/spring-app
-sudo mkdir -p /var/lib/jplatform/apps/nginx-web/html
+sudo mkdir -p /var/lib/platform-java/apps/spring-app
+sudo mkdir -p /var/lib/platform-java/apps/nginx-web/html
 
 # Build Spring Boot app (if you have the source)
 # cd your-spring-boot-app
 # mvn clean package
-# sudo cp target/app.jar /var/lib/jplatform/apps/spring-app/
+# sudo cp target/app.jar /var/lib/platform-java/apps/spring-app/
 
 # Create NGINX config
-sudo tee /var/lib/jplatform/apps/nginx-web/nginx.conf > /dev/null << 'NGINX_CONF'
+sudo tee /var/lib/platform-java/apps/nginx-web/nginx.conf > /dev/null << 'NGINX_CONF'
 events {
     worker_connections 1024;
 }
@@ -132,7 +132,7 @@ http {
 NGINX_CONF
 
 # Create static content
-sudo tee /var/lib/jplatform/apps/nginx-web/html/index.html > /dev/null << 'HTML'
+sudo tee /var/lib/platform-java/apps/nginx-web/html/index.html > /dev/null << 'HTML'
 <!DOCTYPE html>
 <html>
 <head>
@@ -140,7 +140,7 @@ sudo tee /var/lib/jplatform/apps/nginx-web/html/index.html > /dev/null << 'HTML'
 </head>
 <body>
     <h1>Three-Tier Web Application</h1>
-    <p>Powered by JPlatform</p>
+    <p>Powered by platform-java</p>
     <ul>
         <li>Database: PostgreSQL VM</li>
         <li>Application: Spring Boot Java</li>
@@ -159,9 +159,9 @@ HTML
 ./deploy.sh
 
 # Option B: Deploy manually
-jplatform deploy 1-database-tier.yaml
-jplatform deploy 2-app-tier.yaml
-jplatform deploy 3-web-tier.yaml
+platform-java deploy 1-database-tier.yaml
+platform-java deploy 2-app-tier.yaml
+platform-java deploy 3-web-tier.yaml
 ```
 
 ### 3. Start
@@ -170,13 +170,13 @@ jplatform deploy 3-web-tier.yaml
 # Option A: Use the start script
 ./start.sh
 
-# Option B: Start manually (JPlatform handles dependency order)
-jplatform start postgres-db
-jplatform start spring-app  # Waits for postgres-db
-jplatform start nginx-web   # Waits for spring-app
+# Option B: Start manually (platform-java handles dependency order)
+platform-java start postgres-db
+platform-java start spring-app  # Waits for postgres-db
+platform-java start nginx-web   # Waits for spring-app
 
 # Check status
-jplatform status
+platform-java status
 ```
 
 ### 4. Test
@@ -195,14 +195,14 @@ curl http://localhost:8081/actuator/health            # App health
 
 ```bash
 # View metrics for each tier
-jplatform metrics postgres-db
-jplatform metrics spring-app
-jplatform metrics nginx-web
+platform-java metrics postgres-db
+platform-java metrics spring-app
+platform-java metrics nginx-web
 
 # View logs
-jplatform logs postgres-db
-jplatform logs spring-app
-jplatform logs nginx-web
+platform-java logs postgres-db
+platform-java logs spring-app
+platform-java logs nginx-web
 
 # Prometheus metrics
 curl http://localhost:9090/metrics
@@ -210,7 +210,7 @@ curl http://localhost:9090/metrics
 
 ## Dependency Management
 
-JPlatform automatically manages startup order based on dependencies:
+platform-java automatically manages startup order based on dependencies:
 
 ```
 postgres-db (VM)
@@ -239,7 +239,7 @@ nginx-web (Container)
 | Web | Container | 2 CPUs | 2GB | 10GB |
 | **Total** | - | **14 CPUs** | **42GB** | **510GB** |
 
-JPlatform enforces these limits and monitors usage in real-time.
+platform-java enforces these limits and monitors usage in real-time.
 
 ## Troubleshooting
 
@@ -249,7 +249,7 @@ JPlatform enforces these limits and monitors usage in real-time.
 lsmod | grep kvm
 
 # Check disk image exists
-ls -lh /var/lib/jplatform/vms/postgres-db.qcow2
+ls -lh /var/lib/platform-java/vms/postgres-db.qcow2
 
 # View VM console
 virsh vncdisplay postgres-prod
@@ -282,8 +282,8 @@ docker exec nginx-web curl http://host.docker.internal:8081/actuator/health
 
 ### View dependency graph
 ```bash
-jplatform startup-order
-jplatform dependencies spring-app
+platform-java startup-order
+platform-java dependencies spring-app
 ```
 
 ## Cleanup
@@ -294,14 +294,14 @@ jplatform dependencies spring-app
 
 # Option B: Manual cleanup
 ./stop.sh
-jplatform undeploy nginx-web
-jplatform undeploy spring-app
-jplatform undeploy postgres-db
+platform-java undeploy nginx-web
+platform-java undeploy spring-app
+platform-java undeploy postgres-db
 
 # Remove data (optional)
-sudo rm -rf /var/lib/jplatform/vms/postgres-db.qcow2
-sudo rm -rf /var/lib/jplatform/apps/spring-app
-sudo rm -rf /var/lib/jplatform/apps/nginx-web
+sudo rm -rf /var/lib/platform-java/vms/postgres-db.qcow2
+sudo rm -rf /var/lib/platform-java/apps/spring-app
+sudo rm -rf /var/lib/platform-java/apps/nginx-web
 ```
 
 ## Customization
@@ -336,11 +336,11 @@ dependencies:
 # 2-app-tier.yaml
 properties:
   # Enable messaging
-  jplatform.messaging.enabled: "true"
+  platform-java.messaging.enabled: "true"
   
   # Register service
-  jplatform.service.register: "true"
-  jplatform.service.name: "app-server"
+  platform-java.service.register: "true"
+  platform-java.service.name: "app-server"
 ```
 
 ## Production Considerations
@@ -371,8 +371,8 @@ properties:
 
 ## Further Reading
 
-- [JPlatform Documentation](../../../README.md)
-- [VM Management Guide](../../../jplatform-vm-management/README.md)
+- [platform-java Documentation](../../../README.md)
+- [VM Management Guide](../../../platform-java-vm-management/README.md)
 - [Container Deployment Guide](../../../CONTAINER_DEPLOYMENT.md)
 - [Resource Management](../../../RESOURCE_ENFORCEMENT.md)
 - [Application Dependencies](../../../APPLICATION_DEPENDENCIES.md)
@@ -380,5 +380,5 @@ properties:
 ## Support
 
 For issues or questions:
-- [GitHub Issues](https://github.com/FlossWare/jplatform/issues)
-- [Documentation](https://github.com/FlossWare/jplatform)
+- [GitHub Issues](https://github.com/FlossWare/platform-java/issues)
+- [Documentation](https://github.com/FlossWare/platform-java)

@@ -1,10 +1,10 @@
-# JPlatform Registry - Consul
+# platform-java Registry - Consul
 
-Consul-based service registry implementation for distributed JPlatform deployments.
+Consul-based service registry implementation for distributed platform-java deployments.
 
 ## Overview
 
-`jplatform-registry-consul` provides a Consul-backed implementation of the `ServiceRegistry` interface, enabling service discovery across multiple JPlatform nodes.
+`platform-java-registry-consul` provides a Consul-backed implementation of the `ServiceRegistry` interface, enabling service discovery across multiple platform-java nodes.
 
 ## Features
 
@@ -44,16 +44,16 @@ registry.close();
 | `consulPort` | 8500 | Consul HTTP API port |
 | `serviceTtl` | 30 | Service TTL in seconds |
 | `nodeId` | UUID | Unique node identifier |
-| `servicePrefix` | "jplatform" | Service name prefix |
+| `servicePrefix` | "platform-java" | Service name prefix |
 
 ## Testing
 
 14 comprehensive unit tests with 100% core coverage:
 
 ```bash
-mvn test -pl jplatform-registry-consul
+mvn test -pl platform-java-registry-consul
 ```
 
 ## License
 
-Part of the JPlatform project.
+Part of the platform-java project.

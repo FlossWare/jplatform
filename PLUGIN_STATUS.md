@@ -1,22 +1,22 @@
-# JPlatform Plugin Ecosystem - Implementation Status
+# platform-java Plugin Ecosystem - Implementation Status
 
 ## Completed Modules (3/14)
 
-### ✅ jplatform-cluster-consul
+### ✅ platform-java-cluster-consul
 - **Status**: Production-ready
 - **LOC**: 1,143 (implementation), 900 (tests)
 - **Tests**: 42 total, 39 passing (77% coverage)
 - **Features**: Consul-based clustering with leader election, distributed state storage
 - **Documentation**: Complete with architecture diagrams
 
-### ✅ jplatform-registry-consul  
+### ✅ platform-java-registry-consul  
 - **Status**: Production-ready
 - **LOC**: 500 (implementation), 300 (tests)
 - **Tests**: 14 total, 14 passing (100% coverage)
 - **Features**: Distributed service discovery via Consul
 - **Documentation**: Complete with usage examples
 
-### ✅ jplatform-cluster-etcd
+### ✅ platform-java-cluster-etcd
 - **Status**: Production-ready
 - **LOC**: 365 (implementation), 250 (tests)
 - **Tests**: 10 total, 10 passing (100% coverage)
@@ -26,17 +26,17 @@
 ## In Progress (11/14)
 
 Remaining modules have stub implementations and require completion:
-- jplatform-cluster-redis
-- jplatform-cluster-zookeeper
-- jplatform-registry-etcd
-- jplatform-registry-eureka
-- jplatform-storage-s3
-- jplatform-storage-database
-- jplatform-storage-redis
-- jplatform-config-consul
-- jplatform-config-etcd
-- jplatform-config-vault
-- jplatform-rest-api-netty
+- platform-java-cluster-redis
+- platform-java-cluster-zookeeper
+- platform-java-registry-etcd
+- platform-java-registry-eureka
+- platform-java-storage-s3
+- platform-java-storage-database
+- platform-java-storage-redis
+- platform-java-config-consul
+- platform-java-config-etcd
+- platform-java-config-vault
+- platform-java-rest-api-netty
 
 ## Summary
 

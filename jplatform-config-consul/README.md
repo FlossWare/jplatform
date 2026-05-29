@@ -1,6 +1,6 @@
-# JPlatform Config - Consul
+# platform-java Config - Consul
 
-HashiCorp Consul KV configuration source for JPlatform. Dynamic, distributed configuration with ACL support and change watching.
+HashiCorp Consul KV configuration source for platform-java. Dynamic, distributed configuration with ACL support and change watching.
 
 ## Features
 
@@ -17,8 +17,8 @@ HashiCorp Consul KV configuration source for JPlatform. Dynamic, distributed con
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-config-consul</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-config-consul</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -316,7 +316,7 @@ This module has comprehensive unit tests covering all business logic and API met
 ### Running Tests
 
 ```bash
-mvn test -pl jplatform-config-consul
+mvn test -pl platform-java-config-consul
 ```
 
 ### Integration Tests (Optional)
@@ -326,7 +326,7 @@ mvn test -pl jplatform-config-consul
 docker run -d -p 8500:8500 --name consul-test consul agent -dev
 
 # Run integration tests
-mvn verify -pl jplatform-config-consul
+mvn verify -pl platform-java-config-consul
 
 # Stop Consul
 docker stop consul-test && docker rm consul-test
@@ -356,4 +356,4 @@ This module requires:
 
 ## License
 
-Part of JPlatform - see main project for license details.
+Part of platform-java - see main project for license details.

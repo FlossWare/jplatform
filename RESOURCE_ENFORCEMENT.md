@@ -2,7 +2,7 @@
 
 ## Overview
 
-JPlatform 2.0 introduces **automatic resource enforcement**, allowing the platform to take action when applications exceed their configured resource quotas. This feature extends the existing resource monitoring capabilities with configurable enforcement policies.
+platform-java 2.0 introduces **automatic resource enforcement**, allowing the platform to take action when applications exceed their configured resource quotas. This feature extends the existing resource monitoring capabilities with configurable enforcement policies.
 
 ## Key Concepts
 
@@ -10,7 +10,7 @@ JPlatform 2.0 introduces **automatic resource enforcement**, allowing the platfo
 
 When an application exceeds a resource quota, the platform can automatically take one of four actions:
 
-- **NOTIFY** (default): Log the violation and notify listeners, but take no enforcement action. This is the existing behavior from JPlatform 1.0.
+- **NOTIFY** (default): Log the violation and notify listeners, but take no enforcement action. This is the existing behavior from platform-java 1.0.
 - **THROTTLE**: Slow down application execution by introducing delays. Reduces CPU and memory pressure without stopping the application.
 - **SHUTDOWN**: Gracefully stop the application by calling `ApplicationManager.stop()`. The application's `stop()` method is invoked, allowing cleanup.
 - **KILL**: Immediately terminate the application without graceful shutdown. Calls `shutdownNow()` on the thread pool and sets state to FAILED.
@@ -252,31 +252,31 @@ resourceMonitor.addListener(new ResourceEventListener() {
 
 ### Components
 
-1. **EnforcementAction** (enum in `jplatform-api`):
+1. **EnforcementAction** (enum in `platform-java-api`):
    - Defines the 4 enforcement actions
    - Helper methods: `isDestructive()`, `isGraceful()`
 
-2. **ResourceConfig** (in `jplatform-api`):
+2. **ResourceConfig** (in `platform-java-api`):
    - Extended with enforcement action fields
    - Per-resource-type enforcement configuration
    - Grace period configuration
 
-3. **EnforcementPolicy** (in `jplatform-monitoring`):
+3. **EnforcementPolicy** (in `platform-java-monitoring`):
    - Tracks violation counts per application
    - Implements grace period logic
    - Thread-safe using ConcurrentHashMap
 
-4. **ResourceEnforcer** (in `jplatform-monitoring`):
+4. **ResourceEnforcer** (in `platform-java-monitoring`):
    - Receives quota exceeded events
    - Consults EnforcementPolicy for grace period
    - Executes configured enforcement actions
    - Delegates shutdown/kill to ApplicationManager
 
-5. **ApplicationResourceMonitor** (in `jplatform-monitoring`):
+5. **ApplicationResourceMonitor** (in `platform-java-monitoring`):
    - Enhanced to call ResourceEnforcer on quota violations
    - Wired up during application deployment
 
-6. **ApplicationManager** (in `jplatform-core`):
+6. **ApplicationManager** (in `platform-java-core`):
    - Creates ResourceEnforcer during deployment
    - Provides `forceKill()` method for KILL action
    - Existing `stop()` method used for SHUTDOWN action
@@ -306,7 +306,7 @@ ApplicationManager.stop() or forceKill()
 ### EnforcementAction Enum
 
 ```java
-package org.flossware.jplatform.api;
+package org.flossware.platform-java.api;
 
 public enum EnforcementAction {
     NOTIFY,     // Log and notify only
@@ -322,7 +322,7 @@ public enum EnforcementAction {
 ### ResourceConfig Extensions
 
 ```java
-package org.flossware.jplatform.api;
+package org.flossware.platform-java.api;
 
 public class ResourceConfig {
     // New fields (v2.0)
@@ -343,7 +343,7 @@ public class ResourceConfig {
 ### ResourceEnforcer
 
 ```java
-package org.flossware.jplatform.monitoring;
+package org.flossware.platform-java.monitoring;
 
 public class ResourceEnforcer {
     public ResourceEnforcer(
@@ -357,15 +357,15 @@ public class ResourceEnforcer {
 }
 ```
 
-## Migration from JPlatform 1.0
+## Migration from platform-java 1.0
 
-Applications using JPlatform 1.0 resource monitoring continue to work without changes:
+Applications using platform-java 1.0 resource monitoring continue to work without changes:
 
 - Default enforcement action is **NOTIFY** (existing behavior)
 - No configuration changes required
 - Opt-in to enforcement by adding enforcement action fields to ResourceConfig
 
-### Before (JPlatform 1.0):
+### Before (platform-java 1.0):
 
 ```java
 ResourceConfig config = ResourceConfig.builder()
@@ -375,7 +375,7 @@ ResourceConfig config = ResourceConfig.builder()
 // Violations are logged only
 ```
 
-### After (JPlatform 2.0):
+### After (platform-java 2.0):
 
 ```java
 ResourceConfig config = ResourceConfig.builder()

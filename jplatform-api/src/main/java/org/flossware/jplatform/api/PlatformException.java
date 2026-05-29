@@ -1,7 +1,7 @@
 package org.flossware.jplatform.api;
 
 /**
- * Base unchecked exception for all JPlatform operations.
+ * Base unchecked exception for all platform-java operations.
  * All platform-specific exceptions extend this class.
  * <p>
  * This is an unchecked exception (extends RuntimeException) to provide flexibility

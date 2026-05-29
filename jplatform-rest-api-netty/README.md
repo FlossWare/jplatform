@@ -1,6 +1,6 @@
-# JPlatform REST API - Netty
+# platform-java REST API - Netty
 
-High-performance Netty-based REST API server implementation for JPlatform.
+High-performance Netty-based REST API server implementation for platform-java.
 
 ## Features
 
@@ -16,8 +16,8 @@ High-performance Netty-based REST API server implementation for JPlatform.
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-rest-api-netty</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-rest-api-netty</artifactId>
     <version>1.1</version>
 </dependency>
 ```

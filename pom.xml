@@ -94,102 +94,102 @@
       <!-- Internal modules -->
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-api</artifactId>
+        <artifactId>platform-java-api</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-core</artifactId>
+        <artifactId>platform-java-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-classloader</artifactId>
+        <artifactId>platform-java-classloader</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-threadpool</artifactId>
+        <artifactId>platform-java-threadpool</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-security</artifactId>
+        <artifactId>platform-java-security</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-monitoring</artifactId>
+        <artifactId>platform-java-monitoring</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-messaging</artifactId>
+        <artifactId>platform-java-messaging</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-messaging-jms</artifactId>
+        <artifactId>platform-java-messaging-jms</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-storage</artifactId>
+        <artifactId>platform-java-storage</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- New deployment modules -->
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-config</artifactId>
+        <artifactId>platform-java-config</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-fs-watcher</artifactId>
+        <artifactId>platform-java-fs-watcher</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- New management modules -->
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-rest-api</artifactId>
+        <artifactId>platform-java-rest-api</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-web-console</artifactId>
+        <artifactId>platform-java-web-console</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- New metrics modules -->
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-metrics-jmx</artifactId>
+        <artifactId>platform-java-metrics-jmx</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-metrics-prometheus</artifactId>
+        <artifactId>platform-java-metrics-prometheus</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- VM Management -->
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-vm-management</artifactId>
+        <artifactId>platform-java-vm-management</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- Advanced modules -->
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-jvmti-agent</artifactId>
+        <artifactId>platform-java-jvmti-agent</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-cluster</artifactId>
+        <artifactId>platform-java-cluster</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-otel</artifactId>
+        <artifactId>platform-java-otel</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- Logging -->

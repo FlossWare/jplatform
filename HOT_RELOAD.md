@@ -2,7 +2,7 @@
 
 ## Overview
 
-JPlatform supports hot code reload, allowing you to update an application's code without requiring a full platform restart or losing application state. This enables zero-downtime deployments and faster development iteration cycles.
+platform-java supports hot code reload, allowing you to update an application's code without requiring a full platform restart or losing application state. This enables zero-downtime deployments and faster development iteration cycles.
 
 ## How It Works
 
@@ -49,9 +49,9 @@ To support state preservation during reload, your application class must impleme
 ```java
 package com.example;
 
-import org.flossware.jplatform.api.Application;
-import org.flossware.jplatform.api.ReloadableApplication;
-import org.flossware.jplatform.api.ApplicationContext;
+import org.flossware.platform-java.api.Application;
+import org.flossware.platform-java.api.ReloadableApplication;
+import org.flossware.platform-java.api.ApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -121,7 +121,7 @@ curl -X POST http://localhost:8080/api/applications/my-app/reload \
 ### Via PlatformLauncher CLI
 
 ```bash
-java -jar jplatform-launcher.jar reload --app-id my-app --yaml updated-app.yaml
+java -jar platform-java-launcher.jar reload --app-id my-app --yaml updated-app.yaml
 ```
 
 ## State Preservation Best Practices
@@ -177,7 +177,7 @@ public void afterReload(ApplicationContext context, Map<String, Object> state) t
 
 ## Rollback on Failure
 
-If reload fails (e.g., new version throws exception during `start()`), JPlatform automatically rolls back:
+If reload fails (e.g., new version throws exception during `start()`), platform-java automatically rolls back:
 
 1. The new classloader is discarded
 2. The old classloader is kept active

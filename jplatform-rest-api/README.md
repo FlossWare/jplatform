@@ -1,10 +1,10 @@
-# JPlatform REST API
+# platform-java REST API
 
-HTTP REST API server for JPlatform management using JDK's built-in `com.sun.net.httpserver`.
+HTTP REST API server for platform-java management using JDK's built-in `com.sun.net.httpserver`.
 
 ## Overview
 
-The `jplatform-rest-api` module provides a complete HTTP REST API for managing JPlatform instances. It offers programmatic access to deployment, lifecycle management, and metrics retrieval.
+The `platform-java-rest-api` module provides a complete HTTP REST API for managing platform-java instances. It offers programmatic access to deployment, lifecycle management, and metrics retrieval.
 
 ## Features
 
@@ -42,9 +42,9 @@ The `jplatform-rest-api` module provides a complete HTTP REST API for managing J
 ### Starting the API Server
 
 ```java
-import org.flossware.jplatform.api.PlatformManager;
-import org.flossware.jplatform.core.ApplicationManager;
-import org.flossware.jplatform.rest.JdkHttpApiServer;
+import org.flossware.platform-java.api.PlatformManager;
+import org.flossware.platform-java.core.ApplicationManager;
+import org.flossware.platform-java.rest.JdkHttpApiServer;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -242,7 +242,7 @@ CORS is enabled by default for all origins. To restrict:
 
 ## Dependencies
 
-- `jplatform-api` - Platform management API
+- `platform-java-api` - Platform management API
 - `jackson-databind` - JSON serialization
 - `slf4j-api` - Logging
 - JDK 21+ (HttpServer is part of JDK)
@@ -263,7 +263,7 @@ Test coverage includes:
 
 ## See Also
 
-- [Web Console](../jplatform-web-console/README.md) - Browser-based UI built on this API
-- [Swing UI](../jplatform-swing-ui/README.md) - Desktop UI using this API
+- [Web Console](../platform-java-web-console/README.md) - Browser-based UI built on this API
+- [Swing UI](../platform-java-swing-ui/README.md) - Desktop UI using this API
 - [QUICKSTART](../QUICKSTART.md) - Quick start guide with API examples
 - [Main README](../README.md) - Platform overview

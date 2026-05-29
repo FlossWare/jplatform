@@ -21,7 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Terminal-based (curses-like) UI for JPlatform management using Lanterna.
+ * Terminal-based (curses-like) UI for platform-java management using Lanterna.
  *
  * <p>Provides a text-based interface for managing applications in a terminal window.
  * Similar to tools like htop, top, or vim - uses the full terminal screen with keyboard navigation.</p>
@@ -308,7 +308,7 @@ public class TerminalConsole {
         // Title
         graphics.setForegroundColor(TextColor.ANSI.WHITE);
         graphics.setBackgroundColor(TextColor.ANSI.BLUE);
-        String title = " JPlatform Terminal Console ";
+        String title = " platform-java Terminal Console ";
         graphics.putString(0, row++, padRight(title, size.getColumns()));
         graphics.setBackgroundColor(TextColor.ANSI.BLACK);
 

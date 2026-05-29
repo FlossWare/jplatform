@@ -1,6 +1,6 @@
 # VirtOS Integration
 
-JPlatform can integrate with [VirtOS](https://github.com/FlossWare/VirtOS), a minimal virtualization OS, to create a comprehensive platform spanning infrastructure to application management.
+platform-java can integrate with [VirtOS](https://github.com/FlossWare/VirtOS), a minimal virtualization OS, to create a comprehensive platform spanning infrastructure to application management.
 
 ## What is VirtOS?
 
@@ -14,7 +14,7 @@ VirtOS is a lightweight virtualization platform based on Tiny Core Linux that ma
 
 **Complementary Strengths:**
 - **VirtOS** handles infrastructure (VMs, networking, storage, multi-cloud)
-- **JPlatform** handles Java applications (isolation, monitoring, hot reload)
+- **platform-java** handles Java applications (isolation, monitoring, hot reload)
 
 **Overlapping Functionality:**
 - Both manage containers (Docker, Podman, LXC)
@@ -24,18 +24,18 @@ VirtOS is a lightweight virtualization platform based on Tiny Core Linux that ma
 
 ## Integration Scenarios
 
-### 1. VirtOS Deploys JPlatform
+### 1. VirtOS Deploys platform-java
 
-VirtOS manages the infrastructure, JPlatform runs Java apps on it:
+VirtOS manages the infrastructure, platform-java runs Java apps on it:
 
 ```bash
-# VirtOS creates VM with JPlatform
-virtos-create-vm --name jplatform-node-1 --cpu 8 --ram 16G --install jplatform
+# VirtOS creates VM with platform-java
+virtos-create-vm --name platform-java-node-1 --cpu 8 --ram 16G --install platform-java
 
 # Or as container
-virtos-federation vm-deploy jplatform-app on-prem \
+virtos-federation vm-deploy platform-java-app on-prem \
   --container docker \
-  --image jplatform/runtime:latest
+  --image platform-java/runtime:latest
 ```
 
 ### 2. Shared Container Runtime
@@ -52,22 +52,22 @@ Both export metrics to same Prometheus/OpenTelemetry backend:
 └─────────────────────────────────────┘
          ↑              ↑
     ┌────┴────┐    ┌───┴──────┐
-    │ VirtOS  │    │JPlatform │
+    │ VirtOS  │    │platform-java │
     └─────────┘    └──────────┘
 ```
 
-### 4. Multi-Cloud JPlatform Clusters
+### 4. Multi-Cloud platform-java Clusters
 
-VirtOS federation deploys and manages JPlatform clusters across clouds:
+VirtOS federation deploys and manages platform-java clusters across clouds:
 
 ```bash
-# Deploy JPlatform to multiple clouds
-virtos-federation vm-deploy jplatform-aws aws t3.large --install jplatform
-virtos-federation vm-deploy jplatform-azure azure Standard_D4s_v3 --install jplatform
+# Deploy platform-java to multiple clouds
+virtos-federation vm-deploy platform-java-aws aws t3.large --install platform-java
+virtos-federation vm-deploy platform-java-azure azure Standard_D4s_v3 --install platform-java
 
 # Configure clustering
-virtos-jplatform cluster-init \
-  --nodes jplatform-aws,jplatform-azure \
+virtos-platform-java cluster-init \
+  --nodes platform-java-aws,platform-java-azure \
   --backend consul
 ```
 
@@ -78,7 +78,7 @@ virtos-jplatform cluster-init \
 - Redis cache VM (on-prem)
 - NGINX load balancer (AWS)
 
-**Applications (JPlatform):**
+**Applications (platform-java):**
 - Order service (3 replicas)
 - Inventory service (2 replicas)
 - Payment service (2 replicas)
@@ -97,13 +97,13 @@ virtos-jplatform cluster-init \
 Common library for docker/podman/lxc management used by both projects.
 
 ### Monitoring Format
-OpenTelemetry-compatible metrics from both VirtOS and JPlatform.
+OpenTelemetry-compatible metrics from both VirtOS and platform-java.
 
 ### REST API Compatibility
 Common OpenAPI spec for similar endpoints (deploy, start, stop, metrics).
 
 ### Configuration Format
-Kubernetes-like YAML for both JPlatform apps and VirtOS VMs/containers.
+Kubernetes-like YAML for both platform-java apps and VirtOS VMs/containers.
 
 ## Integration Phases
 
@@ -113,8 +113,8 @@ Extract container management, create library for both Java and Bash.
 ### Phase 2: Unified Monitoring (4-6 weeks)
 Standardize metrics, export to common Prometheus/OTLP endpoints, shared Grafana dashboards.
 
-### Phase 3: VirtOS Deploys JPlatform (8-12 weeks)
-Create `virtos-jplatform` management script, TUI integration, VM templates, federation support.
+### Phase 3: VirtOS Deploys platform-java (8-12 weeks)
+Create `virtos-platform-java` management script, TUI integration, VM templates, federation support.
 
 ### Phase 4: API Compatibility (6-8 weeks)
 OpenAPI spec, implement in both projects, Swagger UI, client libraries.
@@ -130,51 +130,51 @@ See [VirtOS Integration Documentation](https://github.com/FlossWare/VirtOS/blob/
 
 ## Getting Started
 
-### Option 1: Run JPlatform in VirtOS VM
+### Option 1: Run platform-java in VirtOS VM
 
 ```bash
 # Create VirtOS VM
-virtos-create-vm --name jplatform-1 --cpu 8 --ram 16G --os ubuntu-22.04
+virtos-create-vm --name platform-java-1 --cpu 8 --ram 16G --os ubuntu-22.04
 
 # SSH into VM
-ssh tc@jplatform-1
+ssh tc@platform-java-1
 
 # Install Java
 sudo apt install openjdk-17-jdk
 
-# Download and run JPlatform
-wget https://github.com/FlossWare/jplatform/releases/download/v2.0/jplatform-launcher.jar
-java -jar jplatform-launcher.jar
+# Download and run platform-java
+wget https://github.com/FlossWare/platform-java/releases/download/v2.0/platform-java-launcher.jar
+java -jar platform-java-launcher.jar
 ```
 
-### Option 2: Run JPlatform in Container on VirtOS
+### Option 2: Run platform-java in Container on VirtOS
 
 ```bash
-# VirtOS starts JPlatform container
+# VirtOS starts platform-java container
 virtos-tui → Container Management → Docker → Run Container
-  Image: jplatform/runtime:latest
+  Image: platform-java/runtime:latest
   Ports: 8080:8080
   Memory: 4G
 ```
 
-### Option 3: Multi-Cloud JPlatform Cluster
+### Option 3: Multi-Cloud platform-java Cluster
 
 ```bash
 # Initialize VirtOS federation
 virtos-federation federation-init my-company
 virtos-federation provider-register aws aws ec2.amazonaws.com KEY SECRET
 
-# Deploy JPlatform nodes
-virtos-federation vm-deploy jplatform-aws aws c5.2xlarge --install jplatform
-virtos-create-vm --name jplatform-onprem --cpu 8 --ram 16G --install jplatform
+# Deploy platform-java nodes
+virtos-federation vm-deploy platform-java-aws aws c5.2xlarge --install platform-java
+virtos-create-vm --name platform-java-onprem --cpu 8 --ram 16G --install platform-java
 
-# Configure JPlatform clustering
-# (Manual setup via JPlatform Hazelcast/Consul configuration)
+# Configure platform-java clustering
+# (Manual setup via platform-java Hazelcast/Consul configuration)
 ```
 
 ## Benefits of Integration
 
-### For JPlatform Users
+### For platform-java Users
 - **Multi-cloud deployment** via VirtOS federation
 - **VM management** (not just containers)
 - **Geographic distribution** across data centers
@@ -202,13 +202,13 @@ The integration is feasible and offers significant value, but requires coordinat
 1. Community discussion and feedback
 2. Shared container runtime prototype
 3. Monitoring integration pilot
-4. VirtOS deploys JPlatform POC
+4. VirtOS deploys platform-java POC
 
 ## Contributing
 
-Interested in helping integrate JPlatform with VirtOS?
+Interested in helping integrate platform-java with VirtOS?
 
-- **JPlatform**: https://github.com/FlossWare/jplatform
+- **platform-java**: https://github.com/FlossWare/platform-java
 - **VirtOS**: https://github.com/FlossWare/VirtOS
 - **Integration Doc**: https://github.com/FlossWare/VirtOS/blob/main/docs/JPLATFORM_INTEGRATION.md
 
@@ -216,4 +216,4 @@ Join the discussion in GitHub Discussions for both projects!
 
 ---
 
-**Together, JPlatform + VirtOS = Complete infrastructure and application management platform**
+**Together, platform-java + VirtOS = Complete infrastructure and application management platform**

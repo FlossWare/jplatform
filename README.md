@@ -1,10 +1,10 @@
-# JPlatform - Java Application Platform
+# platform-java - Java Application Platform
 
 A platform for running multiple isolated Java applications within a single JVM, similar to a JEE application server but designed for any Java application.
 
 ## Overview
 
-JPlatform allows you to run completely unrelated Java applications (web servers, batch processors, message consumers, etc.) within a single JVM, providing isolation and resource management comparable to running them in separate processes or containers.
+platform-java allows you to run completely unrelated Java applications (web servers, batch processors, message consumers, etc.) within a single JVM, providing isolation and resource management comparable to running them in separate processes or containers.
 
 Think of it as running multiple Java applications in separate terminal windows, but all within one JVM with comprehensive isolation and management capabilities.
 
@@ -34,7 +34,7 @@ Think of it as running multiple Java applications in separate terminal windows, 
 ### Management and Monitoring ✅ **ALL IMPLEMENTED**
 - **REST API**: Full HTTP API for deployment, lifecycle management, and metrics retrieval
 - **Web Console**: Modern browser-based UI with real-time charts (Chart.js)
-- **Swing Desktop UI**: Native desktop application for JPlatform management with real-time metrics ✅ **NEW**
+- **Swing Desktop UI**: Native desktop application for platform-java management with real-time metrics ✅ **NEW**
 - **Terminal UI**: Full-screen terminal interface with keyboard controls (curses-like) ✅ **NEW**
 - **JMX Metrics**: Expose application metrics via JMX MBeans for tools like JConsole, VisualVM
 - **Prometheus Metrics**: Export metrics in Prometheus format for modern monitoring stacks
@@ -43,7 +43,7 @@ Think of it as running multiple Java applications in separate terminal windows, 
 
 ### Platform-Level Features (Version 2.0) ✅ **ALL IMPLEMENTED**
 
-JPlatform provides runtime platform features comparable to Kubernetes/YARN for JVM processes:
+platform-java provides runtime platform features comparable to Kubernetes/YARN for JVM processes:
 
 #### Hot Code Reload
 - Update application code without platform restart
@@ -100,7 +100,7 @@ JPlatform provides runtime platform features comparable to Kubernetes/YARN for J
 
 #### Virtual Machine Management ✅ **NEW**
 - Deploy and manage KVM/QEMU virtual machines via libvirt
-- Same API as other JPlatform workloads (containers, Java apps, native binaries)
+- Same API as other platform-java workloads (containers, Java apps, native binaries)
 - Unified orchestration across ALL workload types (VMs, containers, Java apps, native binaries)
 - VM resource quotas and monitoring (vCPU, memory, disk)
 - Cross-workload dependencies (VMs can depend on containers, Java apps, etc.)
@@ -331,7 +331,7 @@ mvn test
 
 ### Configuration
 
-JPlatform supports two configuration approaches that can be combined:
+platform-java supports two configuration approaches that can be combined:
 
 **1. Configuration File (platform.yaml):**
 
@@ -660,7 +660,7 @@ Applications SHOULD use the provided `ManagedThreadPool`. Direct thread creation
 
 ## Version Numbering
 
-JPlatform uses a simple **X.Y version format** without patch versions or SNAPSHOT suffixes.
+platform-java uses a simple **X.Y version format** without patch versions or SNAPSHOT suffixes.
 
 - **Current version**: 1.1
 - **Format**: Major.Minor (e.g., 1.0, 2.0, 2.1)
@@ -685,7 +685,7 @@ Similar concepts:
 - **JEE Application Servers**: Full JEE stack with EAR/WAR deployment
 - **Kubernetes**: Container orchestration (but at process level)
 
-JPlatform focuses on simplicity and running arbitrary Java applications (not just web apps) with strong isolation guarantees within a single JVM.
+platform-java focuses on simplicity and running arbitrary Java applications (not just web apps) with strong isolation guarantees within a single JVM.
 
 ## Documentation
 

@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
-    <artifactId>jplatform-storage-s3</artifactId>
-    <name>JPlatform Storage - S3</name>
+    <artifactId>platform-java-storage-s3</artifactId>
+    <name>platform-java Storage - S3</name>
     <dependencies>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
         </dependency>
 
         <dependency>

@@ -19,7 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * JMS-backed implementation of MessageBus for distributed multi-node messaging.
  * Provides topic-based publish-subscribe messaging using a JMS broker, enabling
- * applications across multiple JPlatform nodes to communicate.
+ * applications across multiple platform-java nodes to communicate.
  *
  * <p>Features:</p>
  * <ul>

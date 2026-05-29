@@ -2,32 +2,32 @@
 
 ## Changes Made
 
-Updated JPlatform from `1.0.0-SNAPSHOT` to `1.0` version numbering scheme.
+Updated platform-java from `1.0.0-SNAPSHOT` to `1.0` version numbering scheme.
 
 ## Updated Files
 
 ### Maven POM Files (13 files)
 All pom.xml files updated from version `1.0.0-SNAPSHOT` to `1.0`:
 
-1. `/jplatform/pom.xml` (parent)
-2. `/jplatform-api/pom.xml`
-3. `/jplatform-core/pom.xml`
-4. `/jplatform-classloader/pom.xml`
-5. `/jplatform-threadpool/pom.xml`
-6. `/jplatform-security/pom.xml`
-7. `/jplatform-monitoring/pom.xml`
-8. `/jplatform-messaging/pom.xml`
-9. `/jplatform-deployment/pom.xml`
-10. `/jplatform-launcher/pom.xml`
-11. `/jplatform-samples/pom.xml`
-12. `/jplatform-samples/hello-world/pom.xml`
-13. `/jplatform-samples/messaging-app/pom.xml`
+1. `/platform-java/pom.xml` (parent)
+2. `/platform-java-api/pom.xml`
+3. `/platform-java-core/pom.xml`
+4. `/platform-java-classloader/pom.xml`
+5. `/platform-java-threadpool/pom.xml`
+6. `/platform-java-security/pom.xml`
+7. `/platform-java-monitoring/pom.xml`
+8. `/platform-java-messaging/pom.xml`
+9. `/platform-java-deployment/pom.xml`
+10. `/platform-java-launcher/pom.xml`
+11. `/platform-java-samples/pom.xml`
+12. `/platform-java-samples/hello-world/pom.xml`
+13. `/platform-java-samples/messaging-app/pom.xml`
 
 ### Documentation Files
 Updated version references in:
 
 1. **README.md**
-   - Updated all JAR path references (e.g., `jplatform-launcher-1.0.jar`)
+   - Updated all JAR path references (e.g., `platform-java-launcher-1.0.jar`)
    - Updated example commands
    - Updated application descriptor example (version: 1.0)
    - Added "Version Numbering" section referencing VERSION_POLICY.md
@@ -77,8 +77,8 @@ All built artifacts now follow the pattern:
 ```
 
 **Examples:**
-- `jplatform-launcher-1.0.jar`
-- `jplatform-api-1.0.jar`
+- `platform-java-launcher-1.0.jar`
+- `platform-java-api-1.0.jar`
 - `sample-hello-world-1.0.jar`
 - `sample-messaging-app-1.0.jar`
 
@@ -86,8 +86,8 @@ All built artifacts now follow the pattern:
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-api</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-api</artifactId>
     <version>1.0</version>
 </dependency>
 ```
@@ -102,13 +102,13 @@ $ mvn clean install -DskipTests
 [INFO] BUILD SUCCESS
 [INFO] Total time:  2.515 s
 
-$ ls jplatform-launcher/target/
-jplatform-launcher-1.0.jar
+$ ls platform-java-launcher/target/
+platform-java-launcher-1.0.jar
 
-$ ls jplatform-samples/hello-world/target/
+$ ls platform-java-samples/hello-world/target/
 sample-hello-world-1.0.jar
 
-$ ls jplatform-samples/messaging-app/target/
+$ ls platform-java-samples/messaging-app/target/
 sample-messaging-app-1.0.jar
 ```
 
@@ -116,12 +116,12 @@ sample-messaging-app-1.0.jar
 
 ```bash
 # Start platform
-java -jar jplatform-launcher/target/jplatform-launcher-1.0.jar
+java -jar platform-java-launcher/target/platform-java-launcher-1.0.jar
 
 # Deploy samples
-jplatform> deploy hello-world jplatform-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.jplatform.samples.helloworld.HelloWorldApp
+platform-java> deploy hello-world platform-java-samples/hello-world/target/sample-hello-world-1.0.jar org.flossware.platform-java.samples.helloworld.HelloWorldApp
 
-jplatform> deploy messaging-app jplatform-samples/messaging-app/target/sample-messaging-app-1.0.jar org.flossware.jplatform.samples.messaging.MessagingApp
+platform-java> deploy messaging-app platform-java-samples/messaging-app/target/sample-messaging-app-1.0.jar org.flossware.platform-java.samples.messaging.MessagingApp
 ```
 
 ## Benefits of New Scheme
@@ -160,4 +160,4 @@ For future releases:
 ---
 
 Version update completed: 2026-05-21
-Current JPlatform version: **1.0**
+Current platform-java version: **1.0**

@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
-    <artifactId>jplatform-cluster-etcd</artifactId>
-    <name>JPlatform Cluster - Etcd</name>
+    <artifactId>platform-java-cluster-etcd</artifactId>
+    <name>platform-java Cluster - Etcd</name>
     <dependencies>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
         </dependency>
         <dependency>
             <groupId>io.etcd</groupId>

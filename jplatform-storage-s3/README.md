@@ -1,6 +1,6 @@
-# JPlatform Storage - S3
+# platform-java Storage - S3
 
-AWS S3/MinIO storage backend for JPlatform volumes. Provides persistent, scalable object storage with support for AWS S3 and S3-compatible services.
+AWS S3/MinIO storage backend for platform-java volumes. Provides persistent, scalable object storage with support for AWS S3 and S3-compatible services.
 
 ## Features
 
@@ -16,8 +16,8 @@ AWS S3/MinIO storage backend for JPlatform volumes. Provides persistent, scalabl
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-storage-s3</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-storage-s3</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -54,7 +54,7 @@ S3StorageConfig config = S3StorageConfig.builder()
     .endpoint("http://localhost:9000")
     .accessKey("minioadmin")
     .secretKey("minioadmin")
-    .bucketName("jplatform")
+    .bucketName("platform-java")
     .pathStyleAccess(true)
     .build();
 
@@ -162,7 +162,7 @@ The module includes comprehensive tests with 60%+ coverage:
 
 Run tests:
 ```bash
-mvn test -pl jplatform-storage-s3
+mvn test -pl platform-java-storage-s3
 ```
 
 ## Status

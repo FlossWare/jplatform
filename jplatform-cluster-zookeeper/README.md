@@ -1,6 +1,6 @@
-# JPlatform Cluster - ZooKeeper
+# platform-java Cluster - ZooKeeper
 
-ZooKeeper-based clustering implementation for JPlatform using Apache Curator for distributed coordination.
+ZooKeeper-based clustering implementation for platform-java using Apache Curator for distributed coordination.
 
 ## Features
 
@@ -16,8 +16,8 @@ ZooKeeper-based clustering implementation for JPlatform using Apache Curator for
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-cluster-zookeeper</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-cluster-zookeeper</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -65,7 +65,7 @@ ZookeeperConfig config = ZookeeperConfig.builder()
     .connectionTimeoutMs(15000)
     .baseSleepTimeMs(1000)
     .maxRetries(3)
-    .namespace("jplatform")
+    .namespace("platform-java")
     .build();
 ```
 
@@ -110,7 +110,7 @@ server.3=zk3:2888:3888
 Uses Curator's LeaderSelector recipe with ephemeral sequential znodes:
 
 ```
-Leader Path: /jplatform/leader/{clusterName}
+Leader Path: /platform-java/leader/{clusterName}
 ```
 
 ### Membership Tracking
@@ -118,7 +118,7 @@ Leader Path: /jplatform/leader/{clusterName}
 Ephemeral znodes for each member:
 
 ```
-Member Path: /jplatform/members/{clusterName}/{nodeId}
+Member Path: /platform-java/members/{clusterName}/{nodeId}
 ```
 
 ### State Storage
@@ -126,8 +126,8 @@ Member Path: /jplatform/members/{clusterName}/{nodeId}
 Persistent znodes with JSON serialization:
 
 ```
-States:      /jplatform/states/{appId}
-Descriptors: /jplatform/descriptors/{appId}
+States:      /platform-java/states/{appId}
+Descriptors: /platform-java/descriptors/{appId}
 ```
 
 ## Comparison with Other Backends
@@ -142,18 +142,18 @@ Descriptors: /jplatform/descriptors/{appId}
 ## Testing
 
 ```bash
-mvn test -pl jplatform-cluster-zookeeper
+mvn test -pl platform-java-cluster-zookeeper
 ```
 
 ## License
 
-This module is part of JPlatform and uses the same license as the parent project.
+This module is part of platform-java and uses the same license as the parent project.
 
 ## See Also
 
-- [jplatform-cluster](../jplatform-cluster) - Hazelcast-based clustering
-- [jplatform-cluster-consul](../jplatform-cluster-consul) - Consul-based clustering
-- [jplatform-cluster-etcd](../jplatform-cluster-etcd) - etcd-based clustering
-- [jplatform-cluster-redis](../jplatform-cluster-redis) - Redis-based clustering
+- [platform-java-cluster](../platform-java-cluster) - Hazelcast-based clustering
+- [platform-java-cluster-consul](../platform-java-cluster-consul) - Consul-based clustering
+- [platform-java-cluster-etcd](../platform-java-cluster-etcd) - etcd-based clustering
+- [platform-java-cluster-redis](../platform-java-cluster-redis) - Redis-based clustering
 - [Apache Curator Documentation](https://curator.apache.org/)
 - [ZooKeeper Documentation](https://zookeeper.apache.org/doc/current/)

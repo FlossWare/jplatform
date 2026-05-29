@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
-    <artifactId>jplatform-rest-api-netty</artifactId>
-    <name>JPlatform REST API - Netty</name>
+    <artifactId>platform-java-rest-api-netty</artifactId>
+    <name>platform-java REST API - Netty</name>
     <dependencies>
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
         </dependency>
 
         <dependency>

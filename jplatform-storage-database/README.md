@@ -1,6 +1,6 @@
-# JPlatform Storage - Database
+# platform-java Storage - Database
 
-JDBC-based storage backend for JPlatform volumes. Provides persistent, transactional storage using relational databases with support for H2, PostgreSQL, and MySQL.
+JDBC-based storage backend for platform-java volumes. Provides persistent, transactional storage using relational databases with support for H2, PostgreSQL, and MySQL.
 
 ## Features
 
@@ -17,8 +17,8 @@ JDBC-based storage backend for JPlatform volumes. Provides persistent, transacti
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-storage-database</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-storage-database</artifactId>
     <version>1.1</version>
 </dependency>
 ```
@@ -29,7 +29,7 @@ JDBC-based storage backend for JPlatform volumes. Provides persistent, transacti
 
 ```java
 DatabaseStorageConfig config = DatabaseStorageConfig.builder()
-    .jdbcUrl("jdbc:h2:mem:jplatform")
+    .jdbcUrl("jdbc:h2:mem:platform-java")
     .username("sa")
     .password("")
     .build();
@@ -50,7 +50,7 @@ Files.writeString(dataPath.resolve("config.json"), "{}");
 
 ```java
 DatabaseStorageConfig config = DatabaseStorageConfig.builder()
-    .jdbcUrl("jdbc:h2:./data/jplatform")
+    .jdbcUrl("jdbc:h2:./data/platform-java")
     .username("sa")
     .password("")
     .build();
@@ -60,8 +60,8 @@ DatabaseStorageConfig config = DatabaseStorageConfig.builder()
 
 ```java
 DatabaseStorageConfig config = DatabaseStorageConfig.builder()
-    .jdbcUrl("jdbc:postgresql://localhost:5432/jplatform")
-    .username("jplatform")
+    .jdbcUrl("jdbc:postgresql://localhost:5432/platform-java")
+    .username("platform-java")
     .password("secret")
     .driverClassName("org.postgresql.Driver")
     .build();
@@ -71,8 +71,8 @@ DatabaseStorageConfig config = DatabaseStorageConfig.builder()
 
 ```java
 DatabaseStorageConfig config = DatabaseStorageConfig.builder()
-    .jdbcUrl("jdbc:mysql://localhost:3306/jplatform")
-    .username("jplatform")
+    .jdbcUrl("jdbc:mysql://localhost:3306/platform-java")
+    .username("platform-java")
     .password("secret")
     .driverClassName("com.mysql.cj.jdbc.Driver")
     .build();
@@ -82,8 +82,8 @@ DatabaseStorageConfig config = DatabaseStorageConfig.builder()
 
 ```java
 DatabaseStorageConfig config = DatabaseStorageConfig.builder()
-    .jdbcUrl("jdbc:postgresql://localhost:5432/jplatform")
-    .username("jplatform")
+    .jdbcUrl("jdbc:postgresql://localhost:5432/platform-java")
+    .username("platform-java")
     .password("secret")
     .maximumPoolSize(20)
     .minimumIdle(5)
@@ -152,19 +152,19 @@ Uses HikariCP for efficient connection management:
 
 ```bash
 # Create database
-createdb jplatform
+createdb platform-java
 
 # Create user
-psql -c "CREATE USER jplatform WITH PASSWORD 'secret';"
-psql -c "GRANT ALL PRIVILEGES ON DATABASE jplatform TO jplatform;"
+psql -c "CREATE USER platform-java WITH PASSWORD 'secret';"
+psql -c "GRANT ALL PRIVILEGES ON DATABASE platform-java TO platform-java;"
 ```
 
 ### MySQL
 
 ```bash
-mysql -e "CREATE DATABASE jplatform CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -e "CREATE USER 'jplatform'@'localhost' IDENTIFIED BY 'secret';"
-mysql -e "GRANT ALL PRIVILEGES ON jplatform.* TO 'jplatform'@'localhost';"
+mysql -e "CREATE DATABASE platform-java CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -e "CREATE USER 'platform-java'@'localhost' IDENTIFIED BY 'secret';"
+mysql -e "GRANT ALL PRIVILEGES ON platform-java.* TO 'platform-java'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
 ```
 
@@ -173,8 +173,8 @@ mysql -e "FLUSH PRIVILEGES;"
 ```bash
 docker run -d \
   --name postgres \
-  -e POSTGRES_DB=jplatform \
-  -e POSTGRES_USER=jplatform \
+  -e POSTGRES_DB=platform-java \
+  -e POSTGRES_USER=platform-java \
   -e POSTGRES_PASSWORD=secret \
   -p 5432:5432 \
   postgres:15
@@ -185,8 +185,8 @@ docker run -d \
 ```bash
 docker run -d \
   --name mysql \
-  -e MYSQL_DATABASE=jplatform \
-  -e MYSQL_USER=jplatform \
+  -e MYSQL_DATABASE=platform-java \
+  -e MYSQL_USER=platform-java \
   -e MYSQL_PASSWORD=secret \
   -e MYSQL_ROOT_PASSWORD=rootsecret \
   -p 3306:3306 \
@@ -236,7 +236,7 @@ This module requires:
 Tests use H2 in-memory database:
 
 ```bash
-mvn test -pl jplatform-storage-database
+mvn test -pl platform-java-storage-database
 ```
 
 ## Performance Considerations
@@ -249,4 +249,4 @@ mvn test -pl jplatform-storage-database
 
 ## License
 
-Part of JPlatform - see main project for license details.
+Part of platform-java - see main project for license details.

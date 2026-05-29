@@ -2,7 +2,7 @@
 
 ## Overview
 
-JPlatform provides application-level security through a modern enforcement system that replaces the deprecated `SecurityManager` API. The security system uses the StackWalker API (Java 9+) to enforce permissions based on the calling ClassLoader.
+platform-java provides application-level security through a modern enforcement system that replaces the deprecated `SecurityManager` API. The security system uses the StackWalker API (Java 9+) to enforce permissions based on the calling ClassLoader.
 
 ## Security Architecture
 
@@ -15,7 +15,7 @@ JPlatform provides application-level security through a modern enforcement syste
 
 ### Why Not SecurityManager?
 
-The `SecurityManager` API was deprecated in Java 17 and will be removed in future Java versions. JPlatform's security system offers:
+The `SecurityManager` API was deprecated in Java 17 and will be removed in future Java versions. platform-java's security system offers:
 
 - ✅ **Future-proof** - Not deprecated, works with Java 17+
 - ✅ **Better performance** - No global permission checks on every operation
@@ -163,7 +163,7 @@ public class MyApp implements Application {
 The `SecurityEnforcer` provides StackWalker-based enforcement:
 
 ```java
-import org.flossware.jplatform.security.SecurityEnforcer;
+import org.flossware.platform-java.security.SecurityEnforcer;
 
 public class MyApp implements Application {
     @Override
@@ -192,7 +192,7 @@ public class MyApp implements Application {
 Enable automatic enforcement for all operations:
 
 ```bash
-java -Djplatform.security.enforce=true -jar jplatform-launcher.jar
+java -Dplatform-java.security.enforce=true -jar platform-java-launcher.jar
 ```
 
 When enabled, the enforcer automatically checks permissions using the calling ClassLoader's security policy.
@@ -442,7 +442,7 @@ Files.readString(Path.of("/tmp/file.txt"));
 
 **Solution**: Enable enforcement:
 ```bash
-java -Djplatform.security.enforce=true -jar jplatform-launcher.jar
+java -Dplatform-java.security.enforce=true -jar platform-java-launcher.jar
 ```
 
 Or programmatically:

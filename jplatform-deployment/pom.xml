@@ -6,13 +6,13 @@
 
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
 
-    <artifactId>jplatform-deployment</artifactId>
+    <artifactId>platform-java-deployment</artifactId>
     <packaging>pom</packaging>
-    <name>JPlatform Deployment</name>
+    <name>platform-java Deployment</name>
     <description>Deployment mechanisms parent module</description>
 
     <!-- Deployment submodules will be added later -->

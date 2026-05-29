@@ -17,7 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Swing-based desktop UI for JPlatform management.
+ * Swing-based desktop UI for platform-java management.
  *
  * <p>Provides a graphical interface for:</p>
  * <ul>

@@ -6,21 +6,21 @@
 
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>jplatform-jcurses-ui</artifactId>
+    <artifactId>platform-java-jcurses-ui</artifactId>
     <packaging>jar</packaging>
-    <name>JPlatform Terminal UI</name>
+    <name>platform-java Terminal UI</name>
     <description>Terminal-based management UI for JPlatform using Lanterna (modern curses-like library)</description>
 
     <dependencies>
         <!-- JPlatform dependencies -->
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 

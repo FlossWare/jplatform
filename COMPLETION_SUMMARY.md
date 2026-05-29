@@ -1,11 +1,11 @@
-# JPlatform 1.0 - Implementation Completion Summary
+# platform-java 1.0 - Implementation Completion Summary
 
 **Date:** May 22, 2026  
 **Status:** ✅ **PRODUCTION READY**
 
 ## Executive Summary
 
-JPlatform 1.0 is **COMPLETE** and production-ready. All core features and 6 new enhancement modules have been implemented, thoroughly tested, and fully documented. The platform provides enterprise-grade capabilities for running multiple isolated Java applications within a single JVM with comprehensive deployment, management, and monitoring features.
+platform-java 1.0 is **COMPLETE** and production-ready. All core features and 6 new enhancement modules have been implemented, thoroughly tested, and fully documented. The platform provides enterprise-grade capabilities for running multiple isolated Java applications within a single JVM with comprehensive deployment, management, and monitoring features.
 
 ## Implementation Summary
 
@@ -23,37 +23,37 @@ JPlatform 1.0 is **COMPLETE** and production-ready. All core features and 6 new 
 
 ### New Enhancement Modules ✅ ALL IMPLEMENTED
 
-#### 1. jplatform-config (YAML/JSON Parsing)
+#### 1. platform-java-config (YAML/JSON Parsing)
 - YamlDescriptorParser and JsonDescriptorParser
 - Full validation of application descriptors
 - Support for all configuration options
 - **Tests:** 23 unit tests, 72% coverage
 
-#### 2. jplatform-fs-watcher (Filesystem Watcher)
+#### 2. platform-java-fs-watcher (Filesystem Watcher)
 - FileSystemDeploymentWatcher with auto-deployment
 - 500ms debouncing for file stability
 - Auto-deploy/undeploy/redeploy on file changes
 - **Tests:** 79 unit tests (4 platform-specific skipped), 84% coverage
 
-#### 3. jplatform-rest-api (HTTP REST API)
+#### 3. platform-java-rest-api (HTTP REST API)
 - JdkHttpApiServer with 10 REST endpoints
 - Full platform management via HTTP
 - JSON request/response
 - **Tests:** 82 unit tests, 84% coverage
 
-#### 4. jplatform-web-console (Browser UI)
+#### 4. platform-java-web-console (Browser UI)
 - Modern single-page application
 - Real-time metrics charts
 - Deploy via upload or paste
 - **Tests:** 16 unit tests, 75% coverage
 
-#### 5. jplatform-metrics-jmx (JMX Exporter)
+#### 5. platform-java-metrics-jmx (JMX Exporter)
 - Per-application MBean registration
 - Compatible with JConsole, VisualVM
 - JMX operations and attributes
 - **Tests:** 42 unit tests, 97% coverage
 
-#### 6. jplatform-metrics-prometheus (Prometheus Exporter)
+#### 6. platform-java-metrics-prometheus (Prometheus Exporter)
 - HTTP /metrics endpoint
 - Prometheus text exposition format
 - 7 metrics per application
@@ -83,17 +83,17 @@ JPlatform 1.0 is **COMPLETE** and production-ready. All core features and 6 new 
 - **Overall coverage:** 85%+
 
 **Module-Specific Coverage:**
-- jplatform-config: 72%
-- jplatform-fs-watcher: 84%
-- jplatform-rest-api: 84%
-- jplatform-web-console: 75%
-- jplatform-metrics-jmx: 97%
-- jplatform-metrics-prometheus: 95%
-- jplatform-launcher: 14% (mostly integration code, not unit-testable)
+- platform-java-config: 72%
+- platform-java-fs-watcher: 84%
+- platform-java-rest-api: 84%
+- platform-java-web-console: 75%
+- platform-java-metrics-jmx: 97%
+- platform-java-metrics-prometheus: 95%
+- platform-java-launcher: 14% (mostly integration code, not unit-testable)
 
 ## Deployment Methods (6 Total)
 
-1. **Interactive CLI** - deploy command at jplatform> prompt
+1. **Interactive CLI** - deploy command at platform-java> prompt
 2. **YAML Descriptors** - deploy-yaml command
 3. **JSON Descriptors** - deploy-json command
 4. **REST API** - HTTP POST to /api/applications
@@ -134,19 +134,19 @@ These limitations do NOT affect core functionality.
 
 ```bash
 # Start with all features
-java -jar jplatform-launcher-1.0.jar \
+java -jar platform-java-launcher-1.0.jar \
   --config platform.yaml \
   --rest-api --web-console \
   --jmx-port 9999 --prometheus \
-  --watch-dir /var/jplatform/apps
+  --watch-dir /var/platform-java/apps
 
 # Access points:
-# - CLI: jplatform> prompt
+# - CLI: platform-java> prompt
 # - Web UI: http://localhost:8080/console
 # - REST API: http://localhost:8080/api/*
 # - JMX: jconsole localhost:9999
 # - Prometheus: http://localhost:9090/metrics
-# - Auto-deploy: Drop .yaml files in /var/jplatform/apps
+# - Auto-deploy: Drop .yaml files in /var/platform-java/apps
 ```
 
 ## Production Readiness Checklist
@@ -182,4 +182,4 @@ java -jar jplatform-launcher-1.0.jar \
 
 **Status:** ✅ **PRODUCTION READY**
 
-JPlatform 1.0 delivers everything needed for enterprise deployment and management of isolated Java applications in a single JVM.
+platform-java 1.0 delivers everything needed for enterprise deployment and management of isolated Java applications in a single JVM.

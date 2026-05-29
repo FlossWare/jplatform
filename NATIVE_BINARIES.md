@@ -2,11 +2,11 @@
 
 ## Overview
 
-JPlatform supports loading native libraries (`.so`, `.dll`, `.dylib`) and deploying GraalVM native images. Native libraries are extracted to isolated directories per application, ensuring proper isolation and avoiding library conflicts.
+platform-java supports loading native libraries (`.so`, `.dll`, `.dylib`) and deploying GraalVM native images. Native libraries are extracted to isolated directories per application, ensuring proper isolation and avoiding library conflicts.
 
 ## Platform Detection
 
-JPlatform automatically detects the current platform using Java system properties:
+platform-java automatically detects the current platform using Java system properties:
 
 ### Supported Platforms
 
@@ -37,8 +37,8 @@ String osArch = System.getProperty("os.arch").toLowerCase();
 ### In Java (ApplicationDescriptor)
 
 ```java
-import org.flossware.jplatform.api.NativeLibrary;
-import org.flossware.jplatform.api.Platform;
+import org.flossware.platform-java.api.NativeLibrary;
+import org.flossware.platform-java.api.Platform;
 
 ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
     .applicationId("sqlite-app")
@@ -124,11 +124,11 @@ nativeLibraries:
 
 ### 1. Deploy-Time Extraction
 
-When an application is deployed, JPlatform:
+When an application is deployed, platform-java:
 
 1. **Detects current platform** (e.g., LINUX_X64)
 2. **Filters native libraries** by matching platform
-3. **Creates isolated directory**: `/var/jplatform/natives/{applicationId}/`
+3. **Creates isolated directory**: `/var/platform-java/natives/{applicationId}/`
 4. **Extracts libraries** to isolated directory
 5. **Updates `java.library.path`** to include isolated directory
 
@@ -137,7 +137,7 @@ When an application is deployed, JPlatform:
 When application calls `System.loadLibrary()`, the JVM:
 
 1. Searches `java.library.path`
-2. Finds library in isolated directory: `/var/jplatform/natives/{applicationId}/libsqlite3.so`
+2. Finds library in isolated directory: `/var/platform-java/natives/{applicationId}/libsqlite3.so`
 3. Loads library using `dlopen()` (Linux) or `LoadLibrary()` (Windows)
 
 ### 3. Cleanup on Undeploy
@@ -145,7 +145,7 @@ When application calls `System.loadLibrary()`, the JVM:
 When application is undeployed:
 
 1. Libraries are unloaded (if possible)
-2. Isolated directory is deleted: `/var/jplatform/natives/{applicationId}/`
+2. Isolated directory is deleted: `/var/platform-java/natives/{applicationId}/`
 
 ## Using Native Libraries in Applications
 
@@ -154,15 +154,15 @@ When application is undeployed:
 ```java
 package com.example;
 
-import org.flossware.jplatform.api.Application;
-import org.flossware.jplatform.api.ApplicationContext;
+import org.flossware.platform-java.api.Application;
+import org.flossware.platform-java.api.ApplicationContext;
 
 public class SqliteApp implements Application {
     
     @Override
     public void start(ApplicationContext context) throws Exception {
         // Load native library
-        // JPlatform has already added /var/jplatform/natives/sqlite-app/ to java.library.path
+        // platform-java has already added /var/platform-java/natives/sqlite-app/ to java.library.path
         System.loadLibrary("sqlite3");
         
         // Use native library via JNI
@@ -185,8 +185,8 @@ public class SqliteApp implements Application {
 ```java
 package com.example;
 
-import org.flossware.jplatform.api.Application;
-import org.flossware.jplatform.api.ApplicationContext;
+import org.flossware.platform-java.api.Application;
+import org.flossware.platform-java.api.ApplicationContext;
 
 public class JniApp implements Application {
     
@@ -257,7 +257,7 @@ Native library paths can use the following URI schemes:
 Each application gets its own isolated directory:
 
 ```
-/var/jplatform/natives/
+/var/platform-java/natives/
   ├── app-1/
   │   ├── libsqlite3.so        (version 3.42)
   │   └── libcustom.so
@@ -311,7 +311,7 @@ ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
 
 ### Execution
 
-When `nativeImage=true`, JPlatform will:
+When `nativeImage=true`, platform-java will:
 
 1. Skip classloader creation
 2. Use `ProcessBuilder` to launch native binary
@@ -325,7 +325,7 @@ When `nativeImage=true`, JPlatform will:
 # Build GraalVM native image
 $ native-image -jar myapp.jar -o myapp-native
 
-# Deploy to JPlatform
+# Deploy to platform-java
 $ cat graal-app.yaml
 applicationId: graal-app
 mainClass: com.example.GraalApp
@@ -333,7 +333,7 @@ nativeImage: true
 classpathEntries:
   - file:///path/to/myapp-native
 
-$ jplatform-launcher.jar deploy --yaml graal-app.yaml
+$ platform-java-launcher.jar deploy --yaml graal-app.yaml
 ```
 
 ## Platform-Specific Library Naming
@@ -378,8 +378,8 @@ For platform-independent libraries (rare):
 Extracted libraries have restrictive permissions:
 
 ```bash
-$ ls -la /var/jplatform/natives/my-app/
--rw-r----- 1 jplatform jplatform 1234567 May 22 libsqlite3.so
+$ ls -la /var/platform-java/natives/my-app/
+-rw-r----- 1 platform-java platform-java 1234567 May 22 libsqlite3.so
 ```
 
 ### Code Signing (Recommended)
@@ -397,7 +397,7 @@ $ codesign -s "Developer ID Application" libsqlite3.dylib
 
 ### Verification (Future Enhancement)
 
-JPlatform can verify signatures before loading:
+platform-java can verify signatures before loading:
 
 ```java
 .addNativeLibrary(new NativeLibrary(
@@ -422,11 +422,11 @@ JPlatform can verify signatures before loading:
    ```
 2. Check library was extracted:
    ```bash
-   $ ls /var/jplatform/natives/{app-id}/
+   $ ls /var/platform-java/natives/{app-id}/
    ```
 3. Verify library path in logs:
    ```
-   INFO  [main] o.f.j.c.NativeLibraryLoader - Loaded native library: /var/jplatform/natives/my-app/libsqlite3.so
+   INFO  [main] o.f.j.c.NativeLibraryLoader - Loaded native library: /var/platform-java/natives/my-app/libsqlite3.so
    ```
 
 ### Error: "cannot open shared object file: No such file or directory"
@@ -436,7 +436,7 @@ JPlatform can verify signatures before loading:
 **Solution**:
 1. Check library dependencies:
    ```bash
-   $ ldd /var/jplatform/natives/my-app/libsqlite3.so
+   $ ldd /var/platform-java/natives/my-app/libsqlite3.so
    ```
 2. Install missing system libraries:
    ```bash
@@ -546,11 +546,11 @@ brew install sqlite openssl zlib
 ```java
 package com.example;
 
-import org.flossware.jplatform.api.Application;
-import org.flossware.jplatform.api.ApplicationContext;
-import org.flossware.jplatform.api.ApplicationDescriptor;
-import org.flossware.jplatform.api.NativeLibrary;
-import org.flossware.jplatform.api.Platform;
+import org.flossware.platform-java.api.Application;
+import org.flossware.platform-java.api.ApplicationContext;
+import org.flossware.platform-java.api.ApplicationDescriptor;
+import org.flossware.platform-java.api.NativeLibrary;
+import org.flossware.platform-java.api.Platform;
 
 public class ImageProcessingApp implements Application {
     

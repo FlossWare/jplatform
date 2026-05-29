@@ -2,7 +2,7 @@
 
 ## Overview
 
-JPlatform provides comprehensive observability through multiple mechanisms:
+platform-java provides comprehensive observability through multiple mechanisms:
 
 - **OpenTelemetry** - Distributed tracing and metrics export via OTLP
 - **JMX** - Java Management Extensions for monitoring and management
@@ -26,7 +26,7 @@ metrics:
 #### Programmatic Configuration
 
 ```java
-import org.flossware.jplatform.otel.OpenTelemetryMetricsExporter;
+import org.flossware.platform-java.otel.OpenTelemetryMetricsExporter;
 
 OpenTelemetryMetricsExporter exporter = new OpenTelemetryMetricsExporter("http://localhost:4317");
 exporter.start();
@@ -37,20 +37,20 @@ exporter.registerApplication("my-app", context);
 
 ### Exported Metrics
 
-JPlatform exports the following metrics to OpenTelemetry Collector:
+platform-java exports the following metrics to OpenTelemetry Collector:
 
 | Metric Name | Type | Description | Unit | Labels |
 |-------------|------|-------------|------|--------|
-| `jplatform.app.cpu_time_seconds` | Counter | Total CPU time consumed | seconds | app_id |
-| `jplatform.app.heap_used_bytes` | Gauge | Current heap memory usage | bytes | app_id |
-| `jplatform.app.thread_count` | Gauge | Current thread count | threads | app_id |
+| `platform-java.app.cpu_time_seconds` | Counter | Total CPU time consumed | seconds | app_id |
+| `platform-java.app.heap_used_bytes` | Gauge | Current heap memory usage | bytes | app_id |
+| `platform-java.app.thread_count` | Gauge | Current thread count | threads | app_id |
 
 #### Example Metrics Output
 
 ```
-jplatform.app.cpu_time_seconds{app_id="order-service"} 45.2
-jplatform.app.heap_used_bytes{app_id="order-service"} 134217728
-jplatform.app.thread_count{app_id="order-service"} 12
+platform-java.app.cpu_time_seconds{app_id="order-service"} 45.2
+platform-java.app.heap_used_bytes{app_id="order-service"} 134217728
+platform-java.app.thread_count{app_id="order-service"} 12
 ```
 
 ### Export Interval
@@ -59,12 +59,12 @@ Metrics are exported every **60 seconds** to the configured OTLP endpoint.
 
 ### Service Name
 
-All metrics are tagged with service name: `jplatform`
+All metrics are tagged with service name: `platform-java`
 
 ### Resource Attributes
 
 ```
-service.name = jplatform
+service.name = platform-java
 ```
 
 ## OpenTelemetry Collector Setup
@@ -137,13 +137,13 @@ metrics:
   jmx:
     enabled: true
     port: 9999
-    domain: "org.flossware.jplatform"
+    domain: "org.flossware.platform-java"
 ```
 
 #### Command-Line
 
 ```bash
-java -jar jplatform-launcher.jar --jmx-port 9999
+java -jar platform-java-launcher.jar --jmx-port 9999
 ```
 
 ### MBean Attributes
@@ -151,7 +151,7 @@ java -jar jplatform-launcher.jar --jmx-port 9999
 Each application is registered as an MBean with ObjectName:
 
 ```
-org.flossware.jplatform:type=Application,id={applicationId}
+org.flossware.platform-java:type=Application,id={applicationId}
 ```
 
 **Attributes**:
@@ -177,7 +177,7 @@ org.flossware.jplatform:type=Application,id={applicationId}
 $ jconsole localhost:9999
 ```
 
-Navigate to MBeans tab → `org.flossware.jplatform` → `Application` → `{app-id}`
+Navigate to MBeans tab → `org.flossware.platform-java` → `Application` → `{app-id}`
 
 ### Remote JMX (Optional)
 
@@ -188,7 +188,7 @@ java -Dcom.sun.management.jmxremote \
      -Dcom.sun.management.jmxremote.port=9999 \
      -Dcom.sun.management.jmxremote.authenticate=false \
      -Dcom.sun.management.jmxremote.ssl=false \
-     -jar jplatform-launcher.jar
+     -jar platform-java-launcher.jar
 ```
 
 ## Prometheus Metrics
@@ -208,7 +208,7 @@ metrics:
 #### Command-Line
 
 ```bash
-java -jar jplatform-launcher.jar --prometheus --prometheus-port 9090
+java -jar platform-java-launcher.jar --prometheus --prometheus-port 9090
 ```
 
 ### Metrics Endpoint
@@ -218,33 +218,33 @@ Access metrics at: `http://localhost:9090/metrics`
 ### Exported Metrics
 
 ```
-# HELP jplatform_app_cpu_time_seconds Total CPU time consumed by the application
-# TYPE jplatform_app_cpu_time_seconds counter
-jplatform_app_cpu_time_seconds{app_id="order-service"} 45.2
+# HELP platform-java_app_cpu_time_seconds Total CPU time consumed by the application
+# TYPE platform-java_app_cpu_time_seconds counter
+platform-java_app_cpu_time_seconds{app_id="order-service"} 45.2
 
-# HELP jplatform_app_heap_used_bytes Current heap memory usage
-# TYPE jplatform_app_heap_used_bytes gauge
-jplatform_app_heap_used_bytes{app_id="order-service"} 134217728
+# HELP platform-java_app_heap_used_bytes Current heap memory usage
+# TYPE platform-java_app_heap_used_bytes gauge
+platform-java_app_heap_used_bytes{app_id="order-service"} 134217728
 
-# HELP jplatform_app_thread_count Current thread count
-# TYPE jplatform_app_thread_count gauge
-jplatform_app_thread_count{app_id="order-service"} 12
+# HELP platform-java_app_thread_count Current thread count
+# TYPE platform-java_app_thread_count gauge
+platform-java_app_thread_count{app_id="order-service"} 12
 
-# HELP jplatform_app_state Application state (0=STOPPED, 1=RUNNING, 2=FAILED)
-# TYPE jplatform_app_state gauge
-jplatform_app_state{app_id="order-service"} 1
+# HELP platform-java_app_state Application state (0=STOPPED, 1=RUNNING, 2=FAILED)
+# TYPE platform-java_app_state gauge
+platform-java_app_state{app_id="order-service"} 1
 
-# HELP jplatform_app_threadpool_active Active threads in thread pool
-# TYPE jplatform_app_threadpool_active gauge
-jplatform_app_threadpool_active{app_id="order-service"} 5
+# HELP platform-java_app_threadpool_active Active threads in thread pool
+# TYPE platform-java_app_threadpool_active gauge
+platform-java_app_threadpool_active{app_id="order-service"} 5
 
-# HELP jplatform_app_threadpool_queued Queued tasks in thread pool
-# TYPE jplatform_app_threadpool_queued gauge
-jplatform_app_threadpool_queued{app_id="order-service"} 0
+# HELP platform-java_app_threadpool_queued Queued tasks in thread pool
+# TYPE platform-java_app_threadpool_queued gauge
+platform-java_app_threadpool_queued{app_id="order-service"} 0
 
-# HELP jplatform_app_threadpool_completed Completed tasks in thread pool
-# TYPE jplatform_app_threadpool_completed counter
-jplatform_app_threadpool_completed{app_id="order-service"} 1024
+# HELP platform-java_app_threadpool_completed Completed tasks in thread pool
+# TYPE platform-java_app_threadpool_completed counter
+platform-java_app_threadpool_completed{app_id="order-service"} 1024
 ```
 
 ### Prometheus Scrape Configuration
@@ -252,7 +252,7 @@ jplatform_app_threadpool_completed{app_id="order-service"} 1024
 ```yaml
 # prometheus.yml
 scrape_configs:
-  - job_name: 'jplatform'
+  - job_name: 'platform-java'
     scrape_interval: 15s
     static_configs:
       - targets: ['localhost:9090']
@@ -282,7 +282,7 @@ Per-application logs with structured JSON format:
 Logs are written to application-specific files:
 
 ```
-/var/jplatform/logs/
+/var/platform-java/logs/
   ├── order-service.log
   ├── payment-service.log
   └── inventory-service.log
@@ -299,7 +299,7 @@ public class OrderService implements Application {
     
     @Override
     public void start(ApplicationContext context) {
-        // app_id is automatically set by JPlatform
+        // app_id is automatically set by platform-java
         
         // Add custom context
         MDC.put("customer_id", "12345");
@@ -316,7 +316,7 @@ public class OrderService implements Application {
 
 ### History Tracking
 
-JPlatform tracks resource usage history:
+platform-java tracks resource usage history:
 
 - **Interval**: 5 seconds
 - **Retention**: 1 hour (720 snapshots)
@@ -352,7 +352,7 @@ Response:
 
 ```java
 MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-ObjectName name = new ObjectName("org.flossware.jplatform:type=Application,id=my-app");
+ObjectName name = new ObjectName("org.flossware.platform-java:type=Application,id=my-app");
 
 String history = (String) mbs.invoke(name, "getResourceHistory", 
     new Object[]{10}, new String[]{"int"});
@@ -363,7 +363,7 @@ System.out.println(history);
 
 ### Trace Context Propagation
 
-JPlatform will support trace context propagation across applications using OpenTelemetry:
+platform-java will support trace context propagation across applications using OpenTelemetry:
 
 ```java
 import io.opentelemetry.api.trace.Span;
@@ -417,13 +417,13 @@ messageBus.subscribe("orders", Order.class, (order) -> {
 ```json
 {
   "dashboard": {
-    "title": "JPlatform Applications",
+    "title": "platform-java Applications",
     "panels": [
       {
         "title": "CPU Usage",
         "targets": [
           {
-            "expr": "rate(jplatform_app_cpu_time_seconds[5m])",
+            "expr": "rate(platform-java_app_cpu_time_seconds[5m])",
             "legendFormat": "{{app_id}}"
           }
         ]
@@ -432,7 +432,7 @@ messageBus.subscribe("orders", Order.class, (order) -> {
         "title": "Heap Usage",
         "targets": [
           {
-            "expr": "jplatform_app_heap_used_bytes",
+            "expr": "platform-java_app_heap_used_bytes",
             "legendFormat": "{{app_id}}"
           }
         ]
@@ -441,7 +441,7 @@ messageBus.subscribe("orders", Order.class, (order) -> {
         "title": "Thread Count",
         "targets": [
           {
-            "expr": "jplatform_app_thread_count",
+            "expr": "platform-java_app_thread_count",
             "legendFormat": "{{app_id}}"
           }
         ]
@@ -455,22 +455,22 @@ messageBus.subscribe("orders", Order.class, (order) -> {
 
 **CPU usage rate (last 5 minutes)**:
 ```promql
-rate(jplatform_app_cpu_time_seconds[5m])
+rate(platform-java_app_cpu_time_seconds[5m])
 ```
 
 **Top 5 applications by heap usage**:
 ```promql
-topk(5, jplatform_app_heap_used_bytes)
+topk(5, platform-java_app_heap_used_bytes)
 ```
 
 **Applications with thread count > 50**:
 ```promql
-jplatform_app_thread_count > 50
+platform-java_app_thread_count > 50
 ```
 
 **Thread pool utilization**:
 ```promql
-jplatform_app_threadpool_active / jplatform_app_threadpool_size * 100
+platform-java_app_threadpool_active / platform-java_app_threadpool_size * 100
 ```
 
 ## Alerting
@@ -480,10 +480,10 @@ jplatform_app_threadpool_active / jplatform_app_threadpool_size * 100
 ```yaml
 # alerts.yml
 groups:
-  - name: jplatform
+  - name: platform-java
     rules:
       - alert: HighHeapUsage
-        expr: jplatform_app_heap_used_bytes > 500000000  # 500MB
+        expr: platform-java_app_heap_used_bytes > 500000000  # 500MB
         for: 5m
         labels:
           severity: warning
@@ -492,7 +492,7 @@ groups:
           description: "Heap usage is {{ $value | humanize }}B"
       
       - alert: HighThreadCount
-        expr: jplatform_app_thread_count > 100
+        expr: platform-java_app_thread_count > 100
         for: 2m
         labels:
           severity: warning
@@ -501,18 +501,18 @@ groups:
           description: "Thread count is {{ $value }}"
       
       - alert: ApplicationDown
-        expr: up{job="jplatform"} == 0
+        expr: up{job="platform-java"} == 0
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "JPlatform is down"
-          description: "JPlatform has been down for 1 minute"
+          summary: "platform-java is down"
+          description: "platform-java has been down for 1 minute"
 ```
 
 ### Resource Enforcement Alerts
 
-JPlatform can automatically enforce resource limits:
+platform-java can automatically enforce resource limits:
 
 ```yaml
 # platform.yaml
@@ -579,7 +579,7 @@ Set up alerts for applications approaching quota limits:
 
 ```promql
 # Alert when heap usage > 90% of quota
-(jplatform_app_heap_used_bytes / 536870912) * 100 > 90
+(platform-java_app_heap_used_bytes / 536870912) * 100 > 90
 ```
 
 ### 5. Correlate Logs and Traces
@@ -638,14 +638,14 @@ $ curl http://localhost:9090/metrics
 **Check scrape config**:
 ```yaml
 scrape_configs:
-  - job_name: 'jplatform'
+  - job_name: 'platform-java'
     static_configs:
       - targets: ['localhost:9090']  # Correct host:port
 ```
 
 **Check Prometheus targets**:
 - Open Prometheus UI: http://localhost:9090/targets
-- Verify "jplatform" job is UP
+- Verify "platform-java" job is UP
 
 ## Complete Observability Stack
 
@@ -654,7 +654,7 @@ scrape_configs:
 ```yaml
 version: '3'
 services:
-  jplatform:
+  platform-java:
     build: .
     ports:
       - "8080:8080"   # REST API
@@ -693,7 +693,7 @@ services:
 
 ### Access URLs
 
-- JPlatform REST API: http://localhost:8080
+- platform-java REST API: http://localhost:8080
 - Prometheus Metrics: http://localhost:9090/metrics
 - Prometheus UI: http://localhost:9091
 - Grafana: http://localhost:3000

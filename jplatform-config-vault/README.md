@@ -1,6 +1,6 @@
-# JPlatform Config - Vault
+# platform-java Config - Vault
 
-HashiCorp Vault-based configuration source implementation for JPlatform.
+HashiCorp Vault-based configuration source implementation for platform-java.
 
 ## Features
 
@@ -15,8 +15,8 @@ HashiCorp Vault-based configuration source implementation for JPlatform.
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-config-vault</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-config-vault</artifactId>
     <version>1.1</version>
 </dependency>
 ```

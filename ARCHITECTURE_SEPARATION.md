@@ -1,22 +1,22 @@
-# Architecture Separation: jclassloader vs jplatform-classloader
+# Architecture Separation: jclassloader vs platform-java-classloader
 
 ## Clean Separation of Concerns
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    jplatform-classloader                    │
+│                    platform-java-classloader                    │
 │                    (Platform-Specific)                       │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  • IsolatedClassLoader                                      │
 │  • ApplicationDescriptor → ClassSource translation          │
-│  • Platform API isolation (org.flossware.jplatform.api.*)   │
+│  • Platform API isolation (org.flossware.platform-java.api.*)   │
 │  • ApplicationManager integration                           │
 │  • Platform logging/metrics integration                     │
 │  • Platform-specific cache directories                      │
 │  • Application lifecycle coordination                       │
 │                                                             │
-│  Dependencies: jplatform-api, jclassloader                  │
+│  Dependencies: platform-java-api, jclassloader                  │
 │                                                             │
 └────────────────────┬────────────────────────────────────────┘
                      │ uses
@@ -65,23 +65,23 @@
 
 ❌ **NO - Don't put in jclassloader:**
 - ApplicationDescriptor knowledge
-- JPlatform-specific API isolation rules
+- platform-java-specific API isolation rules
 - Platform service integration
 - Application lifecycle management
 
-### jplatform-classloader (Platform-Specific)
+### platform-java-classloader (Platform-Specific)
 
-**Question to ask**: "Is this specific to JPlatform's architecture?"
+**Question to ask**: "Is this specific to platform-java's architecture?"
 
-✅ **YES - Put in jplatform-classloader:**
+✅ **YES - Put in platform-java-classloader:**
 - IsolatedClassLoader (wrapper around JClassLoader)
 - ApplicationDescriptor → JClassLoader configuration
-- Platform API sharing (`org.flossware.jplatform.api.*`)
+- Platform API sharing (`org.flossware.platform-java.api.*`)
 - Integration with ApplicationManager
 - Platform logging/metrics hooks
 - Platform-specific caching strategies
 
-❌ **NO - Don't put in jplatform-classloader:**
+❌ **NO - Don't put in platform-java-classloader:**
 - Generic class loading mechanics
 - ClassSource implementations
 - Delegation strategy logic
@@ -91,7 +91,7 @@
 
 ### Example 1: Parent-Last Delegation
 
-**❌ WRONG - In jplatform-classloader:**
+**❌ WRONG - In platform-java-classloader:**
 ```java
 // NO - This is reusable, not platform-specific!
 public class ParentLastDelegation {
@@ -108,17 +108,17 @@ public class ParentLastDelegation implements DelegationStrategy {
 }
 ```
 
-**✅ RIGHT - In jplatform-classloader (uses it):**
+**✅ RIGHT - In platform-java-classloader (uses it):**
 ```java
 // Platform-specific: Configure with platform API prefix
 JClassLoader.builder()
-    .parentLast("org.flossware.jplatform.api.")  // Platform-specific prefix
+    .parentLast("org.flossware.platform-java.api.")  // Platform-specific prefix
     .build();
 ```
 
 ### Example 2: Resource Tracking
 
-**❌ WRONG - In jplatform-classloader:**
+**❌ WRONG - In platform-java-classloader:**
 ```java
 // NO - Resource tracking is generally useful!
 public class ResourceTracker {
@@ -135,7 +135,7 @@ public class ResourceTrackingListener implements ClassLoaderLifecycleListener {
 }
 ```
 
-**✅ RIGHT - In jplatform-classloader (uses it):**
+**✅ RIGHT - In platform-java-classloader (uses it):**
 ```java
 // Platform-specific: Use tracker for application cleanup
 ResourceTrackingListener tracker = new ResourceTrackingListener();
@@ -157,7 +157,7 @@ public void addFromDescriptor(ApplicationDescriptor desc) {
 }
 ```
 
-**✅ RIGHT - In jplatform-classloader:**
+**✅ RIGHT - In platform-java-classloader:**
 ```java
 // YES - Platform-specific translation
 private static void addClassSourcesFromDescriptor(
@@ -176,24 +176,24 @@ private static void addClassSourcesFromDescriptor(
 ## Dependency Graph
 
 ```
-jplatform-launcher
+platform-java-launcher
     ↓
-jplatform-core
+platform-java-core
     ↓
-jplatform-classloader ─────→ jclassloader
+platform-java-classloader ─────→ jclassloader
     ↓                             ↓
-jplatform-api              (no dependencies)
+platform-java-api              (no dependencies)
 ```
 
 **Key Points:**
-- jclassloader has NO dependency on jplatform
-- jplatform-classloader depends on BOTH jclassloader and jplatform-api
+- jclassloader has NO dependency on platform-java
+- platform-java-classloader depends on BOTH jclassloader and platform-java-api
 - jclassloader remains reusable by other projects
 
 ## Use Cases
 
 ### jclassloader can be used by:
-1. ✅ JPlatform (application server)
+1. ✅ platform-java (application server)
 2. ✅ Plugin systems (isolated plugins)
 3. ✅ OSGi containers (module isolation)
 4. ✅ Testing frameworks (test isolation)
@@ -201,9 +201,9 @@ jplatform-api              (no dependencies)
 6. ✅ Hot reload systems (resource cleanup)
 7. ✅ Any project needing custom class loading
 
-### jplatform-classloader is used by:
-1. ✅ JPlatform only
-2. ❌ Not reusable outside JPlatform
+### platform-java-classloader is used by:
+1. ✅ platform-java only
+2. ❌ Not reusable outside platform-java
 
 ## Benefits
 
@@ -213,7 +213,7 @@ jplatform-api              (no dependencies)
 - ✅ Attracts wider user base
 - ✅ No platform-specific coupling
 
-### For jplatform Project:
+### For platform-java Project:
 - ✅ Doesn't reinvent class loading
 - ✅ Gets 20+ class sources for free
 - ✅ Thin wrapper focused on platform concerns
@@ -221,7 +221,7 @@ jplatform-api              (no dependencies)
 
 ### For Other Projects:
 - ✅ Can use jclassloader for custom class loading needs
-- ✅ Don't need JPlatform to get isolation features
+- ✅ Don't need platform-java to get isolation features
 - ✅ Proven, tested class loading library
 
 ## Next Steps
@@ -234,7 +234,7 @@ jplatform-api              (no dependencies)
    - Add tests
    - Release new version (e.g., 2.0)
 
-2. **Implement jplatform-classloader** (in jplatform repo):
+2. **Implement platform-java-classloader** (in platform-java repo):
    - Depend on jclassloader 2.0+
    - Create `IsolatedClassLoader` wrapper
    - Implement platform-specific configuration
@@ -244,7 +244,7 @@ jplatform-api              (no dependencies)
 
 3. **Documentation**:
    - Update jclassloader README with new features
-   - Document jplatform-classloader usage
+   - Document platform-java-classloader usage
    - Create migration guide if needed
 
 ## Summary
@@ -255,7 +255,7 @@ jplatform-api              (no dependencies)
 - How to track resources
 - How to emit lifecycle events
 
-**jplatform-classloader = The Steering Wheel (platform-specific)**
+**platform-java-classloader = The Steering Wheel (platform-specific)**
 - Which classes to isolate (platform API vs application)
 - When to create/destroy class loaders (application lifecycle)
 - Where to cache (platform cache directories)

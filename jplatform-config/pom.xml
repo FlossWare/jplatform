@@ -6,19 +6,19 @@
 
     <parent>
         <groupId>org.flossware.jplatform</groupId>
-        <artifactId>jplatform-parent</artifactId>
+        <artifactId>platform-java-parent</artifactId>
         <version>1.1</version>
     </parent>
 
-    <artifactId>jplatform-config</artifactId>
-    <name>JPlatform Configuration</name>
+    <artifactId>platform-java-config</artifactId>
+    <name>platform-java Configuration</name>
     <description>YAML/JSON descriptor parsing for JPlatform</description>
 
     <dependencies>
         <!-- JPlatform API -->
         <dependency>
             <groupId>org.flossware.jplatform</groupId>
-            <artifactId>jplatform-api</artifactId>
+            <artifactId>platform-java-api</artifactId>
         </dependency>
 
         <!-- Jackson for JSON/YAML -->

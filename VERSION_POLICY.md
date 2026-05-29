@@ -1,8 +1,8 @@
-# JPlatform Version Numbering Policy
+# platform-java Version Numbering Policy
 
 ## Version Format
 
-JPlatform uses a **simple X.Y version numbering scheme** without patch versions or snapshot suffixes.
+platform-java uses a **simple X.Y version numbering scheme** without patch versions or snapshot suffixes.
 
 ### Format: `X.Y`
 
@@ -18,7 +18,7 @@ JPlatform uses a **simple X.Y version numbering scheme** without patch versions 
 
 ## No SNAPSHOT Versions
 
-JPlatform does **not** use Maven SNAPSHOT versions. All builds are release versions.
+platform-java does **not** use Maven SNAPSHOT versions. All builds are release versions.
 
 ### Rationale
 
@@ -60,24 +60,24 @@ This is the initial release with all core features implemented:
 
 ```xml
 <dependency>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-api</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-api</artifactId>
     <version>1.0</version>
 </dependency>
 ```
 
-All JPlatform modules share the same version number.
+All platform-java modules share the same version number.
 
 ## Artifact Naming
 
 Built artifacts follow this pattern:
 
 - JAR files: `{artifactId}-{version}.jar`
-  - Example: `jplatform-launcher-1.0.jar`
+  - Example: `platform-java-launcher-1.0.jar`
   - Example: `sample-hello-world-1.0.jar`
 
 - Module directories: `{artifactId}/target/`
-  - Example: `jplatform-launcher/target/jplatform-launcher-1.0.jar`
+  - Example: `platform-java-launcher/target/platform-java-launcher-1.0.jar`
 
 ## Version Compatibility
 
@@ -95,11 +95,11 @@ Major version updates (1.x → 2.x):
 
 ### Module Compatibility
 
-All JPlatform modules are released together with the same version number.
+All platform-java modules are released together with the same version number.
 
 **Do not mix versions** across modules:
 - ✅ Correct: All modules at version 1.0
-- ❌ Incorrect: jplatform-api at 1.0, jplatform-core at 1.1
+- ❌ Incorrect: platform-java-api at 1.0, platform-java-core at 1.1
 
 ## Release Process
 
@@ -121,7 +121,7 @@ mvn help:evaluate -Dexpression=project.version -q -DforceStdout
 ### Via JAR Manifest
 
 ```bash
-jar xf jplatform-launcher/target/jplatform-launcher-1.0.jar META-INF/MANIFEST.MF
+jar xf platform-java-launcher/target/platform-java-launcher-1.0.jar META-INF/MANIFEST.MF
 grep Implementation-Version META-INF/MANIFEST.MF
 ```
 
@@ -131,8 +131,8 @@ All modules inherit from parent:
 
 ```xml
 <parent>
-    <groupId>org.flossware.jplatform</groupId>
-    <artifactId>jplatform-parent</artifactId>
+    <groupId>org.flossware.platform-java</groupId>
+    <artifactId>platform-java-parent</artifactId>
     <version>1.0</version>
 </parent>
 ```
@@ -140,23 +140,23 @@ All modules inherit from parent:
 ## Comparison with Other Schemes
 
 ### Semantic Versioning (X.Y.Z)
-- JPlatform uses X.Y (no patch version)
+- platform-java uses X.Y (no patch version)
 - Simpler for this use case
 - Patch-level changes rolled into minor versions
 
 ### Snapshot Versions (X.Y.Z-SNAPSHOT)
-- JPlatform does not use snapshots
+- platform-java does not use snapshots
 - Every build is release quality
 - No distinction between development and release versions
 
 ### Date-Based Versioning (YYYY.MM.DD)
-- JPlatform uses feature-based versioning
+- platform-java uses feature-based versioning
 - Easier to track feature additions
 - More meaningful version numbers
 
 ## Summary
 
-JPlatform version numbering is:
+platform-java version numbering is:
 - ✅ Simple (X.Y format)
 - ✅ Clean (no SNAPSHOT suffix)
 - ✅ Consistent (all modules same version)

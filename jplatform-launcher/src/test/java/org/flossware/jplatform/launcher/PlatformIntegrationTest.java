@@ -19,7 +19,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration tests for JPlatform launcher.
+ * Integration tests for platform-java launcher.
  * Tests end-to-end functionality of all deployment methods and monitoring features.
  */
 class PlatformIntegrationTest {

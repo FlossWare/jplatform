@@ -57,7 +57,7 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
         // Build JClassLoader with platform-specific configuration
         JClassLoader.Builder builder = JClassLoader.builder()
                 .parent(platformSharedLoader)
-                // Platform-specific: parent-last with JPlatform API exception
+                // Platform-specific: parent-last with platform-java API exception
                 .parentLast(
                         "org.flossware.jplatform.api.",  // Platform API
                         "java.", "javax.", "sun.", "jdk."  // System classes

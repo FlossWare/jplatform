@@ -1,6 +1,6 @@
-# JPlatform Troubleshooting Guide
+# platform-java Troubleshooting Guide
 
-This guide helps diagnose and resolve common issues with JPlatform workloads.
+This guide helps diagnose and resolve common issues with platform-java workloads.
 
 ## Table of Contents
 
@@ -18,16 +18,16 @@ This guide helps diagnose and resolve common issues with JPlatform workloads.
 
 ## General Issues
 
-### JPlatform Command Not Found
+### platform-java Command Not Found
 
 **Symptom:**
 ```
-bash: jplatform: command not found
+bash: platform-java: command not found
 ```
 
 **Diagnosis:**
 ```bash
-which jplatform
+which platform-java
 echo $PATH
 ```
 
@@ -37,16 +37,16 @@ echo $PATH
 export PATH=$PATH:/usr/local/bin
 
 # If not installed
-cd jplatform-launcher
+cd platform-java-launcher
 mvn clean package
-sudo cp target/jplatform-launcher-*.jar /usr/local/lib/jplatform/
+sudo cp target/platform-java-launcher-*.jar /usr/local/lib/platform-java/
 
 # Create wrapper script
-sudo tee /usr/local/bin/jplatform > /dev/null << 'SCRIPT'
+sudo tee /usr/local/bin/platform-java > /dev/null << 'SCRIPT'
 #!/bin/sh
-java -jar /usr/local/lib/jplatform/jplatform-launcher.jar "$@"
+java -jar /usr/local/lib/platform-java/platform-java-launcher.jar "$@"
 SCRIPT
-sudo chmod +x /usr/local/bin/jplatform
+sudo chmod +x /usr/local/bin/platform-java
 ```
 
 ### Workload Stuck in STARTING State
@@ -60,13 +60,13 @@ State: STARTING (for > 5 minutes)
 **Diagnosis:**
 ```bash
 # Check logs
-jplatform logs my-app
+platform-java logs my-app
 
 # Check dependencies
-jplatform dependencies my-app
+platform-java dependencies my-app
 
 # Check resource availability
-jplatform metrics my-app
+platform-java metrics my-app
 ```
 
 **Common Causes:**
@@ -78,31 +78,31 @@ jplatform metrics my-app
 **Solution:**
 ```bash
 # Check dependency status
-jplatform status
+platform-java status
 
 # If dependency failed, check its logs
-jplatform logs <dependency-id>
+platform-java logs <dependency-id>
 
 # Force stop and retry
-jplatform stop my-app
-jplatform start my-app
+platform-java stop my-app
+platform-java start my-app
 ```
 
 ### Permission Denied Errors
 
 **Symptom:**
 ```
-ERROR: Permission denied accessing /var/lib/jplatform
+ERROR: Permission denied accessing /var/lib/platform-java
 ```
 
 **Solution:**
 ```bash
 # Check ownership
-ls -la /var/lib/jplatform
+ls -la /var/lib/platform-java
 
 # Fix permissions
-sudo chown -R $(whoami):$(whoami) /var/lib/jplatform
-sudo chmod -R 755 /var/lib/jplatform
+sudo chown -R $(whoami):$(whoami) /var/lib/platform-java
+sudo chmod -R 755 /var/lib/platform-java
 
 # For VMs specifically
 sudo usermod -aG libvirt $(whoami)
@@ -190,24 +190,24 @@ echo "kvm_amd" | sudo tee -a /etc/modules    # AMD
 **Symptom:**
 ```
 ERROR: vm.disk property is required
-ERROR: Disk image not found: /var/lib/jplatform/vms/my-vm.qcow2
+ERROR: Disk image not found: /var/lib/platform-java/vms/my-vm.qcow2
 ```
 
 **Solution:**
 ```bash
 # Create directory
-sudo mkdir -p /var/lib/jplatform/vms
+sudo mkdir -p /var/lib/platform-java/vms
 
 # Create new disk image
-sudo qemu-img create -f qcow2 /var/lib/jplatform/vms/my-vm.qcow2 50G
+sudo qemu-img create -f qcow2 /var/lib/platform-java/vms/my-vm.qcow2 50G
 
 # OR download cloud image
 wget https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img
-sudo mv ubuntu-22.04-server-cloudimg-amd64.img /var/lib/jplatform/vms/my-vm.qcow2
+sudo mv ubuntu-22.04-server-cloudimg-amd64.img /var/lib/platform-java/vms/my-vm.qcow2
 
 # Set permissions
-sudo chown libvirt-qemu:kvm /var/lib/jplatform/vms/my-vm.qcow2
-sudo chmod 660 /var/lib/jplatform/vms/my-vm.qcow2
+sudo chown libvirt-qemu:kvm /var/lib/platform-java/vms/my-vm.qcow2
+sudo chmod 660 /var/lib/platform-java/vms/my-vm.qcow2
 ```
 
 ### VM Won't Start
@@ -239,11 +239,11 @@ virsh list --all | grep running
 virsh destroy <conflicting-vm>
 
 # Check disk image
-qemu-img check /var/lib/jplatform/vms/my-vm.qcow2
+qemu-img check /var/lib/platform-java/vms/my-vm.qcow2
 
 # Recreate VM definition
 virsh undefine <vm-name>
-jplatform deploy my-vm.yaml
+platform-java deploy my-vm.yaml
 
 # Restart libvirt
 sudo systemctl restart libvirtd
@@ -277,8 +277,8 @@ cat my-vm.yaml | grep vnc
 #   vm.vnc.port: "5900"
 
 # Redeploy with VNC enabled
-jplatform undeploy my-vm
-jplatform deploy my-vm.yaml
+platform-java undeploy my-vm
+platform-java deploy my-vm.yaml
 
 # Allow VNC through firewall
 sudo firewall-cmd --add-port=5900/tcp --permanent
@@ -435,10 +435,10 @@ ERROR: java.lang.ClassNotFoundException: com.example.Main
 **Diagnosis:**
 ```bash
 # Check JAR file exists
-ls -la /var/lib/jplatform/apps/my-app/
+ls -la /var/lib/platform-java/apps/my-app/
 
 # Inspect JAR
-jar tf /var/lib/jplatform/apps/my-app/app.jar | grep Main
+jar tf /var/lib/platform-java/apps/my-app/app.jar | grep Main
 
 # Check classpath in descriptor
 cat my-app.yaml | grep classpath
@@ -454,7 +454,7 @@ jar tf app.jar | grep com/example/Main.class
 
 # Check classpath includes JAR
 classpath:
-  - "/var/lib/jplatform/apps/my-app/app.jar"
+  - "/var/lib/platform-java/apps/my-app/app.jar"
 ```
 
 ### OutOfMemoryError
@@ -467,7 +467,7 @@ ERROR: java.lang.OutOfMemoryError: Java heap space
 **Diagnosis:**
 ```bash
 # Check current heap usage
-jplatform metrics my-app | grep heap
+platform-java metrics my-app | grep heap
 
 # Check configured limit
 cat my-app.yaml | grep maxHeapMB
@@ -480,9 +480,9 @@ resources:
   maxHeapMB: 8192  # Increase from 4096
 
 # Redeploy
-jplatform undeploy my-app
-jplatform deploy my-app.yaml
-jplatform start my-app
+platform-java undeploy my-app
+platform-java deploy my-app.yaml
+platform-java start my-app
 ```
 
 ### Port Binding Failed
@@ -516,13 +516,13 @@ Application stuck in STOPPING state
 jstack <pid>
 
 # Check for non-daemon threads
-jplatform logs my-app | grep "non-daemon"
+platform-java logs my-app | grep "non-daemon"
 ```
 
 **Solution:**
 ```bash
 # Force kill
-jplatform stop my-app --force
+platform-java stop my-app --force
 
 # Fix application code
 # - Use daemon threads
@@ -544,10 +544,10 @@ ERROR: Cannot execute: /path/to/binary: No such file or directory
 **Solution:**
 ```bash
 # Check file exists
-ls -la /var/lib/jplatform/apps/my-binary/
+ls -la /var/lib/platform-java/apps/my-binary/
 
 # Make executable
-chmod +x /var/lib/jplatform/apps/my-binary/app
+chmod +x /var/lib/platform-java/apps/my-binary/app
 
 # Check file path in descriptor
 cat my-binary.yaml | grep nativeImage
@@ -596,10 +596,10 @@ ERROR: Circular dependency detected: A → B → C → A
 **Diagnosis:**
 ```bash
 # View dependency graph
-jplatform startup-order
-jplatform dependencies A
-jplatform dependencies B
-jplatform dependencies C
+platform-java startup-order
+platform-java dependencies A
+platform-java dependencies B
+platform-java dependencies C
 ```
 
 **Solution:**

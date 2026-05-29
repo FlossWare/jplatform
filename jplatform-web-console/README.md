@@ -1,10 +1,10 @@
-# JPlatform Web Console
+# platform-java Web Console
 
-Browser-based management UI for JPlatform with real-time metrics and interactive charts.
+Browser-based management UI for platform-java with real-time metrics and interactive charts.
 
 ## Overview
 
-The `jplatform-web-console` module provides a modern web-based interface for managing JPlatform instances. Built with vanilla JavaScript and Chart.js, it offers a rich graphical experience accessible from any web browser.
+The `platform-java-web-console` module provides a modern web-based interface for managing platform-java instances. Built with vanilla JavaScript and Chart.js, it offers a rich graphical experience accessible from any web browser.
 
 ## Features
 
@@ -49,15 +49,15 @@ The web console requires the REST API to be running:
 
 ```bash
 # Start platform with REST API and web console
-java -jar jplatform-launcher-1.1.jar --rest-api --web-console
+java -jar platform-java-launcher-1.1.jar --rest-api --web-console
 
 # Or programmatically:
 ```
 
 ```java
-import org.flossware.jplatform.api.PlatformManager;
-import org.flossware.jplatform.core.ApplicationManager;
-import org.flossware.jplatform.rest.JdkHttpApiServer;
+import org.flossware.platform-java.api.PlatformManager;
+import org.flossware.platform-java.core.ApplicationManager;
+import org.flossware.platform-java.rest.JdkHttpApiServer;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -200,12 +200,12 @@ const chartConfig = {
 ### File Structure
 
 ```
-jplatform-web-console/
+platform-java-web-console/
 ├── pom.xml
 ├── README.md
 └── src/
     ├── main/
-    │   ├── java/org/flossware/jplatform/webconsole/
+    │   ├── java/org/flossware/platform-java/webconsole/
     │   │   └── WebConsoleHandler.java
     │   └── resources/web/
     │       ├── index.html
@@ -213,7 +213,7 @@ jplatform-web-console/
     │           ├── dashboard.css
     │           └── app.js
     └── test/
-        └── java/org/flossware/jplatform/webconsole/
+        └── java/org/flossware/platform-java/webconsole/
             └── WebConsoleHandlerTest.java
 ```
 
@@ -240,7 +240,7 @@ Test coverage includes:
 
 ## Dependencies
 
-- `jplatform-rest-api` - Provides the HTTP API backend
+- `platform-java-rest-api` - Provides the HTTP API backend
 - Chart.js (CDN) - Metrics visualization
 - No other frontend dependencies
 
@@ -262,7 +262,7 @@ Test coverage includes:
 
 ## See Also
 
-- [REST API](../jplatform-rest-api/README.md) - Backend API documentation
-- [Swing UI](../jplatform-swing-ui/README.md) - Desktop alternative
+- [REST API](../platform-java-rest-api/README.md) - Backend API documentation
+- [Swing UI](../platform-java-swing-ui/README.md) - Desktop alternative
 - [QUICKSTART](../QUICKSTART.md) - Quick start guide
 - [Main README](../README.md) - Platform overview

@@ -2,7 +2,7 @@
 
 ## Overview
 
-JPlatform uses isolated ClassLoaders to provide application isolation. While powerful, ClassLoaders can cause memory leaks if applications don't follow best practices. This document outlines common leak sources and how to avoid them.
+platform-java uses isolated ClassLoaders to provide application isolation. While powerful, ClassLoaders can cause memory leaks if applications don't follow best practices. This document outlines common leak sources and how to avoid them.
 
 ## What is a ClassLoader Leak?
 
@@ -155,7 +155,7 @@ public class MyApp implements Application {
 }
 ```
 
-**Note**: JPlatform's `ClassLoaderCleanupUtil` automatically deregisters JDBC drivers, but it's still best practice to do it manually.
+**Note**: platform-java's `ClassLoaderCleanupUtil` automatically deregisters JDBC drivers, but it's still best practice to do it manually.
 
 **Best Practice**: Explicitly register and deregister JDBC drivers.
 
@@ -223,7 +223,7 @@ public class MyApp implements Application {
 public class MyApp implements Application {
     @Override
     public void start(ApplicationContext context) {
-        // ✅ Use platform thread pool (managed by JPlatform)
+        // ✅ Use platform thread pool (managed by platform-java)
         context.getThreadPool().submit(() -> {
             // Do work
         });
@@ -331,7 +331,7 @@ public class MyApp implements Application {
 
 **Problem**: Some logging frameworks (Logback, Log4j) cache loggers by ClassLoader.
 
-**Best Practice**: Use SLF4J API (provided by platform). JPlatform handles the cleanup automatically.
+**Best Practice**: Use SLF4J API (provided by platform). platform-java handles the cleanup automatically.
 
 ```java
 // ✅ Good - use SLF4J
@@ -347,13 +347,13 @@ private static final ch.qos.logback.classic.Logger logger = ...;
 
 ### Enable Leak Detection
 
-Run JPlatform with leak detection enabled:
+Run platform-java with leak detection enabled:
 
 ```bash
-java -Djplatform.debug.detectLeaks=true -jar jplatform-launcher.jar
+java -Dplatform-java.debug.detectLeaks=true -jar platform-java-launcher.jar
 ```
 
-When you undeploy an application, JPlatform will:
+When you undeploy an application, platform-java will:
 1. Trigger garbage collection
 2. Check if the ClassLoader was collected
 3. Log a warning if a leak is detected
@@ -392,7 +392,7 @@ If it's still present, the profiler will show the reference chain keeping it ali
 
 ## Checklist for Application Developers
 
-Before deploying your application to JPlatform, verify:
+Before deploying your application to platform-java, verify:
 
 - [ ] No static fields holding mutable data
 - [ ] All ThreadLocals are cleaned up in `stop()`

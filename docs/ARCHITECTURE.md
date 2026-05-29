@@ -1,12 +1,12 @@
-# JPlatform Architecture
+# platform-java Architecture
 
-JPlatform provides unified orchestration for VMs, containers, Java applications, and native binaries through a common platform abstraction.
+platform-java provides unified orchestration for VMs, containers, Java applications, and native binaries through a common platform abstraction.
 
 ## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                       JPlatform Core                             │
+│                       platform-java Core                             │
 │                                                                   │
 │  ┌────────────────────────────────────────────────────────────┐ │
 │  │              ApplicationManager (Orchestrator)              │ │
@@ -36,7 +36,7 @@ JPlatform provides unified orchestration for VMs, containers, Java applications,
 ### Core Platform
 
 ```
-jplatform-core
+platform-java-core
 ├── ApplicationManager
 │   ├── deploy(descriptor) → Create isolated environment
 │   ├── start(appId)       → Launch workload
@@ -168,7 +168,7 @@ DEPLOYED → STARTING → RUNNING → STOPPING → STOPPED
 │                                     │
 │  Resources: 4 CPU, 8GB heap        │
 └─────────────────────────────────────┘
-         ↓ JPlatform
+         ↓ platform-java
     Shared JVM
 ```
 
@@ -237,7 +237,7 @@ dependencies:
 
 ### Cross-Workload Dependencies
 
-JPlatform allows ANY workload type to depend on ANY other:
+platform-java allows ANY workload type to depend on ANY other:
 
 ```
 VM → Java App → Container → Native Binary
@@ -298,24 +298,24 @@ resources:
 │         Prometheus Metrics Export           │
 ├─────────────────────────────────────────────┤
 │  VMs:                                       │
-│  - jplatform_vm_cpu_time_seconds            │
-│  - jplatform_vm_memory_mb                   │
-│  - jplatform_vm_state                       │
+│  - platform-java_vm_cpu_time_seconds            │
+│  - platform-java_vm_memory_mb                   │
+│  - platform-java_vm_state                       │
 │                                             │
 │  Containers:                                │
-│  - jplatform_container_cpu_usage            │
-│  - jplatform_container_memory_mb            │
-│  - jplatform_container_state                │
+│  - platform-java_container_cpu_usage            │
+│  - platform-java_container_memory_mb            │
+│  - platform-java_container_state                │
 │                                             │
 │  Java Apps:                                 │
-│  - jplatform_app_heap_mb                    │
-│  - jplatform_app_thread_count               │
-│  - jplatform_app_cpu_time_seconds           │
+│  - platform-java_app_heap_mb                    │
+│  - platform-java_app_thread_count               │
+│  - platform-java_app_cpu_time_seconds           │
 │                                             │
 │  Native Binaries:                           │
-│  - jplatform_process_cpu_usage              │
-│  - jplatform_process_memory_mb              │
-│  - jplatform_process_state                  │
+│  - platform-java_process_cpu_usage              │
+│  - platform-java_process_memory_mb              │
+│  - platform-java_process_state                  │
 └─────────────────────────────────────────────┘
 ```
 
@@ -401,7 +401,7 @@ Java App → ServerSocket → Host Network Stack
 **Communication:**
 - Binds to host interfaces
 - Subject to firewall rules
-- Can use JPlatform MessageBus for inter-app
+- Can use platform-java MessageBus for inter-app
 
 ## Storage Architecture
 
@@ -410,7 +410,7 @@ Java App → ServerSocket → Host Network Stack
 ```
 VM → Virtual Disk (qcow2/raw) → Host Filesystem → Storage Backend
      ↓
-     /var/lib/jplatform/vms/vm.qcow2
+     /var/lib/platform-java/vms/vm.qcow2
      ↓
      Local disk / NFS / Ceph / iSCSI
 ```
@@ -437,9 +437,9 @@ Container → Overlay Filesystem → Image Layers → Host
 ### Java App Storage
 
 ```
-Java App → JPlatform Volumes → Host Filesystem
+Java App → platform-java Volumes → Host Filesystem
            ↓
-           /var/lib/jplatform/volumes/{app-id}/
+           /var/lib/platform-java/volumes/{app-id}/
 ```
 
 **Volume Types:**
@@ -506,7 +506,7 @@ Java App → JPlatform Volumes → Host Filesystem
 └────────────────┬───────────────────────────────┘
                  ↓ provides infrastructure
 ┌────────────────────────────────────────────────┐
-│           JPlatform (Orchestration)            │
+│           platform-java (Orchestration)            │
 │  - Unified workload management                 │
 │  - Cross-workload dependencies                 │
 │  - Resource quotas and enforcement             │
@@ -518,23 +518,23 @@ Java App → JPlatform Volumes → Host Filesystem
 - VirtOS provides libvirt for VM management
 - VirtOS provides container runtimes
 - VirtOS provides storage backends
-- JPlatform provides orchestration layer
+- platform-java provides orchestration layer
 
 ### API Layers
 
 ```
 ┌────────────────────────────────────────────────┐
-│  REST API (jplatform-rest-api)                 │
+│  REST API (platform-java-rest-api)                 │
 │  HTTP endpoints for remote management          │
 └────────────────┬───────────────────────────────┘
                  ↓
 ┌────────────────────────────────────────────────┐
-│  Java API (jplatform-api)                      │
+│  Java API (platform-java-api)                      │
 │  ApplicationManager, Descriptors, Contexts     │
 └────────────────┬───────────────────────────────┘
                  ↓
 ┌────────────────────────────────────────────────┐
-│  CLI (jplatform-launcher)                      │
+│  CLI (platform-java-launcher)                      │
 │  Command-line interface                        │
 └────────────────────────────────────────────────┘
 ```
@@ -545,7 +545,7 @@ Java App → JPlatform Volumes → Host Filesystem
 
 ```
 ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│  JPlatform   │  │  JPlatform   │  │  JPlatform   │
+│  platform-java   │  │  platform-java   │  │  platform-java   │
 │  Instance 1  │  │  Instance 2  │  │  Instance 3  │
 └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
        │                 │                 │
@@ -559,7 +559,7 @@ Java App → JPlatform Volumes → Host Filesystem
 ```
 
 **Clustering Support:**
-- jplatform-cluster: Multi-node coordination
+- platform-java-cluster: Multi-node coordination
 - Service discovery across instances
 - Shared configuration
 - Distributed monitoring
@@ -629,7 +629,7 @@ Java App → JPlatform Volumes → Host Filesystem
 
 ## Conclusion
 
-JPlatform provides a unified platform for orchestrating diverse workload types while maintaining appropriate isolation and resource management for each. The architecture is designed for:
+platform-java provides a unified platform for orchestrating diverse workload types while maintaining appropriate isolation and resource management for each. The architecture is designed for:
 
 - **Flexibility**: Support any workload type
 - **Consistency**: Same API for all types
@@ -638,7 +638,7 @@ JPlatform provides a unified platform for orchestrating diverse workload types w
 - **Scalability**: Horizontal and vertical
 - **Observability**: Comprehensive monitoring
 
-This makes JPlatform suitable for:
+This makes platform-java suitable for:
 - Development environments (mixed workloads)
 - Production deployments (resource efficiency)
 - Edge computing (unified management)
