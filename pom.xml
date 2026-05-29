@@ -44,6 +44,7 @@
     <message>Automated Version Bump ${project.version} [ci skip]</message>
   </properties>
   <modules>
+    <module>platform-bom</module>
     <module>platform-api</module>
     <module>platform-core</module>
     <module>platform-classloader</module>

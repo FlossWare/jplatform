@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.flossware.jplatform</groupId>
+        <artifactId>platform-java-parent</artifactId>
+        <version>1.1</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>platform-bom</artifactId>
+    <packaging>pom</packaging>
+    <name>FlossWare Platform Bill of Materials</name>
+    <description>Centralized dependency management for all FlossWare Platform modules</description>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- ========================================== -->
+            <!-- Internal Platform Modules -->
+            <!-- ========================================== -->
+
+            <!-- Core Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-classloader</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-threadpool</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-monitoring</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Messaging Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-messaging</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-messaging-jms</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Configuration Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-config</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-fs-watcher</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-deployment</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-storage</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Management Interfaces -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-rest-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-rest-api-netty</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-web-console</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-swing-ui</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-terminal-ui</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Metrics Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-metrics-jmx</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-metrics-prometheus</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-otel</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Clustering Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-cluster</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-cluster-consul</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-cluster-etcd</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-cluster-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-cluster-zookeeper</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Service Registry Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-registry-consul</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-registry-etcd</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-registry-eureka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Configuration Source Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-config-consul</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-config-etcd</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-config-vault</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-config-zookeeper</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Storage Backend Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-storage-s3</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-storage-database</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-storage-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Advanced Modules -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-vm-management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-jvmti-agent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Launcher and Samples -->
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-launcher</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flossware.jplatform</groupId>
+                <artifactId>platform-samples</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- ========================================== -->
+            <!-- External Dependencies -->
+            <!-- ========================================== -->
+
+            <!-- Logging -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <!-- JSON/YAML Processing -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
+
+            <!-- OpenTelemetry -->
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-sdk</artifactId>
+                <version>${opentelemetry.version}</version>
+            </dependency>
+
+            <!-- Clustering -->
+            <dependency>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast</artifactId>
+                <version>5.3.0</version>
+            </dependency>
+
+            <!-- Metrics -->
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient</artifactId>
+                <version>0.16.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient_httpserver</artifactId>
+                <version>0.16.0</version>
+            </dependency>
+
+            <!-- JMS -->
+            <dependency>
+                <groupId>jakarta.jms</groupId>
+                <artifactId>jakarta.jms-api</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+
+            <!-- Testing -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>5.5.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>5.5.0</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
