@@ -22,6 +22,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+
 import org.flossware.platform.api.*;
 import org.flossware.platform.config.JsonDescriptorParser;
 import org.flossware.platform.config.YamlDescriptorParser;
@@ -92,7 +93,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PlatformLauncher {
 
-  private static final Logger logger = LoggerFactory.getLogger(PlatformLauncher.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PlatformLauncher.class);
 
   private final PlatformManager applicationManager;
   private final InMemoryMessageBus messageBus;
@@ -215,7 +216,7 @@ public class PlatformLauncher {
   public PlatformLauncher(LauncherConfig config) {
     this.config = config;
 
-    logger.info("Initializing JPlatform...");
+    LOGGER.info("Initializing JPlatform...");
 
     // Initialize core components
     this.messageBus = new InMemoryMessageBus();
@@ -229,7 +230,7 @@ public class PlatformLauncher {
     // Initialize optional components
     initializeOptionalComponents();
 
-    logger.info("JPlatform initialized successfully");
+    LOGGER.info("JPlatform initialized successfully");
   }
 
   /** Initializes optional components based on configuration. */
@@ -237,7 +238,7 @@ public class PlatformLauncher {
     // Initialize REST API server
     if (config.restApiEnabled) {
       try {
-        logger.info("Initializing REST API on port {}...", config.restApiPort);
+        LOGGER.info("Initializing REST API on port {}...", config.restApiPort);
 
         ApiServerConfig apiConfig =
             ApiServerConfig.builder()
@@ -249,13 +250,13 @@ public class PlatformLauncher {
         restApiServer = new JdkHttpApiServer(apiConfig, applicationManager);
         restApiServer.start();
 
-        logger.info("REST API started at http://localhost:{}/api", config.restApiPort);
+        LOGGER.info("REST API started at http://localhost:{}/api", config.restApiPort);
 
         if (config.webConsoleEnabled) {
-          logger.info("Web Console available at http://localhost:{}/console", config.restApiPort);
+          LOGGER.info("Web Console available at http://localhost:{}/console", config.restApiPort);
         }
       } catch (Exception e) {
-        logger.error("Failed to start REST API server", e);
+        LOGGER.error("Failed to start REST API server", e);
         throw new RuntimeException("Failed to start REST API server", e);
       }
     }
@@ -263,7 +264,7 @@ public class PlatformLauncher {
     // Initialize JMX metrics exporter
     if (config.jmxEnabled) {
       try {
-        logger.info("Initializing JMX metrics on port {}...", config.jmxPort);
+        LOGGER.info("Initializing JMX metrics on port {}...", config.jmxPort);
 
         JmxExporterConfig jmxConfig =
             JmxExporterConfig.builder()
@@ -278,9 +279,9 @@ public class PlatformLauncher {
         // Register lifecycle hooks to auto-register/unregister applications
         addJmxLifecycleHooks();
 
-        logger.info("JMX metrics started. Connect with: jconsole localhost:{}", config.jmxPort);
+        LOGGER.info("JMX metrics started. Connect with: jconsole localhost:{}", config.jmxPort);
       } catch (Exception e) {
-        logger.error("Failed to start JMX metrics exporter", e);
+        LOGGER.error("Failed to start JMX metrics exporter", e);
         throw new RuntimeException("Failed to start JMX metrics exporter", e);
       }
     }
@@ -288,7 +289,7 @@ public class PlatformLauncher {
     // Initialize Prometheus metrics exporter
     if (config.prometheusEnabled) {
       try {
-        logger.info("Initializing Prometheus metrics on port {}...", config.prometheusPort);
+        LOGGER.info("Initializing Prometheus metrics on port {}...", config.prometheusPort);
 
         PrometheusExporterConfig prometheusConfig =
             PrometheusExporterConfig.builder().port(config.prometheusPort).path("/metrics").build();
@@ -296,11 +297,11 @@ public class PlatformLauncher {
         prometheusExporter = new PrometheusMetricsExporter(prometheusConfig);
         prometheusExporter.start();
 
-        logger.info(
+        LOGGER.info(
             "Prometheus metrics started. Metrics available at: http://localhost:{}/metrics",
             config.prometheusPort);
       } catch (Exception e) {
-        logger.error("Failed to start Prometheus metrics exporter", e);
+        LOGGER.error("Failed to start Prometheus metrics exporter", e);
         throw new RuntimeException("Failed to start Prometheus metrics exporter", e);
       }
     }
@@ -308,15 +309,15 @@ public class PlatformLauncher {
     // Initialize OpenTelemetry metrics exporter
     if (config.otelEnabled) {
       try {
-        logger.info("Initializing OpenTelemetry metrics with endpoint: {}", config.otelEndpoint);
+        LOGGER.info("Initializing OpenTelemetry metrics with endpoint: {}", config.otelEndpoint);
 
         otelExporter =
             new org.flossware.platform.otel.OpenTelemetryMetricsExporter(config.otelEndpoint);
         otelExporter.start();
 
-        logger.info("OpenTelemetry metrics started. Exporting to: {}", config.otelEndpoint);
+        LOGGER.info("OpenTelemetry metrics started. Exporting to: {}", config.otelEndpoint);
       } catch (Exception e) {
-        logger.error("Failed to start OpenTelemetry metrics exporter", e);
+        LOGGER.error("Failed to start OpenTelemetry metrics exporter", e);
         throw new RuntimeException("Failed to start OpenTelemetry metrics exporter", e);
       }
     }
@@ -324,7 +325,7 @@ public class PlatformLauncher {
     // Initialize filesystem watcher
     if (config.watcherEnabled) {
       try {
-        logger.info("Initializing filesystem watcher for directory: {}", config.watchDirectory);
+        LOGGER.info("Initializing filesystem watcher for directory: {}", config.watchDirectory);
 
         Path watchPath = Paths.get(config.watchDirectory);
 
@@ -350,10 +351,10 @@ public class PlatformLauncher {
         fileWatcher.addListener(handler);
         fileWatcher.start();
 
-        logger.info(
+        LOGGER.info(
             "Filesystem watcher started. Drop YAML/JSON files in: {}", config.watchDirectory);
       } catch (Exception e) {
-        logger.error("Failed to start filesystem watcher", e);
+        LOGGER.error("Failed to start filesystem watcher", e);
         throw new RuntimeException("Failed to start filesystem watcher", e);
       }
     }
@@ -386,7 +387,7 @@ public class PlatformLauncher {
 
       // Check if input is available (handles EOF/closed stdin)
       if (!scanner.hasNextLine()) {
-        logger.info("Standard input closed, entering server mode");
+        LOGGER.info("Standard input closed, entering server mode");
         System.out.println("\nNo interactive console available. Platform running in server mode.");
         System.out.println("Use REST API or web console to manage applications.");
         System.out.println("Press Ctrl+C to shutdown.");
@@ -406,7 +407,7 @@ public class PlatformLauncher {
       try {
         handleCommand(command, args);
       } catch (Exception e) {
-        logger.error("Error executing command: {}", command, e);
+        LOGGER.error("Error executing command: {}", command, e);
         System.err.println("Error: " + e.getMessage());
       }
     }
@@ -418,7 +419,7 @@ public class PlatformLauncher {
       try {
         Thread.currentThread().join();
       } catch (InterruptedException e) {
-        logger.info("Platform interrupted, shutting down...");
+        LOGGER.info("Platform interrupted, shutting down...");
         handleExit();
       }
     }
@@ -717,41 +718,41 @@ public class PlatformLauncher {
     // Shutdown in reverse order of initialization
     try {
       if (fileWatcher != null) {
-        logger.info("Stopping filesystem watcher...");
+        LOGGER.info("Stopping filesystem watcher...");
         fileWatcher.stop();
         fileWatcher.close();
       }
 
       if (jmxExporter != null) {
-        logger.info("Stopping JMX metrics exporter...");
+        LOGGER.info("Stopping JMX metrics exporter...");
         jmxExporter.stop();
       }
 
       if (prometheusExporter != null) {
-        logger.info("Stopping Prometheus metrics exporter...");
+        LOGGER.info("Stopping Prometheus metrics exporter...");
         prometheusExporter.stop();
       }
 
       if (otelExporter != null) {
-        logger.info("Stopping OpenTelemetry metrics exporter...");
+        LOGGER.info("Stopping OpenTelemetry metrics exporter...");
         otelExporter.stop();
       }
 
       if (restApiServer != null) {
-        logger.info("Stopping REST API server...");
+        LOGGER.info("Stopping REST API server...");
         restApiServer.stop();
       }
 
-      logger.info("Shutting down application manager...");
+      LOGGER.info("Shutting down application manager...");
       applicationManager.shutdown();
 
-      logger.info("Shutting down message bus...");
+      LOGGER.info("Shutting down message bus...");
       messageBus.shutdown();
 
       System.out.println("Platform shutdown complete");
 
     } catch (Exception e) {
-      logger.error("Error during shutdown", e);
+      LOGGER.error("Error during shutdown", e);
       System.err.println("Error during shutdown: " + e.getMessage());
     }
   }
@@ -770,7 +771,7 @@ public class PlatformLauncher {
       PlatformLauncher launcher = new PlatformLauncher(config);
       launcher.start();
     } catch (Exception e) {
-      logger.error("Fatal error in platform launcher", e);
+      LOGGER.error("Fatal error in platform launcher", e);
       System.err.println("Fatal error: " + e.getMessage());
       System.exit(1);
     }

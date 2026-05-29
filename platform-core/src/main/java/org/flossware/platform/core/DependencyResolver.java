@@ -18,6 +18,7 @@
 package org.flossware.platform.core;
 
 import java.util.*;
+
 import org.flossware.platform.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DependencyResolver {
 
-  private static final Logger logger = LoggerFactory.getLogger(DependencyResolver.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DependencyResolver.class);
 
   private final ServiceRegistry serviceRegistry;
   private final DependencyGraph graph;
@@ -101,13 +102,13 @@ public class DependencyResolver {
       String providerAppId = findServiceProvider(dep.getServiceInterface());
       if (providerAppId != null) {
         graph.addEdge(applicationId, providerAppId);
-        logger.debug(
+        LOGGER.debug(
             "[{}] Depends on {} for service {}",
             applicationId,
             providerAppId,
             dep.getServiceInterface());
       } else if (dep.isRequired()) {
-        logger.warn("[{}] Required service {} not found", applicationId, dep.getServiceInterface());
+        LOGGER.warn("[{}] Required service {} not found", applicationId, dep.getServiceInterface());
       }
     }
   }
@@ -131,7 +132,7 @@ public class DependencyResolver {
     }
 
     serviceProviders.put(serviceInterface, applicationId);
-    logger.debug("[{}] Registered as provider of {}", applicationId, serviceInterface);
+    LOGGER.debug("[{}] Registered as provider of {}", applicationId, serviceInterface);
   }
 
   /**
@@ -142,7 +143,7 @@ public class DependencyResolver {
    */
   public void unregisterServiceProvider(String applicationId, String serviceInterface) {
     serviceProviders.remove(serviceInterface, applicationId);
-    logger.debug("[{}] Unregistered as provider of {}", applicationId, serviceInterface);
+    LOGGER.debug("[{}] Unregistered as provider of {}", applicationId, serviceInterface);
   }
 
   /**
@@ -159,7 +160,7 @@ public class DependencyResolver {
     // Remove from dependency graph
     graph.removeNode(applicationId);
 
-    logger.debug("[{}] Removed from dependency resolver", applicationId);
+    LOGGER.debug("[{}] Removed from dependency resolver", applicationId);
   }
 
   /**
@@ -228,7 +229,7 @@ public class DependencyResolver {
                   "[%s] Required service not available: %s", applicationId, serviceInterface));
         } else if (!implementations.isEmpty()) {
           // Note: Version compatibility validation not yet implemented (see issue #339)
-          logger.debug(
+          LOGGER.debug(
               "[{}] Found {} implementation(s) of {}",
               applicationId,
               implementations.size(),
@@ -240,7 +241,7 @@ public class DependencyResolver {
       }
     } else {
       // No ServiceRegistry available, can't validate
-      logger.warn(
+      LOGGER.warn(
           "[{}] Cannot validate dependency {} - no ServiceRegistry available",
           applicationId,
           serviceInterface);
@@ -269,10 +270,10 @@ public class DependencyResolver {
       Class<?> interfaceClass = Class.forName(serviceInterface);
       List<?> implementations = serviceRegistry.getAllServices(interfaceClass);
       if (!implementations.isEmpty()) {
-        logger.warn("Service {} found in registry but provider not tracked", serviceInterface);
+        LOGGER.warn("Service {} found in registry but provider not tracked", serviceInterface);
       }
     } catch (ClassNotFoundException e) {
-      logger.debug("Service interface class not found: {}", serviceInterface);
+      LOGGER.debug("Service interface class not found: {}", serviceInterface);
     }
 
     return null;
@@ -341,7 +342,7 @@ public class DependencyResolver {
 
         if (providerAppId == null) {
           // Required service has no provider at all
-          logger.debug(
+          LOGGER.debug(
               "[{}] Cannot start: required service {} has no provider",
               applicationId,
               dep.getServiceInterface());
@@ -350,7 +351,7 @@ public class DependencyResolver {
 
         if (!runningApplications.contains(providerAppId)) {
           // Provider exists but not running
-          logger.debug(
+          LOGGER.debug(
               "[{}] Cannot start: dependency {} not running", applicationId, providerAppId);
           return false;
         }

@@ -50,7 +50,7 @@ import java.util.Optional;
  * @see ResourceMonitor
  * @see EnforcementAction
  */
-public class ResourceConfig {
+public final class ResourceConfig {
   private final Optional<Long> maxHeapMB;
   private final Optional<Integer> maxThreads;
   private final Optional<Long> maxCpuTimeSeconds;

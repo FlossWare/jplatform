@@ -20,10 +20,11 @@ package org.flossware.platform.cluster.etcd;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import io.etcd.jetcd.Client;
 import org.flossware.platform.api.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import io.etcd.jetcd.Client;
 
 class EtcdClusterManagerTest {
   private EtcdConfig config;

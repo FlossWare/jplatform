@@ -33,7 +33,7 @@ package org.flossware.platform.api;
  *
  * @see MetricsExporter
  */
-public class PrometheusExporterConfig {
+public final class PrometheusExporterConfig {
   private final boolean enabled;
   private final int port;
   private final String path;

@@ -467,6 +467,9 @@
               <version>1.17.0</version>
               <style>GOOGLE</style>
             </googleJavaFormat>
+            <importOrder>
+              <order>java,javax,org,com</order>
+            </importOrder>
             <removeUnusedImports/>
             <trimTrailingWhitespace/>
             <endWithNewline/>

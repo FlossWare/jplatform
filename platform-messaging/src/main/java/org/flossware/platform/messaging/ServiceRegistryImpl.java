@@ -56,7 +56,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ServiceRegistryImpl implements ServiceRegistry {
 
-    private static final Logger logger = LoggerFactory.getLogger(ServiceRegistryImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceRegistryImpl.class);
 
     private final Map<Class<?>, List<ServiceEntry>> services;
 
@@ -65,7 +65,7 @@ public class ServiceRegistryImpl implements ServiceRegistry {
      */
     public ServiceRegistryImpl() {
         this.services = new ConcurrentHashMap<>();
-        logger.info("ServiceRegistry created");
+        LOGGER.info("ServiceRegistry created");
     }
 
     /**
@@ -101,7 +101,7 @@ public class ServiceRegistryImpl implements ServiceRegistry {
         services.computeIfAbsent(serviceInterface, k -> new CopyOnWriteArrayList<>())
                 .add(entry);
 
-        logger.info("Registered service: {} -> {}", serviceInterface.getName(),
+        LOGGER.info("Registered service: {} -> {}", serviceInterface.getName(),
                 implementation.getClass().getName());
     }
 
@@ -123,7 +123,7 @@ public class ServiceRegistryImpl implements ServiceRegistry {
         List<ServiceEntry> entries = services.get(serviceInterface);
 
         if (entries == null || entries.isEmpty()) {
-            logger.debug("No service found for: {}", serviceInterface.getName());
+            LOGGER.debug("No service found for: {}", serviceInterface.getName());
             return Optional.empty();
         }
 
@@ -159,7 +159,7 @@ public class ServiceRegistryImpl implements ServiceRegistry {
             result.add(service);
         }
 
-        logger.debug("Found {} services for: {}", result.size(), serviceInterface.getName());
+        LOGGER.debug("Found {} services for: {}", result.size(), serviceInterface.getName());
         return result;
     }
 
@@ -192,7 +192,7 @@ public class ServiceRegistryImpl implements ServiceRegistry {
             }
 
             if (removed) {
-                logger.info("Unregistered service: {} -> {}", serviceInterface.getName(),
+                LOGGER.info("Unregistered service: {} -> {}", serviceInterface.getName(),
                         implementation.getClass().getName());
             }
 
@@ -208,7 +208,7 @@ public class ServiceRegistryImpl implements ServiceRegistry {
     public void clear() {
         int count = services.values().stream().mapToInt(List::size).sum();
         services.clear();
-        logger.info("Cleared all {} registered services", count);
+        LOGGER.info("Cleared all {} registered services", count);
     }
 
     private static class ServiceEntry {

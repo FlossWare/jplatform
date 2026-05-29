@@ -18,6 +18,7 @@
 package org.flossware.platform.vm;
 
 import java.util.Map;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.libvirt.Connect;
 import org.libvirt.Domain;
@@ -69,7 +70,7 @@ import org.slf4j.LoggerFactory;
  */
 public class VmLauncher {
 
-  private static final Logger logger = LoggerFactory.getLogger(VmLauncher.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(VmLauncher.class);
 
   private final Connect connection;
 
@@ -93,7 +94,7 @@ public class VmLauncher {
       throw new IllegalArgumentException("libvirtUri cannot be null or empty");
     }
     this.connection = new Connect(libvirtUri, false);
-    logger.info(
+    LOGGER.info(
         "Connected to libvirt URI: {} (version: {})", libvirtUri, connection.getLibVirVersion());
   }
 
@@ -136,7 +137,7 @@ public class VmLauncher {
     String diskPath = properties.get("vm.disk");
     String networkMode = properties.getOrDefault("vm.network", "bridge");
 
-    logger.info(
+    LOGGER.info(
         "[{}] Creating VM: {} (vCPU: {}, RAM: {}MB, disk: {})",
         applicationId,
         vmName,
@@ -152,7 +153,7 @@ public class VmLauncher {
     // Build libvirt XML configuration
     String xmlConfig = buildVmXml(vmName, vcpu, memoryMB, diskPath, networkMode, properties);
 
-    logger.debug("[{}] VM XML configuration:\n{}", applicationId, xmlConfig);
+    LOGGER.debug("[{}] VM XML configuration:\n{}", applicationId, xmlConfig);
 
     // Create and start domain
     Domain domain = connection.domainDefineXML(xmlConfig);
@@ -161,7 +162,7 @@ public class VmLauncher {
     int domainId = domain.getID();
     String uuid = domain.getUUIDString();
 
-    logger.info(
+    LOGGER.info(
         "[{}] VM started successfully. Domain ID: {}, UUID: {}", applicationId, domainId, uuid);
 
     return new VmInfo(domain, vmName, vcpu, memoryMB, uuid);
@@ -179,11 +180,11 @@ public class VmLauncher {
     Domain domain = vmInfo.getDomain();
 
     if (graceful) {
-      logger.info(
+      LOGGER.info(
           "[{}] Gracefully shutting down VM: {} (ACPI shutdown)", applicationId, vmInfo.getName());
       domain.shutdown();
     } else {
-      logger.info("[{}] Force destroying VM: {}", applicationId, vmInfo.getName());
+      LOGGER.info("[{}] Force destroying VM: {}", applicationId, vmInfo.getName());
       domain.destroy();
     }
   }
@@ -196,7 +197,7 @@ public class VmLauncher {
    * @throws LibvirtException if pause fails
    */
   public void pause(String applicationId, VmInfo vmInfo) throws LibvirtException {
-    logger.info("[{}] Pausing VM: {}", applicationId, vmInfo.getName());
+    LOGGER.info("[{}] Pausing VM: {}", applicationId, vmInfo.getName());
     vmInfo.getDomain().suspend();
   }
 
@@ -208,7 +209,7 @@ public class VmLauncher {
    * @throws LibvirtException if resume fails
    */
   public void resume(String applicationId, VmInfo vmInfo) throws LibvirtException {
-    logger.info("[{}] Resuming VM: {}", applicationId, vmInfo.getName());
+    LOGGER.info("[{}] Resuming VM: {}", applicationId, vmInfo.getName());
     vmInfo.getDomain().resume();
   }
 
@@ -220,18 +221,18 @@ public class VmLauncher {
    * @throws LibvirtException if undefine fails
    */
   public void undefine(String applicationId, VmInfo vmInfo) throws LibvirtException {
-    logger.info("[{}] Undefining VM: {}", applicationId, vmInfo.getName());
+    LOGGER.info("[{}] Undefining VM: {}", applicationId, vmInfo.getName());
     Domain domain = vmInfo.getDomain();
 
     // Stop if running
     if (domain.isActive() == 1) {
-      logger.debug("[{}] VM is active, destroying before undefine", applicationId);
+      LOGGER.debug("[{}] VM is active, destroying before undefine", applicationId);
       domain.destroy();
     }
 
     // Undefine
     domain.undefine();
-    logger.info("[{}] VM undefined successfully", applicationId);
+    LOGGER.info("[{}] VM undefined successfully", applicationId);
   }
 
   /**
@@ -279,7 +280,7 @@ public class VmLauncher {
    */
   public void migrate(String applicationId, VmInfo vmInfo, String destinationUri, long flags)
       throws LibvirtException {
-    logger.info("[{}] Starting live migration to {}", applicationId, destinationUri);
+    LOGGER.info("[{}] Starting live migration to {}", applicationId, destinationUri);
 
     Domain domain = vmInfo.getDomain();
 
@@ -292,7 +293,7 @@ public class VmLauncher {
       // VIR_MIGRATE_LIVE = 1 for live migration
       Domain migratedDomain = domain.migrate(destConnection, flags, null, null, 0);
 
-      logger.info("[{}] Migration completed successfully", applicationId);
+      LOGGER.info("[{}] Migration completed successfully", applicationId);
 
       // Close migrated domain reference
       migratedDomain.free();
@@ -315,7 +316,7 @@ public class VmLauncher {
   public String createSnapshot(
       String applicationId, VmInfo vmInfo, String snapshotName, String description)
       throws LibvirtException {
-    logger.info("[{}] Creating snapshot: {}", applicationId, snapshotName);
+    LOGGER.info("[{}] Creating snapshot: {}", applicationId, snapshotName);
 
     Domain domain = vmInfo.getDomain();
 
@@ -331,7 +332,7 @@ public class VmLauncher {
     // Create snapshot (0 = default flags)
     domain.snapshotCreateXML(xml.toString(), 0);
 
-    logger.info("[{}] Snapshot created: {}", applicationId, snapshotName);
+    LOGGER.info("[{}] Snapshot created: {}", applicationId, snapshotName);
     return snapshotName;
   }
 
@@ -359,7 +360,7 @@ public class VmLauncher {
    */
   public void revertToSnapshot(String applicationId, VmInfo vmInfo, String snapshotName)
       throws LibvirtException {
-    logger.info("[{}] Reverting to snapshot: {}", applicationId, snapshotName);
+    LOGGER.info("[{}] Reverting to snapshot: {}", applicationId, snapshotName);
 
     Domain domain = vmInfo.getDomain();
 
@@ -369,7 +370,7 @@ public class VmLauncher {
     // Revert to snapshot (0 = default flags)
     domain.revertToSnapshot(snapshot);
 
-    logger.info("[{}] Reverted to snapshot: {}", applicationId, snapshotName);
+    LOGGER.info("[{}] Reverted to snapshot: {}", applicationId, snapshotName);
   }
 
   /**
@@ -383,7 +384,7 @@ public class VmLauncher {
    */
   public void deleteSnapshot(String applicationId, VmInfo vmInfo, String snapshotName)
       throws LibvirtException {
-    logger.info("[{}] Deleting snapshot: {}", applicationId, snapshotName);
+    LOGGER.info("[{}] Deleting snapshot: {}", applicationId, snapshotName);
 
     Domain domain = vmInfo.getDomain();
 
@@ -391,7 +392,7 @@ public class VmLauncher {
     org.libvirt.DomainSnapshot snapshot = domain.snapshotLookupByName(snapshotName);
     snapshot.delete(0); // 0 = default flags
 
-    logger.info("[{}] Snapshot deleted: {}", applicationId, snapshotName);
+    LOGGER.info("[{}] Snapshot deleted: {}", applicationId, snapshotName);
   }
 
   /**
@@ -409,7 +410,7 @@ public class VmLauncher {
     if (additionalCpus <= 0) {
       throw new IllegalArgumentException("additionalCpus must be positive, got: " + additionalCpus);
     }
-    logger.info("[{}] Hot-adding {} vCPUs", applicationId, additionalCpus);
+    LOGGER.info("[{}] Hot-adding {} vCPUs", applicationId, additionalCpus);
 
     Domain domain = vmInfo.getDomain();
 
@@ -422,7 +423,7 @@ public class VmLauncher {
     // VIR_DOMAIN_AFFECT_LIVE = 1 for live change
     domain.setVcpus(newCpuCount);
 
-    logger.info("[{}] vCPUs increased from {} to {}", applicationId, currentCpus, newCpuCount);
+    LOGGER.info("[{}] vCPUs increased from {} to {}", applicationId, currentCpus, newCpuCount);
   }
 
   /**
@@ -440,7 +441,7 @@ public class VmLauncher {
       throw new IllegalArgumentException(
           "additionalMemoryMB must be positive, got: " + additionalMemoryMB);
     }
-    logger.info("[{}] Hot-adding {} MB of memory", applicationId, additionalMemoryMB);
+    LOGGER.info("[{}] Hot-adding {} MB of memory", applicationId, additionalMemoryMB);
 
     Domain domain = vmInfo.getDomain();
 
@@ -455,7 +456,7 @@ public class VmLauncher {
     // Set new memory (live)
     domain.setMemory(newMemoryKB);
 
-    logger.info(
+    LOGGER.info(
         "[{}] Memory increased from {} MB to {} MB", applicationId, currentMemoryMB, newMemoryMB);
   }
 
@@ -472,24 +473,24 @@ public class VmLauncher {
    */
   public void resize(String applicationId, VmInfo vmInfo, int newVcpu, long newMemoryMB)
       throws LibvirtException {
-    logger.info("[{}] Resizing VM (vCPU: {}, Memory: {} MB)", applicationId, newVcpu, newMemoryMB);
+    LOGGER.info("[{}] Resizing VM (vCPU: {}, Memory: {} MB)", applicationId, newVcpu, newMemoryMB);
 
     Domain domain = vmInfo.getDomain();
 
     // Update vCPU if requested
     if (newVcpu > 0) {
       domain.setVcpus(newVcpu);
-      logger.info("[{}] vCPUs set to {}", applicationId, newVcpu);
+      LOGGER.info("[{}] vCPUs set to {}", applicationId, newVcpu);
     }
 
     // Update memory if requested
     if (newMemoryMB > 0) {
       long newMemoryKB = newMemoryMB * 1024;
       domain.setMemory(newMemoryKB);
-      logger.info("[{}] Memory set to {} MB", applicationId, newMemoryMB);
+      LOGGER.info("[{}] Memory set to {} MB", applicationId, newMemoryMB);
     }
 
-    logger.info("[{}] VM resized successfully", applicationId);
+    LOGGER.info("[{}] VM resized successfully", applicationId);
   }
 
   /**
@@ -624,7 +625,7 @@ public class VmLauncher {
    */
   public void close() throws LibvirtException {
     if (connection != null) {
-      logger.info("Closing libvirt connection");
+      LOGGER.info("Closing libvirt connection");
       connection.close();
     }
   }

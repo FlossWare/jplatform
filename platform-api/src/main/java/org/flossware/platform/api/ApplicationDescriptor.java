@@ -18,7 +18,13 @@
 package org.flossware.platform.api;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import org.flossware.platform.util.EnvironmentVariableResolver;
 
 /**
@@ -46,7 +52,7 @@ import org.flossware.platform.util.EnvironmentVariableResolver;
  *     .build();
  * }</pre>
  */
-public class ApplicationDescriptor {
+public final class ApplicationDescriptor {
   private final String applicationId;
   private final String name;
   private final String version;

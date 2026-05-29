@@ -17,7 +17,19 @@
 
 package org.flossware.platform.rest.netty;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+
+import org.flossware.platform.api.PlatformApiServer;
+import org.flossware.platform.api.ServerShutdownException;
+import org.flossware.platform.api.ServerStartupException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -47,15 +59,6 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.CharsetUtil;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import org.flossware.platform.api.PlatformApiServer;
-import org.flossware.platform.api.ServerShutdownException;
-import org.flossware.platform.api.ServerStartupException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Netty-based REST API server implementation. Provides high-performance HTTP server using Netty
@@ -75,7 +78,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class NettyApiServer implements PlatformApiServer {
-  private static final Logger logger = LoggerFactory.getLogger(NettyApiServer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NettyApiServer.class);
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private final NettyApiServerConfig config;
@@ -235,13 +238,13 @@ public class NettyApiServer implements PlatformApiServer {
       serverChannel = bindFuture.channel();
       running = true;
 
-      logger.info("Netty API server started on {}:{}", config.getHost(), config.getPort());
+      LOGGER.info("Netty API server started on {}:{}", config.getHost(), config.getPort());
     } catch (ServerStartupException e) {
       // Cleanup resources on startup failure
       cleanupResources();
       throw e;
     } catch (Exception e) {
-      logger.error("Failed to start Netty API server", e);
+      LOGGER.error("Failed to start Netty API server", e);
       cleanupResources();
       throw new ServerStartupException("Failed to start server", config.getPort(), e);
     }
@@ -253,14 +256,14 @@ public class NettyApiServer implements PlatformApiServer {
       try {
         workerGroup.shutdownGracefully();
       } catch (Exception ex) {
-        logger.warn("Failed to shutdown worker group during cleanup", ex);
+        LOGGER.warn("Failed to shutdown worker group during cleanup", ex);
       }
     }
     if (bossGroup != null) {
       try {
         bossGroup.shutdownGracefully();
       } catch (Exception ex) {
-        logger.warn("Failed to shutdown boss group during cleanup", ex);
+        LOGGER.warn("Failed to shutdown boss group during cleanup", ex);
       }
     }
   }
@@ -279,7 +282,7 @@ public class NettyApiServer implements PlatformApiServer {
         serverChannel.close().sync();
       }
     } catch (Exception e) {
-      logger.error("Failed to close server channel", e);
+      LOGGER.error("Failed to close server channel", e);
       firstException = e;
     }
 
@@ -289,7 +292,7 @@ public class NettyApiServer implements PlatformApiServer {
         workerGroup.shutdownGracefully().sync();
       }
     } catch (Exception e) {
-      logger.error("Failed to shutdown worker group", e);
+      LOGGER.error("Failed to shutdown worker group", e);
       if (firstException == null) firstException = e;
     }
 
@@ -299,12 +302,12 @@ public class NettyApiServer implements PlatformApiServer {
         bossGroup.shutdownGracefully().sync();
       }
     } catch (Exception e) {
-      logger.error("Failed to shutdown boss group", e);
+      LOGGER.error("Failed to shutdown boss group", e);
       if (firstException == null) firstException = e;
     }
 
     running = false;
-    logger.info("Netty API server stopped");
+    LOGGER.info("Netty API server stopped");
 
     if (firstException != null) {
       throw new ServerShutdownException("Failed to stop server", firstException);
@@ -371,7 +374,7 @@ public class NettyApiServer implements PlatformApiServer {
           response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
         } catch (IllegalArgumentException e) {
           // Client error - safe to return generic message
-          logger.warn("Bad request to {}: {}", uri, e.getMessage());
+          LOGGER.warn("Bad request to {}: {}", uri, e.getMessage());
           response =
               new DefaultFullHttpResponse(
                   HttpVersion.HTTP_1_1,
@@ -380,7 +383,7 @@ public class NettyApiServer implements PlatformApiServer {
           response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
         } catch (Exception e) {
           // Server error - don't leak details to client
-          logger.error("Error handling request to {}", uri, e);
+          LOGGER.error("Error handling request to {}", uri, e);
           response =
               new DefaultFullHttpResponse(
                   HttpVersion.HTTP_1_1,
@@ -414,7 +417,7 @@ public class NettyApiServer implements PlatformApiServer {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       if (cause instanceof ReadTimeoutException) {
-        logger.warn("Request timeout - no data received within timeout period");
+        LOGGER.warn("Request timeout - no data received within timeout period");
         FullHttpResponse response =
             new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1,
@@ -424,10 +427,10 @@ public class NettyApiServer implements PlatformApiServer {
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
       } else if (cause instanceof WriteTimeoutException) {
-        logger.warn("Response timeout - could not send response within timeout period");
+        LOGGER.warn("Response timeout - could not send response within timeout period");
         ctx.close();
       } else {
-        logger.error("Error handling request", cause);
+        LOGGER.error("Error handling request", cause);
         ctx.close();
       }
     }

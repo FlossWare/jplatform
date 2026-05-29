@@ -17,20 +17,23 @@
 
 package org.flossware.platform.cluster.etcd;
 
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.flossware.platform.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.kv.GetResponse;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import org.flossware.platform.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * etcd-based implementation of ClusterStateStore. Stores distributed application state and
@@ -51,7 +54,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class EtcdStateStore implements ClusterStateStore {
-  private static final Logger logger = LoggerFactory.getLogger(EtcdStateStore.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EtcdStateStore.class);
   private static final String STATE_KEY_PREFIX = "/jplatform/states/";
   private static final String DESCRIPTOR_KEY_PREFIX = "/jplatform/descriptors/";
 
@@ -78,7 +81,7 @@ public class EtcdStateStore implements ClusterStateStore {
   @Override
   public void putApplicationState(String id, ApplicationState state) {
     if (id == null || state == null) {
-      logger.warn("Cannot put null id or state");
+      LOGGER.warn("Cannot put null id or state");
       return;
     }
 
@@ -95,7 +98,7 @@ public class EtcdStateStore implements ClusterStateStore {
 
       notifyListeners(id, state);
     } catch (Exception e) {
-      logger.error("Failed to put application state for " + id, e);
+      LOGGER.error("Failed to put application state for " + id, e);
     }
   }
 
@@ -118,7 +121,7 @@ public class EtcdStateStore implements ClusterStateStore {
       String json = response.getKvs().get(0).getValue().toString(StandardCharsets.UTF_8);
       return mapper.readValue(json, ApplicationState.class);
     } catch (Exception e) {
-      logger.error("Failed to get application state for " + id, e);
+      LOGGER.error("Failed to get application state for " + id, e);
       return null;
     }
   }
@@ -143,7 +146,7 @@ public class EtcdStateStore implements ClusterStateStore {
           ApplicationState state = mapper.readValue(json, ApplicationState.class);
           states.put(id, state);
         } catch (Exception e) {
-          logger.error("Failed to deserialize state for key: {}", kv.getKey(), e);
+          LOGGER.error("Failed to deserialize state for key: {}", kv.getKey(), e);
           throw new RuntimeException(
               "Failed to deserialize application state - cluster state may be corrupted", e);
         }
@@ -151,7 +154,7 @@ public class EtcdStateStore implements ClusterStateStore {
     } catch (RuntimeException e) {
       throw e; // Re-throw deserialization failures
     } catch (Exception e) {
-      logger.error("Failed to get all application states", e);
+      LOGGER.error("Failed to get all application states", e);
       throw new RuntimeException("Failed to retrieve application states from etcd", e);
     }
     return states;
@@ -160,7 +163,7 @@ public class EtcdStateStore implements ClusterStateStore {
   @Override
   public void putApplicationDescriptor(String id, ApplicationDescriptor desc) {
     if (id == null || desc == null) {
-      logger.warn("Cannot put null id or descriptor");
+      LOGGER.warn("Cannot put null id or descriptor");
       return;
     }
 
@@ -175,7 +178,7 @@ public class EtcdStateStore implements ClusterStateStore {
               ByteSequence.from(json, StandardCharsets.UTF_8))
           .get();
     } catch (Exception e) {
-      logger.error("Failed to put application descriptor for " + id, e);
+      LOGGER.error("Failed to put application descriptor for " + id, e);
     }
   }
 
@@ -198,7 +201,7 @@ public class EtcdStateStore implements ClusterStateStore {
       String json = response.getKvs().get(0).getValue().toString(StandardCharsets.UTF_8);
       return mapper.readValue(json, ApplicationDescriptor.class);
     } catch (Exception e) {
-      logger.error("Failed to get application descriptor for " + id, e);
+      LOGGER.error("Failed to get application descriptor for " + id, e);
       return null;
     }
   }
@@ -223,7 +226,7 @@ public class EtcdStateStore implements ClusterStateStore {
           ApplicationDescriptor desc = mapper.readValue(json, ApplicationDescriptor.class);
           descriptors.put(id, desc);
         } catch (Exception e) {
-          logger.error("Failed to deserialize descriptor for key: {}", kv.getKey(), e);
+          LOGGER.error("Failed to deserialize descriptor for key: {}", kv.getKey(), e);
           throw new RuntimeException(
               "Failed to deserialize application descriptor - cluster state may be corrupted", e);
         }
@@ -231,7 +234,7 @@ public class EtcdStateStore implements ClusterStateStore {
     } catch (RuntimeException e) {
       throw e; // Re-throw deserialization failures
     } catch (Exception e) {
-      logger.error("Failed to get all application descriptors", e);
+      LOGGER.error("Failed to get all application descriptors", e);
       throw new RuntimeException("Failed to retrieve application descriptors from etcd", e);
     }
     return descriptors;
@@ -240,7 +243,7 @@ public class EtcdStateStore implements ClusterStateStore {
   @Override
   public void subscribe(String key, StateChangeListener listener) {
     if (key == null || listener == null) {
-      logger.warn("Cannot subscribe with null key or listener");
+      LOGGER.warn("Cannot subscribe with null key or listener");
       return;
     }
     listeners.computeIfAbsent(key, k -> new CopyOnWriteArrayList<>()).add(listener);
@@ -264,7 +267,7 @@ public class EtcdStateStore implements ClusterStateStore {
         try {
           listener.onStateChanged(id, state);
         } catch (Exception e) {
-          logger.error("Listener error for " + id, e);
+          LOGGER.error("Listener error for " + id, e);
         }
       }
     }
@@ -289,7 +292,7 @@ public class EtcdStateStore implements ClusterStateStore {
               descPrefix, io.etcd.jetcd.options.DeleteOption.newBuilder().isPrefix(true).build())
           .get();
     } catch (Exception e) {
-      logger.error("Failed to clear state store", e);
+      LOGGER.error("Failed to clear state store", e);
     }
   }
 }

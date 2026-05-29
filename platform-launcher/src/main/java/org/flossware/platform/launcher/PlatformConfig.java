@@ -17,15 +17,17 @@
 
 package org.flossware.platform.launcher;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
  * Platform configuration loaded from platform.yaml file. Supports loading configuration from YAML
@@ -33,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PlatformConfig {
 
-  private static final Logger logger = LoggerFactory.getLogger(PlatformConfig.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PlatformConfig.class);
   private static final String DEFAULT_CONFIG_FILE = "platform.yaml";
 
   private ApiConfig api = new ApiConfig();
@@ -264,19 +266,19 @@ public class PlatformConfig {
     Path configPath = Paths.get(configFile);
 
     if (!Files.exists(configPath)) {
-      logger.info("Configuration file {} not found, using defaults", configFile);
+      LOGGER.info("Configuration file {} not found, using defaults", configFile);
       return new PlatformConfig();
     }
 
     try {
-      logger.info("Loading configuration from {}", configFile);
+      LOGGER.info("Loading configuration from {}", configFile);
       ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
       PlatformConfig config = mapper.readValue(new File(configFile), PlatformConfig.class);
-      logger.info("Configuration loaded successfully");
+      LOGGER.info("Configuration loaded successfully");
       return config;
     } catch (IOException e) {
-      logger.error("Failed to load configuration from {}: {}", configFile, e.getMessage());
-      logger.warn("Using default configuration");
+      LOGGER.error("Failed to load configuration from {}: {}", configFile, e.getMessage());
+      LOGGER.warn("Using default configuration");
       return new PlatformConfig();
     }
   }

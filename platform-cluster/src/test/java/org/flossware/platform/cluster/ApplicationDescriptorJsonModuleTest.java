@@ -19,13 +19,15 @@ package org.flossware.platform.cluster;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.flossware.platform.api.ThreadPoolConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /** Unit tests for ApplicationDescriptorJsonModule serialization/deserialization. */
 class ApplicationDescriptorJsonModuleTest {

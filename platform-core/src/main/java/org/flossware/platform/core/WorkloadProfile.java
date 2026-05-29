@@ -18,6 +18,7 @@
 package org.flossware.platform.core;
 
 import java.util.Objects;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 
 /**

@@ -19,9 +19,11 @@ package org.flossware.platform.cluster.redis;
 
 import java.util.*;
 import java.util.concurrent.*;
+
 import org.flossware.platform.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.params.SetParams;
@@ -44,7 +46,7 @@ import redis.clients.jedis.params.SetParams;
  * @since 1.1
  */
 public class RedisClusterManager implements ClusterManager {
-  private static final Logger logger = LoggerFactory.getLogger(RedisClusterManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RedisClusterManager.class);
   private static final String LEADER_KEY_PREFIX = "jplatform:leader:";
   private static final String MEMBER_KEY_PREFIX = "jplatform:members:";
 
@@ -167,11 +169,11 @@ public class RedisClusterManager implements ClusterManager {
           nodes.add(
               new ClusterNode(memberId, address, port, ClusterNode.NodeState.ACTIVE, timestamp));
         } catch (Exception e) {
-          logger.error("Failed to parse node info for: {}", memberId, e);
+          LOGGER.error("Failed to parse node info for: {}", memberId, e);
         }
       }
     } catch (Exception e) {
-      logger.error("Failed to get nodes", e);
+      LOGGER.error("Failed to get nodes", e);
     }
     return nodes;
   }
@@ -234,7 +236,7 @@ public class RedisClusterManager implements ClusterManager {
         notifyLeaderChanged(getLocalNode());
       }
     } catch (Exception e) {
-      logger.debug("Leader election attempt failed", e);
+      LOGGER.debug("Leader election attempt failed", e);
       isLeader = false;
     }
   }
@@ -252,7 +254,7 @@ public class RedisClusterManager implements ClusterManager {
       jedis.hset(memberKey, nodeId, nodeInfo);
       jedis.expire(memberKey, config.getLeaseTtl() * 2);
     } catch (Exception e) {
-      logger.error("Failed to register member", e);
+      LOGGER.error("Failed to register member", e);
     }
   }
 
@@ -261,7 +263,7 @@ public class RedisClusterManager implements ClusterManager {
       String memberKey = MEMBER_KEY_PREFIX + clusterConfig.getClusterName();
       jedis.hdel(memberKey, nodeId);
     } catch (Exception e) {
-      logger.error("Failed to unregister member", e);
+      LOGGER.error("Failed to unregister member", e);
     }
   }
 
@@ -275,7 +277,7 @@ public class RedisClusterManager implements ClusterManager {
         jedis.del(key);
       }
     } catch (Exception e) {
-      logger.error("Failed to release leadership", e);
+      LOGGER.error("Failed to release leadership", e);
     }
   }
 
@@ -284,7 +286,7 @@ public class RedisClusterManager implements ClusterManager {
       try {
         listener.onLeaderChanged(node);
       } catch (Exception e) {
-        logger.error("Listener error", e);
+        LOGGER.error("Listener error", e);
       }
     }
   }

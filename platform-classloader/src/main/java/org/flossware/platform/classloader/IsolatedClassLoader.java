@@ -21,6 +21,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
+
 import org.flossware.jclassloader.ApplicationClassLoader;
 import org.flossware.jclassloader.AuthConfig;
 import org.flossware.jclassloader.lifecycle.ResourceTrackingListener;
@@ -32,9 +33,9 @@ import org.slf4j.LoggerFactory;
  * Platform-specific class loader for isolated application execution. Wraps ApplicationClassLoader
  * with JPlatform-specific integration and configuration.
  */
-public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
+public final class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
 
-  private static final Logger logger = LoggerFactory.getLogger(IsolatedClassLoader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(IsolatedClassLoader.class);
 
   private final String applicationId;
   private final ApplicationDescriptor descriptor;
@@ -93,9 +94,9 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
       cacheDirFile.mkdirs();
       try {
         builder.cache(new org.flossware.jclassloader.cache.FileSystemCache(cacheDir));
-        logger.info("[{}] Initialized class cache at: {}", applicationId, cacheDir);
+        LOGGER.info("[{}] Initialized class cache at: {}", applicationId, cacheDir);
       } catch (java.io.IOException e) {
-        logger.warn(
+        LOGGER.warn(
             "[{}] Failed to initialize class cache, continuing without cache", applicationId, e);
         // Continue without cache
       }

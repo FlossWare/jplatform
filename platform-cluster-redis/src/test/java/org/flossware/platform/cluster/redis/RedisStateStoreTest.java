@@ -20,13 +20,16 @@ package org.flossware.platform.cluster.redis;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.flossware.platform.api.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 

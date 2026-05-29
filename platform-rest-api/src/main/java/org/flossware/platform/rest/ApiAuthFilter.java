@@ -17,16 +17,18 @@
 
 package org.flossware.platform.rest;
 
-import com.sun.net.httpserver.Filter;
-import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Objects;
+
 import org.flossware.platform.api.ApiServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.Filter;
+import com.sun.net.httpserver.HttpExchange;
 
 /**
  * HTTP filter for API key authentication. Validates the API key header if authentication is enabled
@@ -50,7 +52,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ApiAuthFilter extends Filter {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApiAuthFilter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApiAuthFilter.class);
 
   private final ApiServerConfig config;
 
@@ -104,7 +106,7 @@ public class ApiAuthFilter extends Filter {
     String providedKey = exchange.getRequestHeaders().getFirst(apiKeyHeader);
 
     if (providedKey == null || !constantTimeEquals(providedKey, config.getApiKey())) {
-      logger.warn(
+      LOGGER.warn(
           "Unauthorized request from {}: missing or invalid API key", exchange.getRemoteAddress());
       sendUnauthorized(exchange);
       return;

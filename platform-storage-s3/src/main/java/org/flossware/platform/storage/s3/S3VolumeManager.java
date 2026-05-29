@@ -24,10 +24,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.flossware.platform.api.VolumeManager;
 import org.flossware.platform.api.VolumeMount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -55,7 +57,7 @@ import software.amazon.awssdk.services.s3.model.*;
  * @since 1.1
  */
 public class S3VolumeManager implements VolumeManager, AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(S3VolumeManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(S3VolumeManager.class);
 
   private final S3StorageConfig config;
   private final Map<String, VolumeMount> volumes;
@@ -136,9 +138,9 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
       ensureBucketExists();
 
       initialized = true;
-      logger.info("S3 volume manager initialized with bucket: {}", config.getBucketName());
+      LOGGER.info("S3 volume manager initialized with bucket: {}", config.getBucketName());
     } catch (Exception e) {
-      logger.error("Failed to initialize S3 volume manager", e);
+      LOGGER.error("Failed to initialize S3 volume manager", e);
       throw new RuntimeException("Failed to initialize S3 client", e);
     }
   }
@@ -158,7 +160,7 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
             Files.createDirectories(cachePath);
             return cachePath;
           } catch (IOException e) {
-            logger.error("Failed to create cache directory for volume: " + volumeName, e);
+            LOGGER.error("Failed to create cache directory for volume: " + volumeName, e);
             throw new RuntimeException("Failed to create volume cache directory", e);
           }
         });
@@ -204,7 +206,7 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
 
       return totalSize;
     } catch (Exception e) {
-      logger.error("Failed to calculate volume usage for: " + volumeName, e);
+      LOGGER.error("Failed to calculate volume usage for: " + volumeName, e);
       throw new IOException("Failed to calculate volume usage", e);
     }
   }
@@ -254,7 +256,7 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
           PutObjectRequest.builder().bucket(config.getBucketName()).key(s3Key).build(),
           RequestBody.fromFile(localPath));
 
-      logger.debug("Uploaded file to S3: {}", s3Key);
+      LOGGER.debug("Uploaded file to S3: {}", s3Key);
     } catch (Exception e) {
       // Check if file was missing (may be wrapped in SDK exception)
       Throwable cause = e.getCause();
@@ -262,7 +264,7 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
           || (cause instanceof java.nio.file.NoSuchFileException)) {
         throw new IOException("File not found: " + localPath, e);
       }
-      logger.error("Failed to upload file to S3: " + relativePath, e);
+      LOGGER.error("Failed to upload file to S3: " + relativePath, e);
       throw new IOException("Failed to upload file to S3", e);
     }
   }
@@ -292,9 +294,9 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
       s3Client.getObject(
           GetObjectRequest.builder().bucket(config.getBucketName()).key(s3Key).build(), localPath);
 
-      logger.debug("Downloaded file from S3: {}", s3Key);
+      LOGGER.debug("Downloaded file from S3: {}", s3Key);
     } catch (Exception e) {
-      logger.error("Failed to download file from S3: " + relativePath, e);
+      LOGGER.error("Failed to download file from S3: " + relativePath, e);
       throw new IOException("Failed to download file", e);
     }
   }
@@ -304,7 +306,7 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
     if (s3Client != null) {
       s3Client.close();
       initialized = false;
-      logger.info("S3 volume manager closed");
+      LOGGER.info("S3 volume manager closed");
     }
   }
 
@@ -321,12 +323,12 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
     try {
       s3Client.headBucket(HeadBucketRequest.builder().bucket(config.getBucketName()).build());
     } catch (NoSuchBucketException e) {
-      logger.info("Creating bucket: {}", config.getBucketName());
+      LOGGER.info("Creating bucket: {}", config.getBucketName());
       try {
         s3Client.createBucket(CreateBucketRequest.builder().bucket(config.getBucketName()).build());
-        logger.info("Successfully created bucket: {}", config.getBucketName());
+        LOGGER.info("Successfully created bucket: {}", config.getBucketName());
       } catch (Exception ex) {
-        logger.error("Failed to create bucket: " + config.getBucketName(), ex);
+        LOGGER.error("Failed to create bucket: " + config.getBucketName(), ex);
         throw new RuntimeException(
             "Failed to create S3 bucket: "
                 + config.getBucketName()
@@ -334,7 +336,7 @@ public class S3VolumeManager implements VolumeManager, AutoCloseable {
             ex);
       }
     } catch (Exception e) {
-      logger.error("Failed to verify bucket existence: " + config.getBucketName(), e);
+      LOGGER.error("Failed to verify bucket existence: " + config.getBucketName(), e);
       throw new RuntimeException("Failed to verify S3 bucket: " + config.getBucketName(), e);
     }
   }

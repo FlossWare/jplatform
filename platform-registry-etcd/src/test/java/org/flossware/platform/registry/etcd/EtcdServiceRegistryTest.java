@@ -22,16 +22,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
 import io.etcd.jetcd.Lease;
 import io.etcd.jetcd.kv.PutResponse;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 class EtcdServiceRegistryTest {
   private EtcdRegistryConfig config;

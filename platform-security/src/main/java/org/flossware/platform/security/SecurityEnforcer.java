@@ -22,6 +22,7 @@ import java.net.SocketPermission;
 import java.security.Permission;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.flossware.platform.api.SecurityPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +65,9 @@ import org.slf4j.LoggerFactory;
  * @see SecurityPolicy
  * @see ApplicationSecurityPolicy
  */
-public class SecurityEnforcer {
+public final class SecurityEnforcer {
 
-  private static final Logger logger = LoggerFactory.getLogger(SecurityEnforcer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SecurityEnforcer.class);
   private static final SecurityEnforcer INSTANCE = new SecurityEnforcer();
 
   private final Map<ClassLoader, SecurityPolicy> policies;
@@ -99,7 +100,7 @@ public class SecurityEnforcer {
    */
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
-    logger.info("Security enforcement {}", enabled ? "enabled" : "disabled");
+    LOGGER.info("Security enforcement {}", enabled ? "enabled" : "disabled");
   }
 
   /**
@@ -121,7 +122,7 @@ public class SecurityEnforcer {
    */
   public void registerPolicy(ClassLoader classLoader, SecurityPolicy policy) {
     policies.put(classLoader, policy);
-    logger.info("Registered security policy for ClassLoader: {}", classLoader);
+    LOGGER.info("Registered security policy for ClassLoader: {}", classLoader);
   }
 
   /**
@@ -132,7 +133,7 @@ public class SecurityEnforcer {
   public void unregisterPolicy(ClassLoader classLoader) {
     SecurityPolicy removed = policies.remove(classLoader);
     if (removed != null) {
-      logger.info("Unregistered security policy for ClassLoader: {}", classLoader);
+      LOGGER.info("Unregistered security policy for ClassLoader: {}", classLoader);
     }
   }
 
@@ -230,12 +231,12 @@ public class SecurityEnforcer {
     if (policy == null) {
       // Check if this is a trusted platform classloader
       if (isPlatformClassLoader(callerClassLoader)) {
-        logger.debug("Platform ClassLoader {}, allowing access", callerClassLoader);
+        LOGGER.debug("Platform ClassLoader {}, allowing access", callerClassLoader);
         return;
       }
 
       // No policy registered for application classloader - deny by default
-      logger.warn(
+      LOGGER.warn(
           "No security policy registered for ClassLoader {}, denying {} access",
           callerClassLoader,
           permission.getClass().getSimpleName());
@@ -247,7 +248,7 @@ public class SecurityEnforcer {
     try {
       policy.enforce(permission);
     } catch (SecurityException e) {
-      logger.warn(
+      LOGGER.warn(
           "Security violation: {} denied for ClassLoader {}", permission, callerClassLoader);
       throw e;
     }
@@ -320,6 +321,6 @@ public class SecurityEnforcer {
    */
   public void clearPolicies() {
     policies.clear();
-    logger.info("Cleared all security policies");
+    LOGGER.info("Cleared all security policies");
   }
 }

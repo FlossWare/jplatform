@@ -17,18 +17,20 @@
 
 package org.flossware.platform.metrics.prometheus;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.flossware.platform.api.ApplicationContext;
 import org.flossware.platform.api.MetricsExporter;
 import org.flossware.platform.api.PrometheusExporterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * Prometheus metrics exporter implementation. Exposes application metrics via HTTP endpoint in
@@ -71,7 +73,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PrometheusMetricsExporter implements MetricsExporter {
 
-  private static final Logger logger = LoggerFactory.getLogger(PrometheusMetricsExporter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PrometheusMetricsExporter.class);
 
   private final PrometheusExporterConfig config;
   private final Map<String, ApplicationContext> applications;
@@ -102,12 +104,12 @@ public class PrometheusMetricsExporter implements MetricsExporter {
   @Override
   public void start() throws IOException {
     if (running) {
-      logger.warn("Prometheus exporter already running on port {}", config.getPort());
+      LOGGER.warn("Prometheus exporter already running on port {}", config.getPort());
       return;
     }
 
     try {
-      logger.info(
+      LOGGER.info(
           "Starting Prometheus metrics exporter on port {} path {}",
           config.getPort(),
           config.getPath());
@@ -125,10 +127,10 @@ public class PrometheusMetricsExporter implements MetricsExporter {
       server.start();
       running = true;
 
-      logger.info("Prometheus metrics exporter started successfully");
+      LOGGER.info("Prometheus metrics exporter started successfully");
 
     } catch (IOException e) {
-      logger.error("Failed to start Prometheus exporter: {}", e.getMessage(), e);
+      LOGGER.error("Failed to start Prometheus exporter: {}", e.getMessage(), e);
       throw e;
     }
   }
@@ -140,12 +142,12 @@ public class PrometheusMetricsExporter implements MetricsExporter {
   @Override
   public void stop() {
     if (!running) {
-      logger.warn("Prometheus exporter is not running");
+      LOGGER.warn("Prometheus exporter is not running");
       return;
     }
 
     try {
-      logger.info("Stopping Prometheus metrics exporter");
+      LOGGER.info("Stopping Prometheus metrics exporter");
 
       if (server != null) {
         // Stop with 5 second delay to allow ongoing requests to complete
@@ -154,10 +156,10 @@ public class PrometheusMetricsExporter implements MetricsExporter {
       }
 
       running = false;
-      logger.info("Prometheus metrics exporter stopped");
+      LOGGER.info("Prometheus metrics exporter stopped");
 
     } catch (Exception e) {
-      logger.error("Error stopping Prometheus exporter: {}", e.getMessage(), e);
+      LOGGER.error("Error stopping Prometheus exporter: {}", e.getMessage(), e);
     }
   }
 
@@ -170,7 +172,7 @@ public class PrometheusMetricsExporter implements MetricsExporter {
    */
   @Override
   public void registerApplication(String applicationId, ApplicationContext context) {
-    logger.info("Registering application {} for Prometheus export", applicationId);
+    LOGGER.info("Registering application {} for Prometheus export", applicationId);
     applications.put(applicationId, context);
   }
 
@@ -182,7 +184,7 @@ public class PrometheusMetricsExporter implements MetricsExporter {
    */
   @Override
   public void unregisterApplication(String applicationId) {
-    logger.info("Unregistering application {} from Prometheus export", applicationId);
+    LOGGER.info("Unregistering application {} from Prometheus export", applicationId);
     applications.remove(applicationId);
   }
 
@@ -210,7 +212,7 @@ public class PrometheusMetricsExporter implements MetricsExporter {
    */
   private void handleMetrics(HttpExchange exchange) {
     try {
-      logger.debug("Handling metrics request from {}", exchange.getRemoteAddress());
+      LOGGER.debug("Handling metrics request from {}", exchange.getRemoteAddress());
 
       // Collect metrics from all registered applications
       StringBuilder sb = new StringBuilder();
@@ -223,7 +225,7 @@ public class PrometheusMetricsExporter implements MetricsExporter {
           String metrics = ApplicationMetricsCollector.collectMetrics(context);
           sb.append(metrics);
         } catch (Exception e) {
-          logger.error(
+          LOGGER.error(
               "Failed to collect metrics for application {}: {}", appId, e.getMessage(), e);
         }
       }
@@ -237,10 +239,10 @@ public class PrometheusMetricsExporter implements MetricsExporter {
         os.write(response);
       }
 
-      logger.debug("Metrics request completed, sent {} bytes", response.length);
+      LOGGER.debug("Metrics request completed, sent {} bytes", response.length);
 
     } catch (Exception e) {
-      logger.error("Error handling metrics request: {}", e.getMessage(), e);
+      LOGGER.error("Error handling metrics request: {}", e.getMessage(), e);
       try {
         // Send error response
         byte[] errorResponse = "Internal server error".getBytes("UTF-8");
@@ -249,7 +251,7 @@ public class PrometheusMetricsExporter implements MetricsExporter {
           os.write(errorResponse);
         }
       } catch (IOException ioException) {
-        logger.error("Failed to send error response: {}", ioException.getMessage());
+        LOGGER.error("Failed to send error response: {}", ioException.getMessage());
       }
     } finally {
       exchange.close();

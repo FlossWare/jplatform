@@ -17,17 +17,19 @@
 
 package org.flossware.platform.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 /**
  * HTTP handler for platform-level API endpoints. Provides platform information, health checks, and
@@ -66,7 +68,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PlatformApiHandler implements HttpHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(PlatformApiHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PlatformApiHandler.class);
   private static final ObjectMapper mapper = new ObjectMapper();
 
   /**
@@ -80,7 +82,7 @@ public class PlatformApiHandler implements HttpHandler {
     String method = exchange.getRequestMethod();
     String path = exchange.getRequestURI().getPath();
 
-    logger.debug("Platform API request: {} {}", method, path);
+    LOGGER.debug("Platform API request: {} {}", method, path);
 
     try {
       if (path.equals("/api/health") && method.equals("GET")) {
@@ -91,7 +93,7 @@ public class PlatformApiHandler implements HttpHandler {
         sendErrorResponse(exchange, 404, "NotFound", "Endpoint not found: " + path);
       }
     } catch (Exception e) {
-      logger.error("Error handling platform API request", e);
+      LOGGER.error("Error handling platform API request", e);
       sendErrorResponse(exchange, 500, "InternalError", e.getMessage());
     }
   }

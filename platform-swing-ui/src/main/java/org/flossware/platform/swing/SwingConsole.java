@@ -25,8 +25,10 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+
 import org.flossware.platform.api.ApplicationState;
 import org.flossware.platform.api.PlatformManager;
 import org.slf4j.Logger;
@@ -65,7 +67,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SwingConsole {
 
-  private static final Logger logger = LoggerFactory.getLogger(SwingConsole.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SwingConsole.class);
 
   private final PlatformManager platformManager;
   private final Frame frame;
@@ -107,7 +109,7 @@ public class SwingConsole {
     initializeUI();
     startAutoRefresh();
 
-    logger.info("Swing console initialized");
+    LOGGER.info("Swing console initialized");
   }
 
   /** Initializes the Swing UI components and layout. */
@@ -184,14 +186,14 @@ public class SwingConsole {
           try {
             SwingUtilities.invokeLater(this::refreshApplicationList);
           } catch (Exception e) {
-            logger.error("Error during auto-refresh", e);
+            LOGGER.error("Error during auto-refresh", e);
           }
         },
         2,
         2,
         TimeUnit.SECONDS);
 
-    logger.debug("Auto-refresh started (2-second interval)");
+    LOGGER.debug("Auto-refresh started (2-second interval)");
   }
 
   /** Refreshes the application list from the platform manager. */
@@ -223,7 +225,7 @@ public class SwingConsole {
             }
           }
         } catch (Exception e) {
-          logger.debug("Could not get metrics for {}: {}", appId, e.getMessage());
+          LOGGER.debug("Could not get metrics for {}: {}", appId, e.getMessage());
         }
 
         tableModel.addRow(new Object[] {appId, state.name(), cpuTime, heapUsed, threadCount});
@@ -232,7 +234,7 @@ public class SwingConsole {
       statusLabel.setText(String.format("Ready - %d application(s)", applications.size()));
 
     } catch (Exception e) {
-      logger.error("Error refreshing application list", e);
+      LOGGER.error("Error refreshing application list", e);
       statusLabel.setText("Error: " + e.getMessage());
     }
   }
@@ -268,7 +270,7 @@ public class SwingConsole {
           refreshApplicationList();
 
         } catch (Exception e) {
-          logger.error("Deployment failed", e);
+          LOGGER.error("Deployment failed", e);
           JOptionPane.showMessageDialog(
               frame,
               "Deployment failed: " + e.getMessage(),
@@ -295,7 +297,7 @@ public class SwingConsole {
       statusLabel.setText("Started: " + appId);
       refreshApplicationList();
     } catch (Exception e) {
-      logger.error("Start failed for {}", appId, e);
+      LOGGER.error("Start failed for {}", appId, e);
       JOptionPane.showMessageDialog(
           frame, "Start failed: " + e.getMessage(), "Start Error", JOptionPane.ERROR_MESSAGE);
       statusLabel.setText("Start failed");
@@ -317,7 +319,7 @@ public class SwingConsole {
       statusLabel.setText("Stopped: " + appId);
       refreshApplicationList();
     } catch (Exception e) {
-      logger.error("Stop failed for {}", appId, e);
+      LOGGER.error("Stop failed for {}", appId, e);
       JOptionPane.showMessageDialog(
           frame, "Stop failed: " + e.getMessage(), "Stop Error", JOptionPane.ERROR_MESSAGE);
       statusLabel.setText("Stop failed");
@@ -347,7 +349,7 @@ public class SwingConsole {
         statusLabel.setText("Undeployed: " + appId);
         refreshApplicationList();
       } catch (Exception e) {
-        logger.error("Undeploy failed for {}", appId, e);
+        LOGGER.error("Undeploy failed for {}", appId, e);
         JOptionPane.showMessageDialog(
             frame,
             "Undeploy failed: " + e.getMessage(),
@@ -376,7 +378,7 @@ public class SwingConsole {
     SwingUtilities.invokeLater(
         () -> {
           frame.setVisible(true);
-          logger.info("Swing console displayed");
+          LOGGER.info("Swing console displayed");
         });
   }
 
@@ -385,7 +387,7 @@ public class SwingConsole {
     SwingUtilities.invokeLater(
         () -> {
           frame.setVisible(false);
-          logger.info("Swing console hidden");
+          LOGGER.info("Swing console hidden");
         });
   }
 
@@ -404,7 +406,7 @@ public class SwingConsole {
     SwingUtilities.invokeLater(
         () -> {
           frame.dispose();
-          logger.info("Swing console shut down");
+          LOGGER.info("Swing console shut down");
         });
   }
 

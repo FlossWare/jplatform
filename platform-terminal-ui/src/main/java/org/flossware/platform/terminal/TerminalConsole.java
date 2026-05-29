@@ -17,6 +17,17 @@
 
 package org.flossware.platform.terminal;
 
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.flossware.platform.api.ApplicationState;
+import org.flossware.platform.api.PlatformManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
@@ -26,15 +37,6 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import org.flossware.platform.api.ApplicationState;
-import org.flossware.platform.api.PlatformManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Terminal-based (curses-like) UI for platform-java management using Lanterna.
@@ -77,7 +79,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TerminalConsole {
 
-  private static final Logger logger = LoggerFactory.getLogger(TerminalConsole.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TerminalConsole.class);
 
   private final PlatformManager platformManager;
   private final ScheduledExecutorService refreshExecutor;
@@ -108,7 +110,7 @@ public class TerminalConsole {
               return thread;
             });
 
-    logger.info("Terminal console initialized");
+    LOGGER.info("Terminal console initialized");
   }
 
   /**
@@ -130,7 +132,7 @@ public class TerminalConsole {
               render();
             }
           } catch (Exception e) {
-            logger.error("Error during auto-refresh", e);
+            LOGGER.error("Error during auto-refresh", e);
           }
         },
         2,
@@ -157,7 +159,7 @@ public class TerminalConsole {
     screen.startScreen();
     screen.setCursorPosition(null); // Hide cursor
 
-    logger.debug("Terminal initialized");
+    LOGGER.debug("Terminal initialized");
   }
 
   /** Main event loop - processes keyboard input. */
@@ -246,7 +248,7 @@ public class TerminalConsole {
       }
 
     } catch (Exception e) {
-      logger.error("Error refreshing application list", e);
+      LOGGER.error("Error refreshing application list", e);
       statusMessage = "Error: " + e.getMessage();
     }
   }
@@ -260,7 +262,7 @@ public class TerminalConsole {
         statusMessage = "Started: " + appId;
         refreshApplicationList();
       } catch (Exception e) {
-        logger.error("Failed to start {}", appId, e);
+        LOGGER.error("Failed to start {}", appId, e);
         statusMessage = "Error starting " + appId + ": " + e.getMessage();
       }
     } else {
@@ -277,7 +279,7 @@ public class TerminalConsole {
         statusMessage = "Stopped: " + appId;
         refreshApplicationList();
       } catch (Exception e) {
-        logger.error("Failed to stop {}", appId, e);
+        LOGGER.error("Failed to stop {}", appId, e);
         statusMessage = "Error stopping " + appId + ": " + e.getMessage();
       }
     } else {
@@ -294,7 +296,7 @@ public class TerminalConsole {
         statusMessage = "Undeployed: " + appId;
         refreshApplicationList();
       } catch (Exception e) {
-        logger.error("Failed to undeploy {}", appId, e);
+        LOGGER.error("Failed to undeploy {}", appId, e);
         statusMessage = "Error undeploying " + appId + ": " + e.getMessage();
       }
     } else {
@@ -374,7 +376,7 @@ public class TerminalConsole {
           }
         }
       } catch (Exception e) {
-        logger.debug("Could not get metrics for {}", appId);
+        LOGGER.debug("Could not get metrics for {}", appId);
       }
 
       // Color code by state
@@ -406,7 +408,7 @@ public class TerminalConsole {
       graphics.putString(0, row, line);
 
     } catch (Exception e) {
-      logger.error("Error rendering row for {}", appId, e);
+      LOGGER.error("Error rendering row for {}", appId, e);
       graphics.setForegroundColor(TextColor.ANSI.RED);
       graphics.putString(0, row, "Error rendering: " + appId);
     }
@@ -461,10 +463,10 @@ public class TerminalConsole {
         terminal.close();
       }
     } catch (IOException e) {
-      logger.error("Error closing terminal", e);
+      LOGGER.error("Error closing terminal", e);
     }
 
-    logger.info("Terminal console shut down");
+    LOGGER.info("Terminal console shut down");
   }
 
   /** Main method for standalone execution. */

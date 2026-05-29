@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ import org.slf4j.LoggerFactory;
  */
 public class NativeProcessLauncher {
 
-  private static final Logger logger = LoggerFactory.getLogger(NativeProcessLauncher.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NativeProcessLauncher.class);
 
   private static final Set<String> RESTRICTED_DIRECTORIES =
       Set.of(
@@ -81,15 +82,15 @@ public class NativeProcessLauncher {
       throw new IllegalArgumentException("Descriptor must have nativeImage flag set to true");
     }
 
-    logger.info("[{}] Launching native application", applicationId);
+    LOGGER.info("[{}] Launching native application", applicationId);
 
     // Resolve executable path
     String executablePath = resolveExecutablePath(descriptor);
-    logger.info("[{}] Executable path: {}", applicationId, executablePath);
+    LOGGER.info("[{}] Executable path: {}", applicationId, executablePath);
 
     // Build command line
     List<String> command = buildCommand(executablePath, descriptor);
-    logger.info("[{}] Command: {}", applicationId, String.join(" ", command));
+    LOGGER.info("[{}] Command: {}", applicationId, String.join(" ", command));
 
     // Build process
     ProcessBuilder processBuilder = new ProcessBuilder(command);
@@ -104,7 +105,7 @@ public class NativeProcessLauncher {
               if (key.startsWith("native.env.")) {
                 String envVar = key.substring("native.env.".length());
                 environment.put(envVar, value);
-                logger.debug("[{}] Set environment: {}={}", applicationId, envVar, value);
+                LOGGER.debug("[{}] Set environment: {}={}", applicationId, envVar, value);
               }
             });
 
@@ -113,7 +114,7 @@ public class NativeProcessLauncher {
 
     // Launch process
     Process process = processBuilder.start();
-    logger.info("[{}] Native process launched with PID: {}", applicationId, process.pid());
+    LOGGER.info("[{}] Native process launched with PID: {}", applicationId, process.pid());
 
     // Start output reader thread
     startOutputReader(applicationId, process);
@@ -132,11 +133,11 @@ public class NativeProcessLauncher {
   public void stop(String applicationId, Process process, long gracefulTimeoutMs)
       throws InterruptedException {
     if (process == null || !process.isAlive()) {
-      logger.warn("[{}] Process already stopped", applicationId);
+      LOGGER.warn("[{}] Process already stopped", applicationId);
       return;
     }
 
-    logger.info("[{}] Stopping native process (PID: {})", applicationId, process.pid());
+    LOGGER.info("[{}] Stopping native process (PID: {})", applicationId, process.pid());
 
     // Send graceful termination signal
     process.destroy();
@@ -145,15 +146,15 @@ public class NativeProcessLauncher {
     boolean exited = process.waitFor(gracefulTimeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
 
     if (!exited) {
-      logger.warn("[{}] Process did not exit gracefully, force killing", applicationId);
+      LOGGER.warn("[{}] Process did not exit gracefully, force killing", applicationId);
       process.destroyForcibly();
       process.waitFor(5000, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
 
     if (process.isAlive()) {
-      logger.error("[{}] Process still alive after force kill", applicationId);
+      LOGGER.error("[{}] Process still alive after force kill", applicationId);
     } else {
-      logger.info(
+      LOGGER.info(
           "[{}] Native process stopped (exit code: {})", applicationId, process.exitValue());
     }
   }
@@ -219,7 +220,7 @@ public class NativeProcessLauncher {
       }
     }
 
-    logger.debug("Validated executable path: {}", normalizedPath);
+    LOGGER.debug("Validated executable path: {}", normalizedPath);
   }
 
   /**
@@ -258,12 +259,12 @@ public class NativeProcessLauncher {
 
                 String line;
                 while ((line = reader.readLine()) != null) {
-                  logger.info("[{}] {}", applicationId, line);
+                  LOGGER.info("[{}] {}", applicationId, line);
                 }
 
               } catch (IOException e) {
                 if (process.isAlive()) {
-                  logger.error("[{}] Error reading process output", applicationId, e);
+                  LOGGER.error("[{}] Error reading process output", applicationId, e);
                 }
               }
             },

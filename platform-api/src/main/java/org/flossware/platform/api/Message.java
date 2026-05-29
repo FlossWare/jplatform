@@ -51,7 +51,7 @@ import java.util.UUID;
  * @see MessageBus
  * @see MessageHandler
  */
-public class Message {
+public final class Message {
   private final String id;
   private final String topic;
   private final String sourceApplicationId;

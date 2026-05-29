@@ -18,6 +18,7 @@
 package org.flossware.platform.core;
 
 import java.util.Objects;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +101,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WorkloadPlacementScheduler {
 
-  private static final Logger logger = LoggerFactory.getLogger(WorkloadPlacementScheduler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(WorkloadPlacementScheduler.class);
 
   private static final int LIGHTWEIGHT_MEMORY_THRESHOLD_MB = 4096; // 4GB
   private static final int HEAVY_MEMORY_THRESHOLD_MB = 16384; // 16GB
@@ -120,7 +121,7 @@ public class WorkloadPlacementScheduler {
    */
   public WorkloadPlacementScheduler(boolean kubernetesAvailable) {
     this.kubernetesAvailable = kubernetesAvailable;
-    logger.info(
+    LOGGER.info(
         "WorkloadPlacementScheduler initialized (Kubernetes available: {})", kubernetesAvailable);
   }
 
@@ -138,18 +139,18 @@ public class WorkloadPlacementScheduler {
     Objects.requireNonNull(descriptor, "descriptor cannot be null");
 
     String applicationId = descriptor.getApplicationId();
-    logger.debug("[{}] Scheduling workload placement", applicationId);
+    LOGGER.debug("[{}] Scheduling workload placement", applicationId);
 
     // Check for explicit backend override
     String explicitBackend = descriptor.getProperties().get("deploymentTarget");
     if (explicitBackend != null && !explicitBackend.isEmpty()) {
       try {
         ExecutionBackend backend = ExecutionBackend.fromId(explicitBackend);
-        logger.info("[{}] Using explicit backend override: {}", applicationId, backend);
+        LOGGER.info("[{}] Using explicit backend override: {}", applicationId, backend);
         return new PlacementDecision(
             applicationId, backend, "Explicit deployment target override: " + explicitBackend);
       } catch (IllegalArgumentException e) {
-        logger.warn(
+        LOGGER.warn(
             "[{}] Invalid deployment target '{}', falling back to automatic selection",
             applicationId,
             explicitBackend);
@@ -158,12 +159,12 @@ public class WorkloadPlacementScheduler {
 
     // Analyze workload characteristics
     WorkloadProfile profile = WorkloadProfile.analyze(descriptor);
-    logger.debug("[{}] Workload profile: {}", applicationId, profile);
+    LOGGER.debug("[{}] Workload profile: {}", applicationId, profile);
 
     // Apply decision tree
     PlacementDecision decision = applyDecisionTree(profile);
 
-    logger.info(
+    LOGGER.info(
         "[{}] Placement decision: {} - {}",
         applicationId,
         decision.getBackend(),

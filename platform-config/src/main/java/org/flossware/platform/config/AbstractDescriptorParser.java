@@ -17,17 +17,19 @@
 
 package org.flossware.platform.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.flossware.platform.api.ApplicationDescriptorParser;
 import org.flossware.platform.api.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Abstract base class for ApplicationDescriptor parsers using Jackson. Provides common parsing
@@ -66,7 +68,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractDescriptorParser implements ApplicationDescriptorParser {
 
-  private static final Logger logger = LoggerFactory.getLogger(AbstractDescriptorParser.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDescriptorParser.class);
 
   private final ObjectMapper objectMapper;
 
@@ -94,7 +96,7 @@ public abstract class AbstractDescriptorParser implements ApplicationDescriptorP
   public ApplicationDescriptor parse(InputStream input) throws ParseException {
     Objects.requireNonNull(input, "input stream cannot be null");
 
-    logger.debug(
+    LOGGER.debug(
         "Parsing ApplicationDescriptor from input stream using {} format", getSupportedFormat());
 
     try {
@@ -104,7 +106,7 @@ public abstract class AbstractDescriptorParser implements ApplicationDescriptorP
 
       ApplicationDescriptor descriptor = dto.toApplicationDescriptor();
 
-      logger.info(
+      LOGGER.info(
           "Successfully parsed ApplicationDescriptor: applicationId={}, mainClass={}",
           descriptor.getApplicationId(),
           descriptor.getMainClass());
@@ -113,7 +115,7 @@ public abstract class AbstractDescriptorParser implements ApplicationDescriptorP
     } catch (IOException e) {
       String message =
           String.format("Failed to parse %s descriptor: %s", getSupportedFormat(), e.getMessage());
-      logger.error(message, e);
+      LOGGER.error(message, e);
       throw new ParseException(message, e);
     }
   }
@@ -129,7 +131,7 @@ public abstract class AbstractDescriptorParser implements ApplicationDescriptorP
   public ApplicationDescriptor parseFile(Path file) throws ParseException {
     Objects.requireNonNull(file, "file path cannot be null");
 
-    logger.debug("Parsing ApplicationDescriptor from file: {}", file);
+    LOGGER.debug("Parsing ApplicationDescriptor from file: {}", file);
 
     if (!Files.exists(file)) {
       throw new ParseException("File does not exist: " + file);
@@ -147,7 +149,7 @@ public abstract class AbstractDescriptorParser implements ApplicationDescriptorP
       return parse(input);
     } catch (IOException e) {
       String message = String.format("Failed to read file %s: %s", file, e.getMessage());
-      logger.error(message, e);
+      LOGGER.error(message, e);
       throw new ParseException(message, e);
     }
   }
@@ -171,7 +173,7 @@ public abstract class AbstractDescriptorParser implements ApplicationDescriptorP
       throw new ParseException("mainClass is required");
     }
 
-    logger.debug("DTO validation passed");
+    LOGGER.debug("DTO validation passed");
   }
 
   /**

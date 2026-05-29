@@ -19,10 +19,11 @@ package org.flossware.platform.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.flossware.platform.api.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Comprehensive unit tests for ApplicationDescriptorDTO and nested DTOs. Tests deserialization,

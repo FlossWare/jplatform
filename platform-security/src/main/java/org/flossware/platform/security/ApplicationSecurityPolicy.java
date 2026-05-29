@@ -17,17 +17,15 @@
 
 package org.flossware.platform.security;
 
-import org.flossware.platform.api.SecurityConfig;
-import org.flossware.platform.api.SecurityPolicy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.FilePermission;
-import java.net.SocketPermission;
 import java.security.Permission;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import org.flossware.platform.api.SecurityConfig;
+import org.flossware.platform.api.SecurityPolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Security policy for an application.
@@ -62,7 +60,7 @@ import java.util.Set;
  */
 public class ApplicationSecurityPolicy implements SecurityPolicy {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApplicationSecurityPolicy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationSecurityPolicy.class);
 
     private final String applicationId;
     private final Set<Permission> grantedPermissions;
@@ -93,7 +91,7 @@ public class ApplicationSecurityPolicy implements SecurityPolicy {
         grantedPermissions.addAll(config.getSocketPermissions());
         grantedPermissions.addAll(config.getRuntimePermissions());
 
-        logger.info("[{}] Security policy created: reflection={}, nativeCode={}, permissions={}",
+        LOGGER.info("[{}] Security policy created: reflection={}, nativeCode={}, permissions={}",
                 applicationId, allowReflection, allowNativeCode, grantedPermissions.size());
     }
 
@@ -150,7 +148,7 @@ public class ApplicationSecurityPolicy implements SecurityPolicy {
     @Override
     public void enforce(Permission permission) throws SecurityException {
         if (!checkPermission(permission)) {
-            logger.warn("[{}] Permission denied: {}", applicationId, permission);
+            LOGGER.warn("[{}] Permission denied: {}", applicationId, permission);
             throw new SecurityException("Permission denied: " + permission);
         }
     }

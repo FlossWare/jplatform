@@ -19,6 +19,7 @@ package org.flossware.platform.metrics.prometheus;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.flossware.platform.api.ApplicationContext;
 import org.flossware.platform.api.ApplicationState;
 import org.flossware.platform.api.ResourceSnapshot;
@@ -61,7 +62,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class ApplicationMetricsCollector {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApplicationMetricsCollector.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationMetricsCollector.class);
 
   private ApplicationMetricsCollector() {
     // Utility class - prevent instantiation
@@ -89,10 +90,10 @@ public final class ApplicationMetricsCollector {
           ResourceSnapshot snapshot = context.getResourceMonitor().getCurrentSnapshot();
           collectResourceMetrics(sb, labels, snapshot);
         } catch (Exception e) {
-          logger.warn("Failed to collect resource metrics for {}: {}", appId, e.getMessage());
+          LOGGER.warn("Failed to collect resource metrics for {}: {}", appId, e.getMessage());
         }
       } else {
-        logger.debug("Resource monitoring not available for {}", appId);
+        LOGGER.debug("Resource monitoring not available for {}", appId);
       }
 
       // Collect thread pool metrics if available
@@ -101,10 +102,10 @@ public final class ApplicationMetricsCollector {
           ThreadPoolStats poolStats = context.getThreadPool().getStats();
           collectThreadPoolMetrics(sb, labels, poolStats);
         } catch (Exception e) {
-          logger.warn("Failed to collect thread pool metrics for {}: {}", appId, e.getMessage());
+          LOGGER.warn("Failed to collect thread pool metrics for {}: {}", appId, e.getMessage());
         }
       } else {
-        logger.debug("Thread pool not available for {}", appId);
+        LOGGER.debug("Thread pool not available for {}", appId);
       }
 
       // Always collect state metrics (doesn't require optional components)
@@ -112,13 +113,13 @@ public final class ApplicationMetricsCollector {
         ApplicationState state = context.getState();
         collectStateMetrics(sb, labels, state);
       } catch (Exception e) {
-        logger.warn("Failed to collect state metrics for {}: {}", appId, e.getMessage());
+        LOGGER.warn("Failed to collect state metrics for {}: {}", appId, e.getMessage());
       }
 
       return sb.toString();
 
     } catch (Exception e) {
-      logger.error(
+      LOGGER.error(
           "Failed to collect metrics for application {}: {}",
           context.getApplicationId(),
           e.getMessage(),
@@ -145,7 +146,7 @@ public final class ApplicationMetricsCollector {
   private static void collectResourceMetrics(
       StringBuilder sb, Map<String, String> labels, ResourceSnapshot snapshot) {
     if (snapshot == null) {
-      logger.warn("ResourceSnapshot is null, skipping resource metrics");
+      LOGGER.warn("ResourceSnapshot is null, skipping resource metrics");
       return;
     }
 
@@ -187,7 +188,7 @@ public final class ApplicationMetricsCollector {
   private static void collectThreadPoolMetrics(
       StringBuilder sb, Map<String, String> labels, ThreadPoolStats stats) {
     if (stats == null) {
-      logger.warn("ThreadPoolStats is null, skipping thread pool metrics");
+      LOGGER.warn("ThreadPoolStats is null, skipping thread pool metrics");
       return;
     }
 
@@ -230,7 +231,7 @@ public final class ApplicationMetricsCollector {
   private static void collectStateMetrics(
       StringBuilder sb, Map<String, String> labels, ApplicationState currentState) {
     if (currentState == null) {
-      logger.warn("ApplicationState is null, skipping state metrics");
+      LOGGER.warn("ApplicationState is null, skipping state metrics");
       return;
     }
 

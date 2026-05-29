@@ -39,7 +39,7 @@ package org.flossware.platform.api;
  * @see ThreadPoolExecutor
  * @see ThreadPoolStats
  */
-public class ThreadPoolConfig {
+public final class ThreadPoolConfig {
   private final int corePoolSize;
   private final int maxPoolSize;
   private final long keepAliveTimeSeconds;

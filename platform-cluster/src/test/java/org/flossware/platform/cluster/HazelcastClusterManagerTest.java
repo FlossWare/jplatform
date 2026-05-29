@@ -20,10 +20,11 @@ package org.flossware.platform.cluster;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.hazelcast.core.HazelcastInstance;
 import org.flossware.platform.api.ClusterEventListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.hazelcast.core.HazelcastInstance;
 
 /**
  * Unit tests for HazelcastClusterManager. Tests basic operations without requiring a full Hazelcast

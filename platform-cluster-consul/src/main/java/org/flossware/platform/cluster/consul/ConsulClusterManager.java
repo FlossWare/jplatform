@@ -17,6 +17,14 @@
 
 package org.flossware.platform.cluster.consul;
 
+import java.net.InetAddress;
+import java.util.*;
+import java.util.concurrent.*;
+
+import org.flossware.platform.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.HealthClient;
@@ -27,12 +35,6 @@ import com.orbitz.consul.model.agent.Registration;
 import com.orbitz.consul.model.health.ServiceHealth;
 import com.orbitz.consul.model.session.ImmutableSession;
 import com.orbitz.consul.model.session.Session;
-import java.net.InetAddress;
-import java.util.*;
-import java.util.concurrent.*;
-import org.flossware.platform.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Consul-based implementation of ClusterManager. Provides multi-node clustering using Consul's
@@ -74,7 +76,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConsulClusterManager implements ClusterManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(ConsulClusterManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConsulClusterManager.class);
   private static final String LEADER_KEY_PREFIX = "jplatform/leader/";
   private static final long SESSION_RENEW_INTERVAL_MS = 5000; // 5 seconds
 
@@ -133,7 +135,7 @@ public class ConsulClusterManager implements ClusterManager {
     }
 
     this.clusterConfig = config;
-    logger.info("Joining Consul cluster: {}", config.getClusterName());
+    LOGGER.info("Joining Consul cluster: {}", config.getClusterName());
 
     try {
       // Create Consul client if not injected (for testing)
@@ -168,13 +170,13 @@ public class ConsulClusterManager implements ClusterManager {
           scheduler.scheduleAtFixedRate(this::watchMembership, 1000, 5000, TimeUnit.MILLISECONDS);
 
       joined = true;
-      logger.info("Successfully joined Consul cluster: {}", config.getClusterName());
+      LOGGER.info("Successfully joined Consul cluster: {}", config.getClusterName());
 
       // Attempt leader election
       tryBecomeLeader();
 
     } catch (Exception e) {
-      logger.error("Failed to join Consul cluster: {}", config.getClusterName(), e);
+      LOGGER.error("Failed to join Consul cluster: {}", config.getClusterName(), e);
       cleanup();
       throw new ClusterJoinException(config.getClusterName(), "Failed to join cluster", e);
     }
@@ -189,20 +191,20 @@ public class ConsulClusterManager implements ClusterManager {
   @Override
   public void leave() throws ClusterLeaveException {
     if (!joined) {
-      logger.warn("Not joined to any cluster");
+      LOGGER.warn("Not joined to any cluster");
       return;
     }
 
-    logger.info("Leaving Consul cluster: {}", clusterConfig.getClusterName());
+    LOGGER.info("Leaving Consul cluster: {}", clusterConfig.getClusterName());
 
     try {
       cleanup();
       joined = false;
       isLeader = false;
-      logger.info("Successfully left Consul cluster");
+      LOGGER.info("Successfully left Consul cluster");
 
     } catch (Exception e) {
-      logger.error("Error leaving Consul cluster", e);
+      LOGGER.error("Error leaving Consul cluster", e);
       throw new ClusterLeaveException("Failed to leave cluster", e);
     }
   }
@@ -238,7 +240,7 @@ public class ConsulClusterManager implements ClusterManager {
       return nodes;
 
     } catch (Exception e) {
-      logger.error("Error retrieving cluster nodes", e);
+      LOGGER.error("Error retrieving cluster nodes", e);
       return Collections.emptySet();
     }
   }
@@ -290,7 +292,7 @@ public class ConsulClusterManager implements ClusterManager {
   public void addListener(ClusterEventListener listener) {
     if (listener != null) {
       listeners.add(listener);
-      logger.debug("Added cluster event listener: {}", listener.getClass().getSimpleName());
+      LOGGER.debug("Added cluster event listener: {}", listener.getClass().getSimpleName());
     }
   }
 
@@ -303,7 +305,7 @@ public class ConsulClusterManager implements ClusterManager {
   public void removeListener(ClusterEventListener listener) {
     if (listener != null) {
       listeners.remove(listener);
-      logger.debug("Removed cluster event listener: {}", listener.getClass().getSimpleName());
+      LOGGER.debug("Removed cluster event listener: {}", listener.getClass().getSimpleName());
     }
   }
 
@@ -360,10 +362,10 @@ public class ConsulClusterManager implements ClusterManager {
     try {
       agentClient.pass(serviceId);
     } catch (com.orbitz.consul.NotRegisteredException e) {
-      logger.warn("Service health check not yet available: {}", serviceId);
+      LOGGER.warn("Service health check not yet available: {}", serviceId);
     }
 
-    logger.info("Registered service: {} at {}:{}", serviceId, address, clusterConfig.getBindPort());
+    LOGGER.info("Registered service: {} at {}:{}", serviceId, address, clusterConfig.getBindPort());
   }
 
   /**
@@ -381,7 +383,7 @@ public class ConsulClusterManager implements ClusterManager {
 
     sessionId = sessionClient.createSession(session).getId();
 
-    logger.info("Created Consul session: {}", sessionId);
+    LOGGER.info("Created Consul session: {}", sessionId);
   }
 
   /**
@@ -402,20 +404,20 @@ public class ConsulClusterManager implements ClusterManager {
         AgentClient agentClient = consulClient.agentClient();
         agentClient.pass(serviceId);
       } catch (com.orbitz.consul.NotRegisteredException e) {
-        logger.warn("Service not registered for health check: {}", serviceId);
+        LOGGER.warn("Service not registered for health check: {}", serviceId);
         // Re-register the service
         registerService();
       }
 
-      logger.debug("Renewed session: {}", sessionId);
+      LOGGER.debug("Renewed session: {}", sessionId);
     } catch (Exception e) {
-      logger.error("Failed to renew session", e);
+      LOGGER.error("Failed to renew session", e);
       // Session may have expired, try to recreate
       try {
         createSession();
         tryBecomeLeader();
       } catch (Exception ex) {
-        logger.error("Failed to recreate session", ex);
+        LOGGER.error("Failed to recreate session", ex);
       }
     }
   }
@@ -447,16 +449,16 @@ public class ConsulClusterManager implements ClusterManager {
       isLeader = acquired;
 
       if (isLeader && !wasLeader) {
-        logger.info("This node is now the cluster LEADER");
+        LOGGER.info("This node is now the cluster LEADER");
         notifyLeaderChanged(getLocalNode());
       } else if (!isLeader && wasLeader) {
-        logger.info("This node is no longer the leader");
+        LOGGER.info("This node is no longer the leader");
       } else if (!isLeader) {
-        logger.debug("This node is a FOLLOWER");
+        LOGGER.debug("This node is a FOLLOWER");
       }
 
     } catch (Exception e) {
-      logger.error("Error during leader election", e);
+      LOGGER.error("Error during leader election", e);
       isLeader = false;
     }
   }
@@ -485,9 +487,9 @@ public class ConsulClusterManager implements ClusterManager {
         KeyValueClient kvClient = consulClient.keyValueClient();
         String leaderKey = LEADER_KEY_PREFIX + clusterConfig.getClusterName();
         kvClient.releaseLock(leaderKey, sessionId);
-        logger.info("Released leader lock");
+        LOGGER.info("Released leader lock");
       } catch (Exception e) {
-        logger.error("Error releasing leader lock", e);
+        LOGGER.error("Error releasing leader lock", e);
       }
     }
 
@@ -497,9 +499,9 @@ public class ConsulClusterManager implements ClusterManager {
         SessionClient sessionClient = consulClient.sessionClient();
         sessionClient.destroySession(sessionId);
         sessionId = null;
-        logger.info("Destroyed session");
+        LOGGER.info("Destroyed session");
       } catch (Exception e) {
-        logger.error("Error destroying session", e);
+        LOGGER.error("Error destroying session", e);
       }
     }
 
@@ -508,9 +510,9 @@ public class ConsulClusterManager implements ClusterManager {
       try {
         AgentClient agentClient = consulClient.agentClient();
         agentClient.deregister(serviceId);
-        logger.info("Deregistered service: {}", serviceId);
+        LOGGER.info("Deregistered service: {}", serviceId);
       } catch (Exception e) {
-        logger.error("Error deregistering service", e);
+        LOGGER.error("Error deregistering service", e);
       }
     }
   }
@@ -525,7 +527,7 @@ public class ConsulClusterManager implements ClusterManager {
       try {
         listener.onLeaderChanged(newLeader);
       } catch (Exception e) {
-        logger.error("Error notifying listener of leader change", e);
+        LOGGER.error("Error notifying listener of leader change", e);
       }
     }
   }

@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.flossware.platform.api.VolumeManager;
 import org.flossware.platform.api.VolumeMount;
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class DatabaseVolumeManager implements VolumeManager, AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(DatabaseVolumeManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseVolumeManager.class);
 
   private final DatabaseStorageConfig config;
   private final Map<String, VolumeMount> volumes;
@@ -123,17 +124,17 @@ public class DatabaseVolumeManager implements VolumeManager, AutoCloseable {
       createTablesIfNeeded();
       initialized = true;
 
-      logger.info("Database volume manager initialized with URL: {}", config.getJdbcUrl());
+      LOGGER.info("Database volume manager initialized with URL: {}", config.getJdbcUrl());
     } catch (Exception e) {
       // Close connection on failure to prevent leak
       if (tempConnection != null) {
         try {
           tempConnection.close();
         } catch (SQLException closeEx) {
-          logger.error("Error closing connection after initialization failure", closeEx);
+          LOGGER.error("Error closing connection after initialization failure", closeEx);
         }
       }
-      logger.error("Failed to initialize database volume manager", e);
+      LOGGER.error("Failed to initialize database volume manager", e);
       throw new RuntimeException("Failed to initialize database connection", e);
     }
   }
@@ -157,7 +158,7 @@ public class DatabaseVolumeManager implements VolumeManager, AutoCloseable {
 
             return path;
           } catch (IOException e) {
-            logger.error("Failed to create volume directory: " + volumeName, e);
+            LOGGER.error("Failed to create volume directory: " + volumeName, e);
             throw new RuntimeException("Failed to create volume directory", e);
           }
         });
@@ -190,7 +191,7 @@ public class DatabaseVolumeManager implements VolumeManager, AutoCloseable {
         return 0;
       }
     } catch (SQLException e) {
-      logger.error("Failed to get volume usage for: " + volumeName, e);
+      LOGGER.error("Failed to get volume usage for: " + volumeName, e);
       throw new IOException("Failed to get volume usage", e);
     }
   }
@@ -268,9 +269,9 @@ public class DatabaseVolumeManager implements VolumeManager, AutoCloseable {
       try {
         connection.close();
         initialized = false;
-        logger.info("Database volume manager closed");
+        LOGGER.info("Database volume manager closed");
       } catch (SQLException e) {
-        logger.error("Error closing database connection", e);
+        LOGGER.error("Error closing database connection", e);
       }
     }
   }
@@ -311,7 +312,7 @@ public class DatabaseVolumeManager implements VolumeManager, AutoCloseable {
       stmt.setString(2, path);
       stmt.executeUpdate();
     } catch (SQLException e) {
-      logger.error("Failed to record volume path: " + volumeName, e);
+      LOGGER.error("Failed to record volume path: " + volumeName, e);
     }
   }
 }

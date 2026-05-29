@@ -45,7 +45,7 @@ import java.util.Optional;
  * @see ResourceMonitor
  * @see ResourceQuotaExceededException
  */
-public class ResourceQuota {
+public final class ResourceQuota {
   private final Optional<Long> maxHeapBytes;
   private final Optional<Integer> maxThreadCount;
   private final Optional<Long> maxCpuTimeNanos;

@@ -23,6 +23,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.flossware.platform.api.VolumeManager;
 import org.flossware.platform.api.VolumeMount;
 import org.slf4j.Logger;
@@ -53,7 +54,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FileSystemVolumeManager implements VolumeManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(FileSystemVolumeManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemVolumeManager.class);
   private static final String DEFAULT_BASE_PATH = "/var/platform/volumes";
 
   private final String applicationId;
@@ -102,7 +103,7 @@ public class FileSystemVolumeManager implements VolumeManager {
     // Create volume directories
     initializeVolumes();
 
-    logger.info(
+    LOGGER.info(
         "FileSystemVolumeManager initialized for application {} with {} volumes",
         applicationId,
         volumes.size());
@@ -118,9 +119,9 @@ public class FileSystemVolumeManager implements VolumeManager {
       // Create directory if it doesn't exist
       if (!Files.exists(volumePath)) {
         Files.createDirectories(volumePath);
-        logger.info("Created volume directory: {}", volumePath);
+        LOGGER.info("Created volume directory: {}", volumePath);
       } else {
-        logger.info("Volume directory already exists: {}", volumePath);
+        LOGGER.info("Volume directory already exists: {}", volumePath);
       }
 
       volumePaths.put(volume.getName(), volumePath);
@@ -162,7 +163,7 @@ public class FileSystemVolumeManager implements VolumeManager {
           @Override
           public FileVisitResult visitFileFailed(Path file, IOException exc) {
             // Log but continue
-            logger.warn("Failed to access file during size calculation: {}", file, exc);
+            LOGGER.warn("Failed to access file during size calculation: {}", file, exc);
             return FileVisitResult.CONTINUE;
           }
         });
@@ -212,7 +213,7 @@ public class FileSystemVolumeManager implements VolumeManager {
         Path volumePath = volumePaths.get(volume.getName());
         if (volumePath != null && Files.exists(volumePath)) {
           deleteDirectory(volumePath);
-          logger.info("Deleted ephemeral volume: {}", volumePath);
+          LOGGER.info("Deleted ephemeral volume: {}", volumePath);
         }
       }
     }
@@ -229,7 +230,7 @@ public class FileSystemVolumeManager implements VolumeManager {
       Path volumePath = volumePaths.get(volumeName);
       if (volumePath != null && Files.exists(volumePath)) {
         deleteDirectory(volumePath);
-        logger.info("Deleted volume: {}", volumePath);
+        LOGGER.info("Deleted volume: {}", volumePath);
       }
     }
   }

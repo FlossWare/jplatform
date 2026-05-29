@@ -21,8 +21,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.management.ManagementFactory;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+
 import org.flossware.platform.api.ApplicationContext;
 import org.flossware.platform.api.ApplicationState;
 import org.flossware.platform.api.JmxExporterConfig;

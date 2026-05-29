@@ -18,6 +18,7 @@
 package org.flossware.platform.cluster;
 
 import java.util.Map;
+
 import org.flossware.platform.api.*;
 import org.flossware.platform.core.ApplicationManager;
 import org.slf4j.Logger;
@@ -72,7 +73,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ClusteredApplicationManager extends ApplicationManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(ClusteredApplicationManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClusteredApplicationManager.class);
 
   private final ClusterManager clusterManager;
   private final ClusterStateStore stateStore;
@@ -120,7 +121,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
     } else {
       this.scheduler = null;
       if (clusterManager != null) {
-        logger.warn(
+        LOGGER.warn(
             "Application scheduling is only supported with HazelcastClusterManager. "
                 + "Using {} will result in local-only deployment. "
                 + "Applications will not be scheduled across the cluster.",
@@ -134,18 +135,18 @@ public class ClusteredApplicationManager extends ApplicationManager {
           new ClusterEventListener() {
             @Override
             public void onNodeJoined(ClusterNode node) {
-              logger.info("Node joined cluster: {}", node.getNodeId());
+              LOGGER.info("Node joined cluster: {}", node.getNodeId());
             }
 
             @Override
             public void onNodeLeft(ClusterNode node) {
-              logger.warn("Node left cluster: {}", node.getNodeId());
+              LOGGER.warn("Node left cluster: {}", node.getNodeId());
               handleNodeFailure(node);
             }
 
             @Override
             public void onLeaderChanged(ClusterNode newLeader) {
-              logger.info("New cluster leader: {}", newLeader.getNodeId());
+              LOGGER.info("New cluster leader: {}", newLeader.getNodeId());
             }
           };
       clusterManager.addListener(clusterListener);
@@ -153,7 +154,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
       this.clusterListener = null;
     }
 
-    logger.info(
+    LOGGER.info(
         "ClusteredApplicationManager initialized in {} mode",
         clusterManager != null ? "clustered" : "standalone");
   }
@@ -171,7 +172,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
     String appId = descriptor.getApplicationId();
 
     if (clusterManager != null && clusterManager.isJoined()) {
-      logger.info("[{}] Deploying application in cluster mode", appId);
+      LOGGER.info("[{}] Deploying application in cluster mode", appId);
 
       boolean clusterStateWritten = false;
       boolean assigned = false;
@@ -191,82 +192,82 @@ public class ClusteredApplicationManager extends ApplicationManager {
             try {
               // Verify leadership immediately before critical operation
               if (!clusterManager.isLeader()) {
-                logger.info("[{}] Lost leadership before assignment, skipping", appId);
+                LOGGER.info("[{}] Lost leadership before assignment, skipping", appId);
               } else {
                 String assignedNode = scheduler.assignApplication(appId);
                 assigned = true;
-                logger.info("[{}] Leader assigned application to node: {}", appId, assignedNode);
+                LOGGER.info("[{}] Leader assigned application to node: {}", appId, assignedNode);
               }
             } catch (IllegalStateException e) {
               // Lost leadership during assignment - expected race condition
-              logger.info(
+              LOGGER.info(
                   "[{}] Lost leadership during assignment, will be handled by new leader", appId);
               assigned = false; // Ensure rollback doesn't attempt to unassign
             } catch (Exception e) {
               // Other assignment errors should trigger rollback
-              logger.error("[{}] Assignment failed: {}", appId, e.getMessage());
+              LOGGER.error("[{}] Assignment failed: {}", appId, e.getMessage());
               throw e;
             }
           }
 
           // Step 3: Check if assigned to local node and deploy locally
           if (scheduler.isAssignedToLocalNode(appId)) {
-            logger.info("[{}] Application assigned to local node, deploying locally", appId);
+            LOGGER.info("[{}] Application assigned to local node, deploying locally", appId);
 
             // Verify assignment hasn't changed before deploying (race condition check)
             if (!scheduler.isAssignedToLocalNode(appId)) {
-              logger.info("[{}] Assignment changed before deployment, skipping", appId);
+              LOGGER.info("[{}] Assignment changed before deployment, skipping", appId);
             } else {
               super.deploy(descriptor);
               deployedLocally = true;
 
               // Verify assignment is still valid after deployment (race condition check)
               if (!scheduler.isAssignedToLocalNode(appId)) {
-                logger.warn(
+                LOGGER.warn(
                     "[{}] Assignment changed during deployment, cleanup may be needed", appId);
                 // Deployment happened but assignment changed - rollback will handle cleanup
                 throw new Exception("Assignment changed during deployment");
               }
             }
           } else {
-            logger.info(
+            LOGGER.info(
                 "[{}] Application assigned to another node, skipping local deployment", appId);
           }
         } else {
           // No scheduler available, deploy locally
-          logger.info("[{}] No scheduler available, deploying locally", appId);
+          LOGGER.info("[{}] No scheduler available, deploying locally", appId);
           super.deploy(descriptor);
           deployedLocally = true;
         }
 
       } catch (Exception e) {
-        logger.error("[{}] Deployment failed, initiating rollback", appId, e);
+        LOGGER.error("[{}] Deployment failed, initiating rollback", appId, e);
 
         // Rollback in reverse order
         if (deployedLocally) {
           try {
             super.undeploy(appId);
-            logger.info("[{}] Rolled back local deployment", appId);
+            LOGGER.info("[{}] Rolled back local deployment", appId);
           } catch (Exception rollbackEx) {
-            logger.error("[{}] Failed to rollback local deployment", appId, rollbackEx);
+            LOGGER.error("[{}] Failed to rollback local deployment", appId, rollbackEx);
           }
         }
 
         if (assigned && clusterManager.isLeader()) {
           try {
             scheduler.unassignApplication(appId);
-            logger.info("[{}] Rolled back application assignment", appId);
+            LOGGER.info("[{}] Rolled back application assignment", appId);
           } catch (Exception rollbackEx) {
-            logger.error("[{}] Failed to rollback assignment", appId, rollbackEx);
+            LOGGER.error("[{}] Failed to rollback assignment", appId, rollbackEx);
           }
         }
 
         if (clusterStateWritten) {
           try {
             stateStore.putApplicationState(appId, ApplicationState.FAILED);
-            logger.info("[{}] Updated cluster state to FAILED", appId);
+            LOGGER.info("[{}] Updated cluster state to FAILED", appId);
           } catch (Exception rollbackEx) {
-            logger.error("[{}] Failed to update cluster state to FAILED", appId, rollbackEx);
+            LOGGER.error("[{}] Failed to update cluster state to FAILED", appId, rollbackEx);
           }
         }
 
@@ -274,7 +275,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
       }
     } else {
       // Standalone mode
-      logger.info("[{}] Deploying application in standalone mode", appId);
+      LOGGER.info("[{}] Deploying application in standalone mode", appId);
       super.deploy(descriptor);
     }
   }
@@ -291,18 +292,18 @@ public class ClusteredApplicationManager extends ApplicationManager {
     if (clusterManager != null && clusterManager.isJoined() && scheduler != null) {
       // Check if assigned to this node
       if (!scheduler.isAssignedToLocalNode(applicationId)) {
-        logger.warn("[{}] Application not assigned to this node, cannot start", applicationId);
+        LOGGER.warn("[{}] Application not assigned to this node, cannot start", applicationId);
         throw new IllegalStateException("Application not assigned to this node: " + applicationId);
       }
 
-      logger.info("[{}] Starting application on assigned node", applicationId);
+      LOGGER.info("[{}] Starting application on assigned node", applicationId);
       super.start(applicationId);
 
       // Update cluster state
       try {
         stateStore.putApplicationState(applicationId, ApplicationState.RUNNING);
       } catch (Exception e) {
-        logger.error("[{}] Failed to update cluster state to RUNNING", applicationId, e);
+        LOGGER.error("[{}] Failed to update cluster state to RUNNING", applicationId, e);
         // Application is already started locally, but cluster state is inconsistent
         throw new Exception(
             "Application started but failed to update cluster state: " + e.getMessage(), e);
@@ -310,7 +311,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
 
     } else {
       // Standalone mode
-      logger.info("[{}] Starting application in standalone mode", applicationId);
+      LOGGER.info("[{}] Starting application in standalone mode", applicationId);
       super.start(applicationId);
     }
   }
@@ -326,18 +327,18 @@ public class ClusteredApplicationManager extends ApplicationManager {
     if (clusterManager != null && clusterManager.isJoined() && scheduler != null) {
       // Check if assigned to this node
       if (!scheduler.isAssignedToLocalNode(applicationId)) {
-        logger.warn("[{}] Application not assigned to this node, cannot stop", applicationId);
+        LOGGER.warn("[{}] Application not assigned to this node, cannot stop", applicationId);
         throw new IllegalStateException("Application not assigned to this node: " + applicationId);
       }
 
-      logger.info("[{}] Stopping application on assigned node", applicationId);
+      LOGGER.info("[{}] Stopping application on assigned node", applicationId);
       super.stop(applicationId);
 
       // Update cluster state
       try {
         stateStore.putApplicationState(applicationId, ApplicationState.STOPPED);
       } catch (Exception e) {
-        logger.error("[{}] Failed to update cluster state to STOPPED", applicationId, e);
+        LOGGER.error("[{}] Failed to update cluster state to STOPPED", applicationId, e);
         // Application is already stopped locally, but cluster state is inconsistent
         throw new Exception(
             "Application stopped but failed to update cluster state: " + e.getMessage(), e);
@@ -345,7 +346,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
 
     } else {
       // Standalone mode
-      logger.info("[{}] Stopping application in standalone mode", applicationId);
+      LOGGER.info("[{}] Stopping application in standalone mode", applicationId);
       super.stop(applicationId);
     }
   }
@@ -372,7 +373,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
 
         // Step 1: Undeploy locally if assigned to this node
         if (scheduler.isAssignedToLocalNode(applicationId)) {
-          logger.info("[{}] Undeploying application from assigned node", applicationId);
+          LOGGER.info("[{}] Undeploying application from assigned node", applicationId);
           super.undeploy(applicationId);
           undeployedLocally = true;
         }
@@ -383,7 +384,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
           try {
             // Verify leadership immediately before critical operations
             if (!clusterManager.isLeader()) {
-              logger.info(
+              LOGGER.info(
                   "[{}] Lost leadership before unassignment, skipping cluster cleanup",
                   applicationId);
             } else {
@@ -392,17 +393,17 @@ public class ClusteredApplicationManager extends ApplicationManager {
 
               // Verify leadership again before state update
               if (!clusterManager.isLeader()) {
-                logger.warn(
+                LOGGER.warn(
                     "[{}] Lost leadership after unassignment, state update may fail",
                     applicationId);
               }
 
               stateStore.putApplicationState(applicationId, ApplicationState.UNDEPLOYED);
-              logger.info("[{}] Leader removed application from cluster", applicationId);
+              LOGGER.info("[{}] Leader removed application from cluster", applicationId);
             }
           } catch (IllegalStateException e) {
             // Lost leadership during operations - expected race condition
-            logger.info(
+            LOGGER.info(
                 "[{}] Lost leadership during cluster cleanup, will be handled by new leader",
                 applicationId);
             // Don't attempt rollback of cluster operations if we lost leadership
@@ -411,30 +412,30 @@ public class ClusteredApplicationManager extends ApplicationManager {
             }
           } catch (Exception e) {
             // Other errors should trigger rollback
-            logger.error("[{}] Cluster cleanup failed: {}", applicationId, e.getMessage());
+            LOGGER.error("[{}] Cluster cleanup failed: {}", applicationId, e.getMessage());
             throw e;
           }
         }
 
       } catch (Exception e) {
-        logger.error("[{}] Undeploy failed, initiating rollback", applicationId, e);
+        LOGGER.error("[{}] Undeploy failed, initiating rollback", applicationId, e);
 
         // Rollback in reverse order
         if (unassigned && clusterManager.isLeader() && descriptor != null) {
           try {
             scheduler.assignApplication(applicationId);
-            logger.info("[{}] Rolled back application unassignment", applicationId);
+            LOGGER.info("[{}] Rolled back application unassignment", applicationId);
           } catch (Exception rollbackEx) {
-            logger.error("[{}] Failed to rollback unassignment", applicationId, rollbackEx);
+            LOGGER.error("[{}] Failed to rollback unassignment", applicationId, rollbackEx);
           }
         }
 
         if (undeployedLocally && descriptor != null) {
           try {
             super.deploy(descriptor);
-            logger.info("[{}] Rolled back local undeploy by redeploying", applicationId);
+            LOGGER.info("[{}] Rolled back local undeploy by redeploying", applicationId);
           } catch (Exception rollbackEx) {
-            logger.error("[{}] Failed to rollback local undeploy", applicationId, rollbackEx);
+            LOGGER.error("[{}] Failed to rollback local undeploy", applicationId, rollbackEx);
           }
         }
 
@@ -443,7 +444,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
 
     } else {
       // Standalone mode
-      logger.info("[{}] Undeploying application in standalone mode", applicationId);
+      LOGGER.info("[{}] Undeploying application in standalone mode", applicationId);
       super.undeploy(applicationId);
     }
   }
@@ -461,7 +462,7 @@ public class ClusteredApplicationManager extends ApplicationManager {
         // Try to return cluster-wide applications
         return stateStore.getAllApplicationStates();
       } catch (Exception e) {
-        logger.warn(
+        LOGGER.warn(
             "Failed to get cluster application states, falling back to local: {}", e.getMessage());
         // Fall through to local applications
       }
@@ -505,23 +506,23 @@ public class ClusteredApplicationManager extends ApplicationManager {
    */
   private void handleNodeFailure(ClusterNode failedNode) {
     if (failedNode == null) {
-      logger.error("handleNodeFailure called with null failedNode, ignoring");
+      LOGGER.error("handleNodeFailure called with null failedNode, ignoring");
       return;
     }
 
     if (clusterManager.isLeader() && scheduler != null) {
       String nodeId = failedNode.getNodeId();
       if (nodeId == null) {
-        logger.error("Failed node has null nodeId, cannot reassign applications");
+        LOGGER.error("Failed node has null nodeId, cannot reassign applications");
         return;
       }
 
-      logger.warn("Handling failure of node: {}", nodeId);
+      LOGGER.warn("Handling failure of node: {}", nodeId);
       try {
         int reassignedCount = scheduler.reassignFromFailedNode(nodeId);
-        logger.info("Reassigned {} applications from failed node {}", reassignedCount, nodeId);
+        LOGGER.info("Reassigned {} applications from failed node {}", reassignedCount, nodeId);
       } catch (Exception e) {
-        logger.error("Error reassigning applications from failed node {}", nodeId, e);
+        LOGGER.error("Error reassigning applications from failed node {}", nodeId, e);
       }
     }
   }
@@ -536,10 +537,10 @@ public class ClusteredApplicationManager extends ApplicationManager {
       // Remove cluster event listener to prevent resource leak
       if (clusterManager != null && clusterListener != null) {
         clusterManager.removeListener(clusterListener);
-        logger.debug("Removed cluster event listener");
+        LOGGER.debug("Removed cluster event listener");
       }
     } catch (Exception e) {
-      logger.error("Error removing cluster event listener", e);
+      LOGGER.error("Error removing cluster event listener", e);
     } finally {
       // Always shutdown parent, even if listener removal failed
       super.shutdown();

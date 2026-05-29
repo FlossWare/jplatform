@@ -32,17 +32,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.bettercloud.vault.Vault;
-import com.bettercloud.vault.VaultException;
-import com.bettercloud.vault.api.Logical;
-import com.bettercloud.vault.response.LogicalResponse;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import com.bettercloud.vault.Vault;
+import com.bettercloud.vault.VaultException;
+import com.bettercloud.vault.api.Logical;
+import com.bettercloud.vault.response.LogicalResponse;
 
 class VaultConfigSourceTest {
 

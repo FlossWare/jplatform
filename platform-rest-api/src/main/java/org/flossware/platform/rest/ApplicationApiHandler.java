@@ -17,19 +17,21 @@
 
 package org.flossware.platform.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.flossware.platform.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 /**
  * HTTP handler for application management API endpoints. Provides REST endpoints for deploying,
@@ -66,7 +68,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ApplicationApiHandler implements HttpHandler {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApplicationApiHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationApiHandler.class);
   private static final long MAX_REQUEST_SIZE = 10 * 1024 * 1024; // 10 MB
   private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -102,7 +104,7 @@ public class ApplicationApiHandler implements HttpHandler {
     String method = exchange.getRequestMethod();
     String path = exchange.getRequestURI().getPath();
 
-    logger.debug("Application API request: {} {}", method, path);
+    LOGGER.debug("Application API request: {} {}", method, path);
 
     try {
       if (path.equals("/api/applications") && method.equals("GET")) {
@@ -131,10 +133,10 @@ public class ApplicationApiHandler implements HttpHandler {
         sendErrorResponse(exchange, 404, "NotFound", "Endpoint not found: " + path);
       }
     } catch (IllegalStateException e) {
-      logger.warn("Client error: {}", e.getMessage());
+      LOGGER.warn("Client error: {}", e.getMessage());
       sendErrorResponse(exchange, 400, "BadRequest", e.getMessage());
     } catch (Exception e) {
-      logger.error("Error handling application API request", e);
+      LOGGER.error("Error handling application API request", e);
       sendErrorResponse(exchange, 500, "InternalError", e.getMessage());
     }
   }
@@ -160,17 +162,17 @@ public class ApplicationApiHandler implements HttpHandler {
       ApplicationContext context = manager.getApplicationContext(descriptor.getApplicationId());
       ApplicationResponseDTO response = ApplicationResponseDTO.fromApplicationContext(context);
 
-      logger.info("Deployed application: {}", descriptor.getApplicationId());
+      LOGGER.info("Deployed application: {}", descriptor.getApplicationId());
       sendJsonResponse(exchange, 201, response);
     } catch (RequestTooLargeException e) {
-      logger.warn("Deploy request too large: {}", e.getMessage());
+      LOGGER.warn("Deploy request too large: {}", e.getMessage());
       sendErrorResponse(
           exchange,
           413,
           "PayloadTooLarge",
           "Request body exceeds maximum size of " + MAX_REQUEST_SIZE + " bytes");
     } catch (Exception e) {
-      logger.error("Failed to deploy application", e);
+      LOGGER.error("Failed to deploy application", e);
       sendErrorResponse(exchange, 400, "DeploymentFailed", e.getMessage());
     }
   }
@@ -272,12 +274,12 @@ public class ApplicationApiHandler implements HttpHandler {
       ApplicationContext context = manager.getApplicationContext(appId);
       ApplicationResponseDTO response = ApplicationResponseDTO.fromApplicationContext(context);
 
-      logger.info("Started application: {}", appId);
+      LOGGER.info("Started application: {}", appId);
       sendJsonResponse(exchange, 200, response);
     } catch (IllegalStateException e) {
       sendErrorResponse(exchange, 400, "InvalidState", e.getMessage());
     } catch (Exception e) {
-      logger.error("Failed to start application: {}", appId, e);
+      LOGGER.error("Failed to start application: {}", appId, e);
       sendErrorResponse(exchange, 500, "StartFailed", e.getMessage());
     }
   }
@@ -296,12 +298,12 @@ public class ApplicationApiHandler implements HttpHandler {
       ApplicationContext context = manager.getApplicationContext(appId);
       ApplicationResponseDTO response = ApplicationResponseDTO.fromApplicationContext(context);
 
-      logger.info("Stopped application: {}", appId);
+      LOGGER.info("Stopped application: {}", appId);
       sendJsonResponse(exchange, 200, response);
     } catch (IllegalStateException e) {
       sendErrorResponse(exchange, 400, "InvalidState", e.getMessage());
     } catch (Exception e) {
-      logger.error("Failed to stop application: {}", appId, e);
+      LOGGER.error("Failed to stop application: {}", appId, e);
       sendErrorResponse(exchange, 500, "StopFailed", e.getMessage());
     }
   }
@@ -322,12 +324,12 @@ public class ApplicationApiHandler implements HttpHandler {
       response.put("applicationId", appId);
       response.put("status", "undeployed");
 
-      logger.info("Undeployed application: {}", appId);
+      LOGGER.info("Undeployed application: {}", appId);
       sendJsonResponse(exchange, 200, response);
     } catch (IllegalStateException e) {
       sendErrorResponse(exchange, 400, "InvalidState", e.getMessage());
     } catch (Exception e) {
-      logger.error("Failed to undeploy application: {}", appId, e);
+      LOGGER.error("Failed to undeploy application: {}", appId, e);
       sendErrorResponse(exchange, 500, "UndeployFailed", e.getMessage());
     }
   }

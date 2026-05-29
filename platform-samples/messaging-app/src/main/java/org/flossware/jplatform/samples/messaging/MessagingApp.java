@@ -59,7 +59,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class MessagingApp implements Application {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessagingApp.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessagingApp.class);
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private Thread publisherThread;
@@ -79,11 +79,11 @@ public class MessagingApp implements Application {
     @Override
     public void start(ApplicationContext context) throws ApplicationStartupException {
         this.context = context;
-        logger.info("Messaging Application starting!");
+        LOGGER.info("Messaging Application starting!");
 
         // Check if messaging is available
         if (!context.getMessageBus().isPresent()) {
-            logger.warn("MessageBus not available - application will run without messaging");
+            LOGGER.warn("MessageBus not available - application will run without messaging");
             return;
         }
 
@@ -93,7 +93,7 @@ public class MessagingApp implements Application {
         subscription = messageBus.subscribe("platform.events", message -> {
             String payload = message.getPayload() != null ?
                     new String(message.getPayload()) : "null";
-            logger.info("Received message: id={}, payload={}",
+            LOGGER.info("Received message: id={}, payload={}",
                     message.getId(), payload);
             System.out.println("Received: " + payload);
         });
@@ -117,19 +117,19 @@ public class MessagingApp implements Application {
 
                 messageBus.publish("platform.events", message);
 
-                logger.info("Published message #{}", count);
+                LOGGER.info("Published message #{}", count);
 
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
-                    logger.info("Publisher thread interrupted");
+                    LOGGER.info("Publisher thread interrupted");
                     break;
                 }
             }
         }, "messaging-publisher");
 
         publisherThread.start();
-        logger.info("Messaging Application started successfully");
+        LOGGER.info("Messaging Application started successfully");
     }
 
     /**
@@ -143,7 +143,7 @@ public class MessagingApp implements Application {
      */
     @Override
     public void stop() throws ApplicationShutdownException {
-        logger.info("Messaging Application stopping...");
+        LOGGER.info("Messaging Application stopping...");
         running.set(false);
 
         if (publisherThread != null) {
@@ -161,6 +161,6 @@ public class MessagingApp implements Application {
             subscription.cancel();
         }
 
-        logger.info("Messaging Application stopped");
+        LOGGER.info("Messaging Application stopped");
     }
 }

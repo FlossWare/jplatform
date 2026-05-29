@@ -17,12 +17,12 @@
 
 package org.flossware.platform.metrics.jmx;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.flossware.platform.api.ApplicationContext;
 import org.flossware.platform.api.PlatformManager;
 import org.flossware.platform.api.ResourceMonitor;
@@ -32,6 +32,8 @@ import org.flossware.platform.api.ThreadPoolExecutor;
 import org.flossware.platform.api.ThreadPoolStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Implementation of ApplicationMBean that exposes application metrics via JMX. Delegates attribute
@@ -69,7 +71,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ApplicationMBeanImpl implements ApplicationMBean {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApplicationMBeanImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationMBeanImpl.class);
 
   private final String applicationId;
   private final ApplicationContext context;
@@ -101,7 +103,7 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
     this.manager = manager;
     this.objectMapper = new ObjectMapper();
 
-    logger.debug("[{}] ApplicationMBean implementation created", applicationId);
+    LOGGER.debug("[{}] ApplicationMBean implementation created", applicationId);
   }
 
   @Override
@@ -176,31 +178,31 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
 
   @Override
   public void start() throws Exception {
-    logger.info("[{}] JMX operation: start() invoked", applicationId);
+    LOGGER.info("[{}] JMX operation: start() invoked", applicationId);
     try {
       manager.start(applicationId);
-      logger.info("[{}] Application started successfully via JMX", applicationId);
+      LOGGER.info("[{}] Application started successfully via JMX", applicationId);
     } catch (Exception e) {
-      logger.error("[{}] Failed to start application via JMX", applicationId, e);
+      LOGGER.error("[{}] Failed to start application via JMX", applicationId, e);
       throw e;
     }
   }
 
   @Override
   public void stop() throws Exception {
-    logger.info("[{}] JMX operation: stop() invoked", applicationId);
+    LOGGER.info("[{}] JMX operation: stop() invoked", applicationId);
     try {
       manager.stop(applicationId);
-      logger.info("[{}] Application stopped successfully via JMX", applicationId);
+      LOGGER.info("[{}] Application stopped successfully via JMX", applicationId);
     } catch (Exception e) {
-      logger.error("[{}] Failed to stop application via JMX", applicationId, e);
+      LOGGER.error("[{}] Failed to stop application via JMX", applicationId, e);
       throw e;
     }
   }
 
   @Override
   public String getResourceHistory(int minutes) {
-    logger.debug("[{}] JMX operation: getResourceHistory({}) invoked", applicationId, minutes);
+    LOGGER.debug("[{}] JMX operation: getResourceHistory({}) invoked", applicationId, minutes);
 
     try {
       ResourceMonitor monitor = context.getResourceMonitor();
@@ -223,11 +225,11 @@ public class ApplicationMBeanImpl implements ApplicationMBean {
       result.put("snapshots", snapshots);
 
       String json = objectMapper.writeValueAsString(result);
-      logger.debug("[{}] Resource history retrieved: {} snapshots", applicationId, history.size());
+      LOGGER.debug("[{}] Resource history retrieved: {} snapshots", applicationId, history.size());
       return json;
 
     } catch (Exception e) {
-      logger.error("[{}] Failed to retrieve resource history", applicationId, e);
+      LOGGER.error("[{}] Failed to retrieve resource history", applicationId, e);
       return "{\"error\": \"" + e.getMessage() + "\"}";
     }
   }

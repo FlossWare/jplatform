@@ -17,14 +17,16 @@
 
 package org.flossware.platform.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.FilePermission;
 import java.net.SocketPermission;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+
 import org.flossware.platform.api.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Data Transfer Object for Jackson deserialization of ApplicationDescriptor. Handles conversion

@@ -17,9 +17,6 @@
 
 package org.flossware.platform.config.consul;
 
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.KeyValueClient;
-import com.orbitz.consul.model.kv.Value;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +25,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.orbitz.consul.Consul;
+import com.orbitz.consul.KeyValueClient;
+import com.orbitz.consul.model.kv.Value;
 
 /**
  * Consul-based configuration source. Loads configuration from Consul KV store and supports dynamic
@@ -50,7 +52,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class ConsulConfigSource implements AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(ConsulConfigSource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConsulConfigSource.class);
 
   private final ConsulConfigSourceConfig config;
   private final Map<String, String> configCache;
@@ -112,9 +114,9 @@ public class ConsulConfigSource implements AutoCloseable {
       }
 
       started = true;
-      logger.info("Consul config source started: {}:{}", config.getHost(), config.getPort());
+      LOGGER.info("Consul config source started: {}:{}", config.getHost(), config.getPort());
     } catch (Exception e) {
-      logger.error("Failed to start Consul config source", e);
+      LOGGER.error("Failed to start Consul config source", e);
       throw new RuntimeException("Failed to start Consul client", e);
     }
   }
@@ -157,7 +159,7 @@ public class ConsulConfigSource implements AutoCloseable {
     kvClient.putValue(fullKey, value);
 
     configCache.put(key, value);
-    logger.debug("Set config: {} = {}", key, value);
+    LOGGER.debug("Set config: {} = {}", key, value);
   }
 
   /**
@@ -175,7 +177,7 @@ public class ConsulConfigSource implements AutoCloseable {
     kvClient.deleteKey(fullKey);
 
     configCache.remove(key);
-    logger.debug("Deleted config: {}", key);
+    LOGGER.debug("Deleted config: {}", key);
   }
 
   /**
@@ -219,7 +221,7 @@ public class ConsulConfigSource implements AutoCloseable {
     listeners.clear();
     started = false;
 
-    logger.info("Consul config source closed");
+    LOGGER.info("Consul config source closed");
   }
 
   /**
@@ -246,7 +248,7 @@ public class ConsulConfigSource implements AutoCloseable {
       List<Value> values = kvClient.getValues(config.getKeyPrefix());
 
       if (values == null || values.isEmpty()) {
-        logger.info("No configuration found at prefix: {}", config.getKeyPrefix());
+        LOGGER.info("No configuration found at prefix: {}", config.getKeyPrefix());
         return;
       }
 
@@ -256,7 +258,7 @@ public class ConsulConfigSource implements AutoCloseable {
 
         // Validate key has expected prefix
         if (!fullKey.startsWith(prefix)) {
-          logger.warn("Unexpected key '{}' not under prefix '{}', skipping", fullKey, prefix);
+          LOGGER.warn("Unexpected key '{}' not under prefix '{}', skipping", fullKey, prefix);
           continue;
         }
 
@@ -267,9 +269,9 @@ public class ConsulConfigSource implements AutoCloseable {
         }
       }
 
-      logger.debug("Loaded {} config entries from Consul", configCache.size());
+      LOGGER.debug("Loaded {} config entries from Consul", configCache.size());
     } catch (Exception e) {
-      logger.warn("Failed to load config from Consul", e);
+      LOGGER.warn("Failed to load config from Consul", e);
     }
   }
 
@@ -291,7 +293,7 @@ public class ConsulConfigSource implements AutoCloseable {
         notifyListeners();
       }
     } catch (Exception e) {
-      logger.error("Error checking for config updates", e);
+      LOGGER.error("Error checking for config updates", e);
     }
   }
 
@@ -301,7 +303,7 @@ public class ConsulConfigSource implements AutoCloseable {
       try {
         listener.accept(snapshot);
       } catch (Exception e) {
-        logger.error("Error notifying listener", e);
+        LOGGER.error("Error notifying listener", e);
       }
     }
   }

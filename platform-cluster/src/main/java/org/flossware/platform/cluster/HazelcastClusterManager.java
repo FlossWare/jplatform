@@ -17,6 +17,13 @@
 
 package org.flossware.platform.cluster;
 
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.flossware.platform.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.hazelcast.cluster.Member;
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.cluster.MembershipListener;
@@ -26,11 +33,6 @@ import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.*;
 import com.hazelcast.cp.CPSubsystem;
 import com.hazelcast.cp.lock.FencedLock;
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import org.flossware.platform.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Hazelcast-based implementation of ClusterManager. Provides multi-node clustering with automatic
@@ -65,7 +67,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HazelcastClusterManager implements ClusterManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(HazelcastClusterManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(HazelcastClusterManager.class);
   private static final String LEADER_LOCK_NAME = "jplatform-leader-lock";
 
   private HazelcastInstance hazelcast;
@@ -109,7 +111,7 @@ public class HazelcastClusterManager implements ClusterManager {
     }
 
     this.clusterConfig = config;
-    logger.info("Joining cluster: {}", config.getClusterName());
+    LOGGER.info("Joining cluster: {}", config.getClusterName());
 
     try {
       // Create Hazelcast instance if not already injected (for testing)
@@ -135,7 +137,7 @@ public class HazelcastClusterManager implements ClusterManager {
         tcpIp.setEnabled(true);
         for (String seed : config.getSeedNodes()) {
           tcpIp.addMember(seed);
-          logger.debug("Added seed node: {}", seed);
+          LOGGER.debug("Added seed node: {}", seed);
         }
 
         // Enable CP subsystem for leader election
@@ -144,7 +146,7 @@ public class HazelcastClusterManager implements ClusterManager {
         int clusterSize = Math.max(config.getSeedNodes().size(), 1);
         int cpMemberCount = Math.min(clusterSize, 3);
         hazelcastConfig.getCPSubsystemConfig().setCPMemberCount(cpMemberCount);
-        logger.info("CP subsystem configured with {} members", cpMemberCount);
+        LOGGER.info("CP subsystem configured with {} members", cpMemberCount);
 
         // Create Hazelcast instance
         hazelcast = Hazelcast.newHazelcastInstance(hazelcastConfig);
@@ -158,14 +160,14 @@ public class HazelcastClusterManager implements ClusterManager {
                   new MembershipListener() {
                     @Override
                     public void memberAdded(MembershipEvent event) {
-                      logger.info("Node joined cluster: {}", event.getMember().getUuid());
+                      LOGGER.info("Node joined cluster: {}", event.getMember().getUuid());
                       ClusterNode node = convertMember(event.getMember());
                       notifyNodeJoined(node);
                     }
 
                     @Override
                     public void memberRemoved(MembershipEvent event) {
-                      logger.info("Node left cluster: {}", event.getMember().getUuid());
+                      LOGGER.info("Node left cluster: {}", event.getMember().getUuid());
                       ClusterNode node = convertMember(event.getMember());
                       notifyNodeLeft(node);
                       // Re-attempt leader election if leader left
@@ -176,13 +178,13 @@ public class HazelcastClusterManager implements ClusterManager {
                   });
 
       joined = true;
-      logger.info("Successfully joined cluster: {}", config.getClusterName());
+      LOGGER.info("Successfully joined cluster: {}", config.getClusterName());
 
       // Attempt to become leader
       tryBecomeLeader();
 
     } catch (Exception e) {
-      logger.error("Failed to join cluster: {}", config.getClusterName(), e);
+      LOGGER.error("Failed to join cluster: {}", config.getClusterName(), e);
       throw new ClusterJoinException(config.getClusterName(), "Failed to join cluster", e);
     }
   }
@@ -195,18 +197,18 @@ public class HazelcastClusterManager implements ClusterManager {
   @Override
   public void leave() throws ClusterLeaveException {
     if (!joined) {
-      logger.warn("Not joined to any cluster");
+      LOGGER.warn("Not joined to any cluster");
       return;
     }
 
-    logger.info("Leaving cluster: {}", clusterConfig.getClusterName());
+    LOGGER.info("Leaving cluster: {}", clusterConfig.getClusterName());
 
     try {
       // Release leader lock
       if (leaderLock != null && leaderLock.isLockedByCurrentThread()) {
         leaderLock.unlock();
         isLeader = false;
-        logger.info("Released leader lock");
+        LOGGER.info("Released leader lock");
       }
 
       // Unregister membership listener
@@ -221,10 +223,10 @@ public class HazelcastClusterManager implements ClusterManager {
       }
 
       joined = false;
-      logger.info("Successfully left cluster");
+      LOGGER.info("Successfully left cluster");
 
     } catch (Exception e) {
-      logger.error("Error leaving cluster", e);
+      LOGGER.error("Error leaving cluster", e);
       throw new ClusterLeaveException("Failed to leave cluster", e);
     }
   }
@@ -282,7 +284,7 @@ public class HazelcastClusterManager implements ClusterManager {
   public void addListener(ClusterEventListener listener) {
     if (listener != null) {
       listeners.add(listener);
-      logger.debug("Added cluster event listener: {}", listener.getClass().getSimpleName());
+      LOGGER.debug("Added cluster event listener: {}", listener.getClass().getSimpleName());
     }
   }
 
@@ -295,7 +297,7 @@ public class HazelcastClusterManager implements ClusterManager {
   public void removeListener(ClusterEventListener listener) {
     if (listener != null) {
       listeners.remove(listener);
-      logger.debug("Removed cluster event listener: {}", listener.getClass().getSimpleName());
+      LOGGER.debug("Removed cluster event listener: {}", listener.getClass().getSimpleName());
     }
   }
 
@@ -345,18 +347,18 @@ public class HazelcastClusterManager implements ClusterManager {
       if (leaderLock.tryLock()) {
         boolean wasLeader = isLeader;
         isLeader = true;
-        logger.info("This node is now the cluster LEADER");
+        LOGGER.info("This node is now the cluster LEADER");
 
         if (!wasLeader) {
           notifyLeaderChanged(getLocalNode());
         }
       } else {
         isLeader = false;
-        logger.info("This node is a FOLLOWER");
+        LOGGER.info("This node is a FOLLOWER");
       }
 
     } catch (Exception e) {
-      logger.error("Error during leader election", e);
+      LOGGER.error("Error during leader election", e);
       isLeader = false;
     }
   }
@@ -387,7 +389,7 @@ public class HazelcastClusterManager implements ClusterManager {
       try {
         listener.onNodeJoined(node);
       } catch (Exception e) {
-        logger.error("Error notifying listener of node join", e);
+        LOGGER.error("Error notifying listener of node join", e);
       }
     }
   }
@@ -402,7 +404,7 @@ public class HazelcastClusterManager implements ClusterManager {
       try {
         listener.onNodeLeft(node);
       } catch (Exception e) {
-        logger.error("Error notifying listener of node leave", e);
+        LOGGER.error("Error notifying listener of node leave", e);
       }
     }
   }
@@ -417,7 +419,7 @@ public class HazelcastClusterManager implements ClusterManager {
       try {
         listener.onLeaderChanged(newLeader);
       } catch (Exception e) {
-        logger.error("Error notifying listener of leader change", e);
+        LOGGER.error("Error notifying listener of leader change", e);
       }
     }
   }

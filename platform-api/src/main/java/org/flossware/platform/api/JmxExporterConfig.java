@@ -33,7 +33,7 @@ package org.flossware.platform.api;
  *
  * @see MetricsExporter
  */
-public class JmxExporterConfig {
+public final class JmxExporterConfig {
   private final boolean enabled;
   private final int port;
   private final String domain;

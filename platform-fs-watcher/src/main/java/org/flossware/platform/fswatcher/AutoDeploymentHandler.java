@@ -19,6 +19,7 @@ package org.flossware.platform.fswatcher;
 
 import java.nio.file.Path;
 import java.util.Map;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.flossware.platform.api.ApplicationDescriptorParser;
 import org.flossware.platform.api.DeploymentEventListener;
@@ -76,7 +77,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoDeploymentHandler implements DeploymentEventListener {
 
-  private static final Logger logger = LoggerFactory.getLogger(AutoDeploymentHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AutoDeploymentHandler.class);
 
   private final PlatformManager applicationManager;
   private final Map<String, ApplicationDescriptorParser> parsers;
@@ -115,48 +116,48 @@ public class AutoDeploymentHandler implements DeploymentEventListener {
   @Override
   public void onDescriptorDetected(Path descriptorFile) {
     if (!config.isAutoDeploy()) {
-      logger.info("Auto-deploy is disabled, skipping: {}", descriptorFile);
+      LOGGER.info("Auto-deploy is disabled, skipping: {}", descriptorFile);
       return;
     }
 
-    logger.info("Descriptor detected: {}", descriptorFile);
+    LOGGER.info("Descriptor detected: {}", descriptorFile);
 
     try {
       // Parse descriptor
       ApplicationDescriptor descriptor = parseDescriptor(descriptorFile);
       String appId = descriptor.getApplicationId();
 
-      logger.info("Deploying application: {} (from {})", appId, descriptorFile);
+      LOGGER.info("Deploying application: {} (from {})", appId, descriptorFile);
 
       // Deploy application
       applicationManager.deploy(descriptor);
       registry.put(descriptorFile, appId);
 
-      logger.info("Application deployed successfully: {}", appId);
+      LOGGER.info("Application deployed successfully: {}", appId);
 
       // Start if auto-start is enabled
       if (config.isAutoStart()) {
-        logger.info("Auto-starting application: {}", appId);
+        LOGGER.info("Auto-starting application: {}", appId);
         applicationManager.start(appId);
-        logger.info("Application started successfully: {}", appId);
+        LOGGER.info("Application started successfully: {}", appId);
       }
 
     } catch (ParseException e) {
-      logger.error("Failed to parse descriptor: {}", descriptorFile, e);
+      LOGGER.error("Failed to parse descriptor: {}", descriptorFile, e);
       onError(descriptorFile, e);
     } catch (Exception e) {
-      logger.error("Failed to deploy application from: {}", descriptorFile, e);
+      LOGGER.error("Failed to deploy application from: {}", descriptorFile, e);
       onError(descriptorFile, e);
     }
   }
 
   @Override
   public void onDescriptorModified(Path descriptorFile) {
-    logger.info("Descriptor modified: {}", descriptorFile);
+    LOGGER.info("Descriptor modified: {}", descriptorFile);
 
     // Check auto-deploy setting first to avoid undeploying without redeploying
     if (!config.isAutoDeploy()) {
-      logger.info("Auto-deploy is disabled, skipping redeploy for: {}", descriptorFile);
+      LOGGER.info("Auto-deploy is disabled, skipping redeploy for: {}", descriptorFile);
       return;
     }
 
@@ -169,78 +170,78 @@ public class AutoDeploymentHandler implements DeploymentEventListener {
 
       // If there was a previous deployment, undeploy it first
       if (existingAppId != null) {
-        logger.info("Undeploying existing application: {}", existingAppId);
+        LOGGER.info("Undeploying existing application: {}", existingAppId);
 
         try {
           applicationManager.stop(existingAppId);
         } catch (Exception e) {
-          logger.warn("Failed to stop application (may not be running): {}", existingAppId, e);
+          LOGGER.warn("Failed to stop application (may not be running): {}", existingAppId, e);
         }
 
         try {
           applicationManager.undeploy(existingAppId);
         } catch (Exception e) {
-          logger.error("Failed to undeploy existing application: {}", existingAppId, e);
+          LOGGER.error("Failed to undeploy existing application: {}", existingAppId, e);
         }
       }
 
       // Deploy new version
-      logger.info("Deploying updated application: {} (from {})", newAppId, descriptorFile);
+      LOGGER.info("Deploying updated application: {} (from {})", newAppId, descriptorFile);
       applicationManager.deploy(descriptor);
       registry.put(descriptorFile, newAppId);
-      logger.info("Application deployed successfully: {}", newAppId);
+      LOGGER.info("Application deployed successfully: {}", newAppId);
 
       // Start if auto-start is enabled
       if (config.isAutoStart()) {
-        logger.info("Auto-starting application: {}", newAppId);
+        LOGGER.info("Auto-starting application: {}", newAppId);
         applicationManager.start(newAppId);
-        logger.info("Application started successfully: {}", newAppId);
+        LOGGER.info("Application started successfully: {}", newAppId);
       }
 
     } catch (ParseException e) {
-      logger.error("Failed to parse modified descriptor: {}", descriptorFile, e);
+      LOGGER.error("Failed to parse modified descriptor: {}", descriptorFile, e);
       onError(descriptorFile, e);
       // Keep old app running if parse fails
     } catch (Exception e) {
-      logger.error("Failed to redeploy application from: {}", descriptorFile, e);
+      LOGGER.error("Failed to redeploy application from: {}", descriptorFile, e);
       onError(descriptorFile, e);
     }
   }
 
   @Override
   public void onDescriptorRemoved(Path descriptorFile) {
-    logger.info("Descriptor removed: {}", descriptorFile);
+    LOGGER.info("Descriptor removed: {}", descriptorFile);
 
     String appId = registry.remove(descriptorFile);
 
     if (appId == null) {
-      logger.warn("No application registered for removed descriptor: {}", descriptorFile);
+      LOGGER.warn("No application registered for removed descriptor: {}", descriptorFile);
       return;
     }
 
     try {
-      logger.info("Stopping application: {}", appId);
+      LOGGER.info("Stopping application: {}", appId);
 
       try {
         applicationManager.stop(appId);
-        logger.info("Application stopped: {}", appId);
+        LOGGER.info("Application stopped: {}", appId);
       } catch (Exception e) {
-        logger.warn("Failed to stop application (may not be running): {}", appId, e);
+        LOGGER.warn("Failed to stop application (may not be running): {}", appId, e);
       }
 
-      logger.info("Undeploying application: {}", appId);
+      LOGGER.info("Undeploying application: {}", appId);
       applicationManager.undeploy(appId);
-      logger.info("Application undeployed successfully: {}", appId);
+      LOGGER.info("Application undeployed successfully: {}", appId);
 
     } catch (Exception e) {
-      logger.error("Failed to undeploy application: {}", appId, e);
+      LOGGER.error("Failed to undeploy application: {}", appId, e);
       onError(descriptorFile, e);
     }
   }
 
   @Override
   public void onError(Path file, Exception error) {
-    logger.error("Error processing descriptor file: {}", file, error);
+    LOGGER.error("Error processing descriptor file: {}", file, error);
 
     // Additional error handling could be added here, such as:
     // - Sending notifications
@@ -273,7 +274,7 @@ public class AutoDeploymentHandler implements DeploymentEventListener {
       throw new ParseException("No parser available for extension: " + extension);
     }
 
-    logger.debug("Using {} parser for: {}", extension, descriptorFile);
+    LOGGER.debug("Using {} parser for: {}", extension, descriptorFile);
     return parser.parseFile(descriptorFile);
   }
 

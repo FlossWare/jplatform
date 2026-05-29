@@ -41,7 +41,7 @@ import java.util.Set;
  *
  * @see DeploymentWatcher
  */
-public class WatcherConfig {
+public final class WatcherConfig {
   private final Path watchDirectory;
   private final boolean autoStart;
   private final boolean autoDeploy;

@@ -20,14 +20,16 @@ package org.flossware.platform.cluster.consul;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.*;
+
+import org.flossware.platform.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.orbitz.consul.*;
 import com.orbitz.consul.model.health.Service;
 import com.orbitz.consul.model.health.ServiceHealth;
 import com.orbitz.consul.model.session.SessionCreatedResponse;
-import java.util.*;
-import org.flossware.platform.api.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 /** Unit tests for ConsulClusterManager. */
 class ConsulClusterManagerTest {

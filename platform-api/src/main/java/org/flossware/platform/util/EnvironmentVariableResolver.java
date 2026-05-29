@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +59,7 @@ import org.slf4j.LoggerFactory;
  */
 public class EnvironmentVariableResolver {
 
-  private static final Logger logger = LoggerFactory.getLogger(EnvironmentVariableResolver.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EnvironmentVariableResolver.class);
 
   // Pattern for ${VAR_NAME} or ${VAR_NAME:default}
   private static final Pattern BRACED_PATTERN =
@@ -170,20 +171,20 @@ public class EnvironmentVariableResolver {
     // Check overrides first (for testing)
     if (environmentOverrides.containsKey(varName)) {
       String value = environmentOverrides.get(varName);
-      logger.debug("Resolved {} from override: {}", varName, maskValue(value));
+      LOGGER.debug("Resolved {} from override: {}", varName, maskValue(value));
       return value;
     }
 
     // Check system environment
     String value = System.getenv(varName);
     if (value != null) {
-      logger.debug("Resolved {} from environment: {}", varName, maskValue(value));
+      LOGGER.debug("Resolved {} from environment: {}", varName, maskValue(value));
       return value;
     }
 
     // Use default value if provided
     if (defaultValue != null) {
-      logger.debug("Variable {} not found, using default: {}", varName, maskValue(defaultValue));
+      LOGGER.debug("Variable {} not found, using default: {}", varName, maskValue(defaultValue));
       return defaultValue;
     }
 
@@ -193,7 +194,7 @@ public class EnvironmentVariableResolver {
           "Environment variable not found: " + varName + " and no default value provided");
     }
 
-    logger.warn(
+    LOGGER.warn(
         "Environment variable {} not found and no default provided, leaving unreplaced", varName);
     return "${" + varName + "}"; // Return original reference
   }

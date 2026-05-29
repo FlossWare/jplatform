@@ -17,15 +17,17 @@
 
 package org.flossware.platform.config.vault;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.response.LogicalResponse;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * HashiCorp Vault-based configuration source. Loads configuration from Vault secrets and provides
@@ -46,7 +48,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class VaultConfigSource implements AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(VaultConfigSource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(VaultConfigSource.class);
 
   private final VaultConfigSourceConfig config;
   private final Map<String, String> configCache;
@@ -102,9 +104,9 @@ public class VaultConfigSource implements AutoCloseable {
       loadAllConfig();
 
       started = true;
-      logger.info("Vault config source started: {}", config.getAddress());
+      LOGGER.info("Vault config source started: {}", config.getAddress());
     } catch (Exception e) {
-      logger.error("Failed to start Vault config source", e);
+      LOGGER.error("Failed to start Vault config source", e);
       throw new RuntimeException("Failed to start Vault client", e);
     }
   }
@@ -157,9 +159,9 @@ public class VaultConfigSource implements AutoCloseable {
       vault.logical().write(config.getSecretPath(), data);
 
       configCache.put(key, value);
-      logger.debug("Set config: {} = {}", key, value);
+      LOGGER.debug("Set config: {} = {}", key, value);
     } catch (VaultException e) {
-      logger.error("Failed to set config: {}", key, e);
+      LOGGER.error("Failed to set config: {}", key, e);
       throw new RuntimeException("Failed to set config", e);
     }
   }
@@ -178,9 +180,9 @@ public class VaultConfigSource implements AutoCloseable {
       vault.logical().delete(config.getSecretPath() + "/" + key);
 
       configCache.remove(key);
-      logger.debug("Deleted config: {}", key);
+      LOGGER.debug("Deleted config: {}", key);
     } catch (VaultException e) {
-      logger.error("Failed to delete config: {}", key, e);
+      LOGGER.error("Failed to delete config: {}", key, e);
       throw new RuntimeException("Failed to delete config", e);
     }
   }
@@ -198,7 +200,7 @@ public class VaultConfigSource implements AutoCloseable {
     configCache.clear();
     started = false;
 
-    logger.info("Vault config source closed");
+    LOGGER.info("Vault config source closed");
   }
 
   /**
@@ -229,7 +231,7 @@ public class VaultConfigSource implements AutoCloseable {
         }
       }
     } catch (VaultException e) {
-      logger.warn("Failed to load config from Vault", e);
+      LOGGER.warn("Failed to load config from Vault", e);
     }
   }
 }

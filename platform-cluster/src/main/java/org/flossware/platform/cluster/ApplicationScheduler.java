@@ -17,14 +17,16 @@
 
 package org.flossware.platform.cluster;
 
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.map.IMap;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.flossware.platform.api.ClusterManager;
 import org.flossware.platform.api.ClusterNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
 
 /**
  * Schedules and assigns applications to cluster nodes. This component runs only on the cluster
@@ -66,7 +68,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ApplicationScheduler {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApplicationScheduler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationScheduler.class);
   private static final String ASSIGNMENT_MAP_NAME = "jplatform-application-assignments";
   private static final String NODE_LOAD_MAP_NAME = "jplatform-node-load";
 
@@ -113,7 +115,7 @@ public class ApplicationScheduler {
     this.nodeLoadMap = hazelcast.getMap(NODE_LOAD_MAP_NAME);
     this.roundRobinIndex = new AtomicInteger(0);
 
-    logger.info("ApplicationScheduler initialized with strategy: {}", strategy);
+    LOGGER.info("ApplicationScheduler initialized with strategy: {}", strategy);
   }
 
   /**
@@ -135,7 +137,7 @@ public class ApplicationScheduler {
     // Check if already assigned
     String existingNode = assignmentMap.get(applicationId);
     if (existingNode != null) {
-      logger.debug("Application {} already assigned to node {}", applicationId, existingNode);
+      LOGGER.debug("Application {} already assigned to node {}", applicationId, existingNode);
       return existingNode;
     }
 
@@ -146,7 +148,7 @@ public class ApplicationScheduler {
     }
 
     String nodeId = targetNode.getNodeId();
-    logger.info("Assigning application {} to node {}", applicationId, nodeId);
+    LOGGER.info("Assigning application {} to node {}", applicationId, nodeId);
 
     // Store assignment
     assignmentMap.put(applicationId, nodeId);
@@ -154,7 +156,7 @@ public class ApplicationScheduler {
     // Update node load
     nodeLoadMap.compute(nodeId, (k, count) -> count == null ? 1 : count + 1);
 
-    logger.info("Application {} assigned to node {} successfully", applicationId, nodeId);
+    LOGGER.info("Application {} assigned to node {} successfully", applicationId, nodeId);
     return nodeId;
   }
 
@@ -174,7 +176,7 @@ public class ApplicationScheduler {
     if (nodeId != null) {
       // Update node load
       nodeLoadMap.compute(nodeId, (k, count) -> count == null || count <= 1 ? null : count - 1);
-      logger.info("Application {} unassigned from node {}", applicationId, nodeId);
+      LOGGER.info("Application {} unassigned from node {}", applicationId, nodeId);
     }
   }
 
@@ -235,7 +237,7 @@ public class ApplicationScheduler {
       throw new IllegalStateException("Only the leader can reassign applications");
     }
 
-    logger.warn("Reassigning applications from failed node: {}", failedNodeId);
+    LOGGER.warn("Reassigning applications from failed node: {}", failedNodeId);
 
     List<String> affectedApps = new ArrayList<>();
     for (Map.Entry<String, String> entry : assignmentMap.entrySet()) {
@@ -261,17 +263,17 @@ public class ApplicationScheduler {
           assignmentMap.put(appId, newNodeId);
           nodeLoadMap.compute(newNodeId, (k, count) -> count == null ? 1 : count + 1);
           reassignedCount++;
-          logger.info("Reassigned application {} from {} to {}", appId, failedNodeId, newNodeId);
+          LOGGER.info("Reassigned application {} from {} to {}", appId, failedNodeId, newNodeId);
         }
       } catch (Exception e) {
-        logger.error("Failed to reassign application: {}", appId, e);
+        LOGGER.error("Failed to reassign application: {}", appId, e);
       }
     }
 
     // Ensure failed node is completely removed from load map
     nodeLoadMap.remove(failedNodeId);
 
-    logger.info("Reassigned {} applications from failed node {}", reassignedCount, failedNodeId);
+    LOGGER.info("Reassigned {} applications from failed node {}", reassignedCount, failedNodeId);
     return reassignedCount;
   }
 

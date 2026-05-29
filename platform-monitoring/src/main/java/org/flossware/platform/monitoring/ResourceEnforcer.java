@@ -19,6 +19,7 @@ package org.flossware.platform.monitoring;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+
 import org.flossware.platform.api.EnforcementAction;
 import org.flossware.platform.api.ResourceConfig;
 import org.flossware.platform.api.ResourceQuota;
@@ -58,7 +59,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ResourceEnforcer {
 
-  private static final Logger logger = LoggerFactory.getLogger(ResourceEnforcer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceEnforcer.class);
 
   private final String applicationId;
   private final ResourceConfig config;
@@ -116,7 +117,7 @@ public class ResourceEnforcer {
     this.throttleAction = throttleAction;
     this.policy = new EnforcementPolicy(applicationId, config.getViolationGracePeriod());
 
-    logger.info(
+    LOGGER.info(
         "ResourceEnforcer initialized for application: {}, grace period: {}",
         applicationId,
         config.getViolationGracePeriod());
@@ -153,7 +154,7 @@ public class ResourceEnforcer {
             maxHeap -> {
               if (snapshot.getHeapUsedBytes() > maxHeap) {
                 if (policy.recordViolation("heap")) {
-                  logger.warn(
+                  LOGGER.warn(
                       "Application {} exceeded heap quota: {} > {} (violations: {})",
                       applicationId,
                       snapshot.getHeapUsedBytes(),
@@ -183,7 +184,7 @@ public class ResourceEnforcer {
             maxCpu -> {
               if (snapshot.getCpuTimeNanos() > maxCpu) {
                 if (policy.recordViolation("cpu")) {
-                  logger.warn(
+                  LOGGER.warn(
                       "Application {} exceeded CPU quota: {}ns > {}ns (violations: {})",
                       applicationId,
                       snapshot.getCpuTimeNanos(),
@@ -213,7 +214,7 @@ public class ResourceEnforcer {
             maxThreads -> {
               if (snapshot.getThreadCount() > maxThreads) {
                 if (policy.recordViolation("threads")) {
-                  logger.warn(
+                  LOGGER.warn(
                       "Application {} exceeded thread quota: {} > {} (violations: {})",
                       applicationId,
                       snapshot.getThreadCount(),
@@ -236,7 +237,7 @@ public class ResourceEnforcer {
    * @param resourceType the resource type that was violated
    */
   private void executeAction(EnforcementAction action, String resourceType) {
-    logger.info(
+    LOGGER.info(
         "Enforcing {} action for application {} due to {} quota violation",
         action,
         applicationId,
@@ -250,10 +251,10 @@ public class ResourceEnforcer {
 
         case THROTTLE:
           if (throttleAction != null && threadGroup != null) {
-            logger.info("Throttling application {}", applicationId);
+            LOGGER.info("Throttling application {}", applicationId);
             throttleAction.accept(threadGroup);
           } else {
-            logger.warn(
+            LOGGER.warn(
                 "Throttle action requested but not configured for {} "
                     + "(throttleAction={}, threadGroup={})",
                 applicationId,
@@ -263,24 +264,24 @@ public class ResourceEnforcer {
           break;
 
         case SHUTDOWN:
-          logger.warn("Shutting down application {} due to quota violation", applicationId);
+          LOGGER.warn("Shutting down application {} due to quota violation", applicationId);
           if (shutdownAction != null) {
             shutdownAction.accept(applicationId);
           }
           break;
 
         case KILL:
-          logger.error("KILLING application {} due to critical quota violation", applicationId);
+          LOGGER.error("KILLING application {} due to critical quota violation", applicationId);
           if (killAction != null) {
             killAction.accept(applicationId);
           }
           break;
 
         default:
-          logger.error("Unknown enforcement action: {}", action);
+          LOGGER.error("Unknown enforcement action: {}", action);
       }
     } catch (Exception e) {
-      logger.error(
+      LOGGER.error(
           "Failed to execute enforcement action {} for application {}", action, applicationId, e);
     }
   }

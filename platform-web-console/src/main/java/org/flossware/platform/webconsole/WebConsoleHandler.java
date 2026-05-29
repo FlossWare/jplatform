@@ -17,12 +17,14 @@
 
 package org.flossware.platform.webconsole;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.InputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 
 /**
  * HTTP handler for serving the web console static resources. This handler serves static HTML, CSS,
@@ -48,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.0
  */
 public class WebConsoleHandler implements HttpHandler {
-  private static final Logger logger = LoggerFactory.getLogger(WebConsoleHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(WebConsoleHandler.class);
 
   /** Constructs a new WebConsoleHandler. */
   public WebConsoleHandler() {}
@@ -116,18 +118,18 @@ public class WebConsoleHandler implements HttpHandler {
   public void handle(HttpExchange exchange) throws IOException {
     // Only allow GET requests
     if (!"GET".equals(exchange.getRequestMethod())) {
-      logger.warn("Rejecting non-GET request: {}", exchange.getRequestMethod());
+      LOGGER.warn("Rejecting non-GET request: {}", exchange.getRequestMethod());
       send405(exchange);
       return;
     }
 
     String path = exchange.getRequestURI().getPath();
-    logger.debug("Handling request for path: {}", path);
+    LOGGER.debug("Handling request for path: {}", path);
 
     // Normalize path to prevent traversal attacks
     path = path.replaceAll("//+", "/");
     if (path.contains("..")) {
-      logger.warn("Path traversal attempt detected: {}", path);
+      LOGGER.warn("Path traversal attempt detected: {}", path);
       send404(exchange);
       return;
     }
@@ -140,11 +142,11 @@ public class WebConsoleHandler implements HttpHandler {
       path = "/web" + path;
     }
 
-    logger.debug("Mapped to resource path: {}", path);
+    LOGGER.debug("Mapped to resource path: {}", path);
 
     try (InputStream is = getClass().getResourceAsStream(path)) {
       if (is == null) {
-        logger.warn("Resource not found: {}", path);
+        LOGGER.warn("Resource not found: {}", path);
         send404(exchange);
         return;
       }
@@ -152,7 +154,7 @@ public class WebConsoleHandler implements HttpHandler {
       byte[] content = is.readAllBytes();
       String contentType = getContentType(path);
 
-      logger.debug("Serving {} bytes of {}", content.length, contentType);
+      LOGGER.debug("Serving {} bytes of {}", content.length, contentType);
 
       exchange.getResponseHeaders().set("Content-Type", contentType);
       exchange.getResponseHeaders().set("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -160,9 +162,9 @@ public class WebConsoleHandler implements HttpHandler {
       exchange.getResponseBody().write(content);
       exchange.getResponseBody().close();
 
-      logger.debug("Successfully served: {}", path);
+      LOGGER.debug("Successfully served: {}", path);
     } catch (IOException e) {
-      logger.error("Error serving resource: {}", path, e);
+      LOGGER.error("Error serving resource: {}", path, e);
       send404(exchange);
     }
   }

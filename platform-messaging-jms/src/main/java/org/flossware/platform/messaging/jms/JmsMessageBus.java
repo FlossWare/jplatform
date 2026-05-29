@@ -17,7 +17,6 @@
 
 package org.flossware.platform.messaging.jms;
 
-import jakarta.jms.*;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,12 +24,15 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.flossware.platform.api.Message;
 import org.flossware.platform.api.MessageBus;
 import org.flossware.platform.api.MessageHandler;
 import org.flossware.platform.api.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.jms.*;
 
 /**
  * JMS-backed implementation of MessageBus for distributed multi-node messaging. Provides
@@ -98,7 +100,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JmsMessageBus implements MessageBus, AutoCloseable {
 
-  private static final Logger logger = LoggerFactory.getLogger(JmsMessageBus.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JmsMessageBus.class);
   private static final String SOURCE_APP_PROPERTY = "sourceApplicationId";
   private static final String HEADERS_PROPERTY = "platformHeaders";
   private static final String MESSAGE_ID_PROPERTY = "platformMessageId";
@@ -125,7 +127,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
         Objects.requireNonNull(connectionFactory, "ConnectionFactory is required");
     this.subscriptions = new ConcurrentHashMap<>();
 
-    logger.info("Connecting to JMS broker: {}", config.getBrokerUrl());
+    LOGGER.info("Connecting to JMS broker: {}", config.getBrokerUrl());
 
     // Create connection with authentication if provided
     if (config.getUsername() != null && config.getPassword() != null) {
@@ -147,7 +149,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
     // Start connection to receive messages
     connection.start();
 
-    logger.info("JMS MessageBus connected successfully");
+    LOGGER.info("JMS MessageBus connected successfully");
   }
 
   /**
@@ -202,13 +204,13 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
           // Send message
           producer.send(jmsMessage);
 
-          logger.debug("Published message to topic '{}': id={}", topic, message.getId());
+          LOGGER.debug("Published message to topic '{}': id={}", topic, message.getId());
         } finally {
           producer.close();
         }
       }
     } catch (JMSException | IOException e) {
-      logger.error("Failed to publish message to topic '{}'", topic, e);
+      LOGGER.error("Failed to publish message to topic '{}'", topic, e);
       throw new RuntimeException("Failed to publish message", e);
     }
   }
@@ -257,7 +259,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
                 handler.onMessage(platformMessage);
 
               } catch (Exception e) {
-                logger.error("Error handling message on topic '{}'", topic, e);
+                LOGGER.error("Error handling message on topic '{}'", topic, e);
               }
             }
           });
@@ -265,7 +267,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
       // Track subscription
       subscriptions.computeIfAbsent(topic, k -> new CopyOnWriteArrayList<>()).add(subscription);
 
-      logger.info(
+      LOGGER.info(
           "Subscribed to topic '{}'. Total local subscriptions: {}",
           topic,
           subscriptions.get(topic).size());
@@ -273,7 +275,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
       return subscription;
 
     } catch (JMSException e) {
-      logger.error("Failed to subscribe to topic '{}'", topic, e);
+      LOGGER.error("Failed to subscribe to topic '{}'", topic, e);
       throw new RuntimeException("Failed to subscribe", e);
     }
   }
@@ -303,7 +305,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
 
     if (topicSubscriptions != null) {
       topicSubscriptions.remove(subscription);
-      logger.info(
+      LOGGER.info(
           "Unsubscribed from topic '{}'. Remaining local subscriptions: {}",
           subscription.getTopic(),
           topicSubscriptions.size());
@@ -322,7 +324,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
       return;
     }
 
-    logger.info("Closing JMS MessageBus");
+    LOGGER.info("Closing JMS MessageBus");
     closed = true;
 
     // Cancel all subscriptions
@@ -331,7 +333,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
         try {
           sub.cancel();
         } catch (Exception e) {
-          logger.warn("Error cancelling subscription", e);
+          LOGGER.warn("Error cancelling subscription", e);
         }
       }
     }
@@ -342,7 +344,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
       try {
         publishSession.close();
       } catch (JMSException e) {
-        logger.warn("Error closing publish session", e);
+        LOGGER.warn("Error closing publish session", e);
       }
     }
 
@@ -351,11 +353,11 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
       try {
         connection.close();
       } catch (JMSException e) {
-        logger.warn("Error closing connection", e);
+        LOGGER.warn("Error closing connection", e);
       }
     }
 
-    logger.info("JMS MessageBus closed");
+    LOGGER.info("JMS MessageBus closed");
   }
 
   /**
@@ -510,7 +512,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
           consumer.close();
         }
       } catch (JMSException e) {
-        logger.warn("Error closing consumer", e);
+        LOGGER.warn("Error closing consumer", e);
       }
 
       try {
@@ -518,7 +520,7 @@ public class JmsMessageBus implements MessageBus, AutoCloseable {
           session.close();
         }
       } catch (JMSException e) {
-        logger.warn("Error closing session", e);
+        LOGGER.warn("Error closing session", e);
       }
     }
 

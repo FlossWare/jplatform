@@ -17,6 +17,14 @@
 
 package org.flossware.platform.rest.netty;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -28,12 +36,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Netty handler for rate limiting HTTP requests. Implements both global and per-IP rate limiting
@@ -45,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 class RateLimitingHandler extends ChannelInboundHandlerAdapter {
-  private static final Logger logger = LoggerFactory.getLogger(RateLimitingHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RateLimitingHandler.class);
 
   private final int globalRateLimitRps;
   private final int perIpRateLimitRps;
@@ -74,7 +76,7 @@ class RateLimitingHandler extends ChannelInboundHandlerAdapter {
 
     // Check global rate limit
     if (globalBucket != null && !globalBucket.tryAcquire()) {
-      logger.warn("Global rate limit exceeded");
+      LOGGER.warn("Global rate limit exceeded");
       sendRateLimitResponse(ctx, "Global rate limit exceeded");
       return;
     }
@@ -89,7 +91,7 @@ class RateLimitingHandler extends ChannelInboundHandlerAdapter {
             perIpBuckets.computeIfAbsent(clientIp, ip -> new TokenBucket(perIpRateLimitRps));
 
         if (!ipBucket.tryAcquire()) {
-          logger.warn("Per-IP rate limit exceeded for {}", clientIp.getHostAddress());
+          LOGGER.warn("Per-IP rate limit exceeded for {}", clientIp.getHostAddress());
           sendRateLimitResponse(ctx, "Rate limit exceeded");
           return;
         }
@@ -122,7 +124,7 @@ class RateLimitingHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    logger.error("Exception in rate limiting handler", cause);
+    LOGGER.error("Exception in rate limiting handler", cause);
     ctx.fireExceptionCaught(cause);
   }
 }

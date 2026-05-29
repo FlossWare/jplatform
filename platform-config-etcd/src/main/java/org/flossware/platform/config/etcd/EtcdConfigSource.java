@@ -17,6 +17,17 @@
 
 package org.flossware.platform.config.etcd;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
@@ -26,15 +37,6 @@ import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Etcd-based configuration source. Loads configuration from etcd KV store and supports dynamic
@@ -55,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class EtcdConfigSource implements AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(EtcdConfigSource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EtcdConfigSource.class);
 
   private final EtcdConfigSourceConfig config;
   private final Map<String, String> configCache;
@@ -119,9 +121,9 @@ public class EtcdConfigSource implements AutoCloseable {
       }
 
       started = true;
-      logger.info("Etcd config source started: {}", config.getEndpoints());
+      LOGGER.info("Etcd config source started: {}", config.getEndpoints());
     } catch (Exception e) {
-      logger.error("Failed to start etcd config source", e);
+      LOGGER.error("Failed to start etcd config source", e);
       throw new RuntimeException("Failed to start etcd client", e);
     }
   }
@@ -169,9 +171,9 @@ public class EtcdConfigSource implements AutoCloseable {
           .get();
 
       configCache.put(key, value);
-      logger.debug("Set config: {} = {}", key, value);
+      LOGGER.debug("Set config: {} = {}", key, value);
     } catch (Exception e) {
-      logger.error("Failed to set config: {}", key, e);
+      LOGGER.error("Failed to set config: {}", key, e);
       throw new RuntimeException("Failed to set config", e);
     }
   }
@@ -192,9 +194,9 @@ public class EtcdConfigSource implements AutoCloseable {
       kvClient.delete(ByteSequence.from(fullKey, StandardCharsets.UTF_8)).get();
 
       configCache.remove(key);
-      logger.debug("Deleted config: {}", key);
+      LOGGER.debug("Deleted config: {}", key);
     } catch (Exception e) {
-      logger.error("Failed to delete config: {}", key, e);
+      LOGGER.error("Failed to delete config: {}", key, e);
       throw new RuntimeException("Failed to delete config", e);
     }
   }
@@ -231,7 +233,7 @@ public class EtcdConfigSource implements AutoCloseable {
     listeners.clear();
     started = false;
 
-    logger.info("Etcd config source closed");
+    LOGGER.info("Etcd config source closed");
   }
 
   /**
@@ -267,7 +269,7 @@ public class EtcdConfigSource implements AutoCloseable {
         configCache.put(key, value);
       }
     } catch (Exception e) {
-      logger.warn("Failed to load config from etcd", e);
+      LOGGER.warn("Failed to load config from etcd", e);
     }
   }
 
@@ -303,11 +305,11 @@ public class EtcdConfigSource implements AutoCloseable {
                     notifyListeners();
                   }
                 } catch (Exception e) {
-                  logger.error("Error processing watch event", e);
+                  LOGGER.error("Error processing watch event", e);
                 }
               });
     } catch (Exception e) {
-      logger.error("Failed to start watching", e);
+      LOGGER.error("Failed to start watching", e);
     }
   }
 
@@ -317,7 +319,7 @@ public class EtcdConfigSource implements AutoCloseable {
       try {
         listener.accept(snapshot);
       } catch (Exception e) {
-        logger.error("Error notifying listener", e);
+        LOGGER.error("Error notifying listener", e);
       }
     }
   }
@@ -340,7 +342,7 @@ public class EtcdConfigSource implements AutoCloseable {
     }
 
     // Key doesn't match expected prefix - this shouldn't happen
-    logger.warn(
+    LOGGER.warn(
         "Received etcd key '{}' that doesn't start with configured prefix '{}'",
         fullKey,
         config.getKeyPrefix());

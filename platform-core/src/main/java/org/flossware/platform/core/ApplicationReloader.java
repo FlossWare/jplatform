@@ -19,6 +19,7 @@ package org.flossware.platform.core;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.flossware.platform.api.*;
 import org.flossware.platform.classloader.IsolatedClassLoader;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ApplicationReloader {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApplicationReloader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationReloader.class);
 
   private final Map<String, List<ClassLoaderVersion>> versionHistory;
   private final Map<String, Integer> currentVersions;
@@ -99,7 +100,7 @@ public class ApplicationReloader {
     Objects.requireNonNull(currentContext, "currentContext cannot be null");
     Objects.requireNonNull(manager, "manager cannot be null");
 
-    logger.info("[{}] Starting hot reload", applicationId);
+    LOGGER.info("[{}] Starting hot reload", applicationId);
 
     ApplicationState state = currentContext.getState();
     if (state != ApplicationState.RUNNING && state != ApplicationState.STOPPED) {
@@ -125,27 +126,27 @@ public class ApplicationReloader {
       ClassLoaderVersion newClassLoaderVersion = new ClassLoaderVersion(newVersion, newClassLoader);
       addVersionHistory(applicationId, newClassLoaderVersion);
 
-      logger.info("[{}] Created new classloader version {}", applicationId, newVersion);
+      LOGGER.info("[{}] Created new classloader version {}", applicationId, newVersion);
 
       // Step 2: Capture state if application supports reload
       Map<String, Object> savedState = null;
       if (oldInstance instanceof ReloadableApplication) {
-        logger.info("[{}] Capturing state from ReloadableApplication", applicationId);
+        LOGGER.info("[{}] Capturing state from ReloadableApplication", applicationId);
         try {
           savedState = ((ReloadableApplication) oldInstance).beforeReload();
-          logger.info(
+          LOGGER.info(
               "[{}] Captured state: {} entries",
               applicationId,
               savedState != null ? savedState.size() : 0);
         } catch (Exception e) {
-          logger.error("[{}] Failed to capture state", applicationId, e);
+          LOGGER.error("[{}] Failed to capture state", applicationId, e);
           throw new Exception("State capture failed", e);
         }
       }
 
       // Step 3: Stop old instance if running
       if (wasRunning) {
-        logger.info("[{}] Stopping old instance", applicationId);
+        LOGGER.info("[{}] Stopping old instance", applicationId);
         if (oldInstance instanceof Application) {
           ((Application) oldInstance).stop();
         }
@@ -154,7 +155,7 @@ public class ApplicationReloader {
       // Step 4: Swap classloader and descriptor atomically
       currentContext.setClassLoaderAndDescriptor(newClassLoader, newDescriptor);
 
-      logger.info("[{}] Swapped classloader from old to version {}", applicationId, newVersion);
+      LOGGER.info("[{}] Swapped classloader from old to version {}", applicationId, newVersion);
 
       // Decrement reference count on old classloader
       decrementOldClassLoaderReferences(applicationId, newVersion);
@@ -176,22 +177,22 @@ public class ApplicationReloader {
       }
       currentContext.setApplicationInstance(newInstance);
 
-      logger.info("[{}] Created new application instance from updated code", applicationId);
+      LOGGER.info("[{}] Created new application instance from updated code", applicationId);
 
       // Step 7: Restore state if ReloadableApplication
       if (newInstance instanceof ReloadableApplication) {
-        logger.info("[{}] Restoring state to new instance", applicationId);
+        LOGGER.info("[{}] Restoring state to new instance", applicationId);
         try {
           ((ReloadableApplication) newInstance).afterReload(currentContext, savedState);
         } catch (Exception e) {
-          logger.error("[{}] Failed to restore state", applicationId, e);
+          LOGGER.error("[{}] Failed to restore state", applicationId, e);
           throw new Exception("State restoration failed", e);
         }
       }
 
       // Step 8: Start new instance if was running
       if (wasRunning) {
-        logger.info("[{}] Starting new instance", applicationId);
+        LOGGER.info("[{}] Starting new instance", applicationId);
         if (newInstance instanceof Application) {
           ((Application) newInstance).start(currentContext);
           currentContext.setState(ApplicationState.RUNNING);
@@ -200,10 +201,10 @@ public class ApplicationReloader {
         currentContext.setState(ApplicationState.STOPPED);
       }
 
-      logger.info("[{}] Hot reload complete - now on version {}", applicationId, newVersion);
+      LOGGER.info("[{}] Hot reload complete - now on version {}", applicationId, newVersion);
 
     } catch (Exception e) {
-      logger.error("[{}] Hot reload failed, attempting rollback", applicationId, e);
+      LOGGER.error("[{}] Hot reload failed, attempting rollback", applicationId, e);
 
       // Attempt to rollback to old instance
       boolean rollbackSuccessful = false;
@@ -219,9 +220,9 @@ public class ApplicationReloader {
           ((Application) oldInstance).start(currentContext);
           currentContext.setState(ApplicationState.RUNNING);
           rollbackSuccessful = true;
-          logger.info("[{}] Rollback successful, old instance restarted", applicationId);
+          LOGGER.info("[{}] Rollback successful, old instance restarted", applicationId);
         } catch (Exception rollbackEx) {
-          logger.error(
+          LOGGER.error(
               "[{}] Rollback failed, application left in stopped state", applicationId, rollbackEx);
         }
       }
@@ -230,9 +231,9 @@ public class ApplicationReloader {
       if (newClassLoader != null) {
         try {
           newClassLoader.close();
-          logger.info("[{}] Closed failed classloader version {}", applicationId, newVersion);
+          LOGGER.info("[{}] Closed failed classloader version {}", applicationId, newVersion);
         } catch (Exception closeEx) {
-          logger.warn("[{}] Failed to close classloader during cleanup", applicationId, closeEx);
+          LOGGER.warn("[{}] Failed to close classloader during cleanup", applicationId, closeEx);
         }
       }
 
@@ -285,7 +286,7 @@ public class ApplicationReloader {
       if (version.getVersion() < currentVersion) {
         version.decrementReference();
         if (version.canGarbageCollect()) {
-          logger.debug(
+          LOGGER.debug(
               "[{}] ClassLoader version {} can be GC'd", applicationId, version.getVersion());
         }
       }
@@ -326,6 +327,6 @@ public class ApplicationReloader {
   public void clearHistory(String applicationId) {
     versionHistory.remove(applicationId);
     currentVersions.remove(applicationId);
-    logger.debug("[{}] Cleared reload history", applicationId);
+    LOGGER.debug("[{}] Cleared reload history", applicationId);
   }
 }

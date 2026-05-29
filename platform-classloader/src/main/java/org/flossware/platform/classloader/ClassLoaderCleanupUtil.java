@@ -27,8 +27,10 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +60,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ClassLoaderCleanupUtil {
 
-  private static final Logger logger = LoggerFactory.getLogger(ClassLoaderCleanupUtil.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClassLoaderCleanupUtil.class);
 
   private final String applicationId;
   private final ClassLoader classLoader;
@@ -104,7 +106,7 @@ public class ClassLoaderCleanupUtil {
    * methods in the correct order.
    */
   public void cleanupAll() {
-    logger.info("[{}] Starting ClassLoader cleanup", applicationId);
+    LOGGER.info("[{}] Starting ClassLoader cleanup", applicationId);
 
     cleanupThreadLocals();
     cleanupJdbcDrivers();
@@ -112,7 +114,7 @@ public class ClassLoaderCleanupUtil {
     cleanupShutdownHooks();
     cleanupResourceBundles();
 
-    logger.info("[{}] ClassLoader cleanup completed", applicationId);
+    LOGGER.info("[{}] ClassLoader cleanup completed", applicationId);
   }
 
   /**
@@ -134,9 +136,9 @@ public class ClassLoaderCleanupUtil {
         }
       }
 
-      logger.info("[{}] Cleaned ThreadLocals from {} threads", applicationId, cleaned);
+      LOGGER.info("[{}] Cleaned ThreadLocals from {} threads", applicationId, cleaned);
     } catch (Exception e) {
-      logger.warn("[{}] Failed to clean ThreadLocals: {}", applicationId, e.getMessage());
+      LOGGER.warn("[{}] Failed to clean ThreadLocals: {}", applicationId, e.getMessage());
     }
   }
 
@@ -208,7 +210,7 @@ public class ClassLoaderCleanupUtil {
 
       return true;
     } catch (Exception e) {
-      logger.debug(
+      LOGGER.debug(
           "[{}] Could not clear ThreadLocals for thread {}: {}",
           applicationId,
           thread.getName(),
@@ -237,15 +239,15 @@ public class ClassLoaderCleanupUtil {
 
       for (Driver driver : driversToDeregister) {
         DriverManager.deregisterDriver(driver);
-        logger.info(
+        LOGGER.info(
             "[{}] Deregistered JDBC driver: {}", applicationId, driver.getClass().getName());
       }
 
       if (!driversToDeregister.isEmpty()) {
-        logger.info("[{}] Deregistered {} JDBC drivers", applicationId, driversToDeregister.size());
+        LOGGER.info("[{}] Deregistered {} JDBC drivers", applicationId, driversToDeregister.size());
       }
     } catch (Exception e) {
-      logger.warn("[{}] Failed to cleanup JDBC drivers: {}", applicationId, e.getMessage());
+      LOGGER.warn("[{}] Failed to cleanup JDBC drivers: {}", applicationId, e.getMessage());
     }
   }
 
@@ -267,19 +269,19 @@ public class ClassLoaderCleanupUtil {
           try {
             mbs.unregisterMBean(name);
             unregistered++;
-            logger.debug("[{}] Unregistered MBean: {}", applicationId, name);
+            LOGGER.debug("[{}] Unregistered MBean: {}", applicationId, name);
           } catch (Exception e) {
-            logger.warn(
+            LOGGER.warn(
                 "[{}] Failed to unregister MBean {}: {}", applicationId, name, e.getMessage());
           }
         }
       }
 
       if (unregistered > 0) {
-        logger.info("[{}] Unregistered {} MBeans", applicationId, unregistered);
+        LOGGER.info("[{}] Unregistered {} MBeans", applicationId, unregistered);
       }
     } catch (Exception e) {
-      logger.warn("[{}] Failed to cleanup MBeans: {}", applicationId, e.getMessage());
+      LOGGER.warn("[{}] Failed to cleanup MBeans: {}", applicationId, e.getMessage());
     }
   }
 
@@ -305,14 +307,14 @@ public class ClassLoaderCleanupUtil {
 
       for (Thread hook : toRemove) {
         Runtime.getRuntime().removeShutdownHook(hook);
-        logger.debug("[{}] Removed shutdown hook: {}", applicationId, hook.getName());
+        LOGGER.debug("[{}] Removed shutdown hook: {}", applicationId, hook.getName());
       }
 
       if (!toRemove.isEmpty()) {
-        logger.info("[{}] Removed {} shutdown hooks", applicationId, toRemove.size());
+        LOGGER.info("[{}] Removed {} shutdown hooks", applicationId, toRemove.size());
       }
     } catch (Exception e) {
-      logger.warn("[{}] Failed to cleanup shutdown hooks: {}", applicationId, e.getMessage());
+      LOGGER.warn("[{}] Failed to cleanup shutdown hooks: {}", applicationId, e.getMessage());
     }
   }
 
@@ -327,7 +329,7 @@ public class ClassLoaderCleanupUtil {
     // When the ClassLoader becomes unreachable, the cache entries will be
     // automatically cleared during GC. Clearing the entire JVM-wide cache
     // would affect all applications, so we rely on automatic GC instead.
-    logger.debug(
+    LOGGER.debug(
         "[{}] Skipping ResourceBundle cache cleanup - will be GC'd automatically when ClassLoader is collected",
         applicationId);
   }
@@ -342,7 +344,7 @@ public class ClassLoaderCleanupUtil {
    * @return true if the ClassLoader has been garbage collected, false if a leak is detected
    */
   public boolean detectLeaks() {
-    logger.info("[{}] Running leak detection...", applicationId);
+    LOGGER.info("[{}] Running leak detection...", applicationId);
 
     // Suggest garbage collection
     System.gc();
@@ -358,23 +360,23 @@ public class ClassLoaderCleanupUtil {
 
     // Check if ClassLoader was garbage collected
     if (leakDetector.get() != null) {
-      logger.warn(
+      LOGGER.warn(
           "[{}] CLASSLOADER LEAK DETECTED - ClassLoader was not garbage collected", applicationId);
       logLeakDiagnostics();
       return false;
     } else {
-      logger.info("[{}] No ClassLoader leak detected", applicationId);
+      LOGGER.info("[{}] No ClassLoader leak detected", applicationId);
       return true;
     }
   }
 
   /** Logs diagnostic information to help identify leak sources. */
   private void logLeakDiagnostics() {
-    logger.warn("[{}] Leak diagnostics:", applicationId);
-    logger.warn("[{}] - Check for static fields holding application objects", applicationId);
-    logger.warn("[{}] - Check for threads still running with application classes", applicationId);
-    logger.warn("[{}] - Check for external caches holding application objects", applicationId);
-    logger.warn(
+    LOGGER.warn("[{}] Leak diagnostics:", applicationId);
+    LOGGER.warn("[{}] - Check for static fields holding application objects", applicationId);
+    LOGGER.warn("[{}] - Check for threads still running with application classes", applicationId);
+    LOGGER.warn("[{}] - Check for external caches holding application objects", applicationId);
+    LOGGER.warn(
         "[{}] - Use a heap profiler (VisualVM, JProfiler) to find reference chains", applicationId);
 
     // Log threads that might hold references
@@ -382,7 +384,7 @@ public class ClassLoaderCleanupUtil {
     for (Map.Entry<Thread, StackTraceElement[]> entry : threads.entrySet()) {
       Thread thread = entry.getKey();
       if (thread.getName().contains(applicationId) && thread.isAlive()) {
-        logger.warn(
+        LOGGER.warn(
             "[{}] - Active thread: {} (state: {})",
             applicationId,
             thread.getName(),

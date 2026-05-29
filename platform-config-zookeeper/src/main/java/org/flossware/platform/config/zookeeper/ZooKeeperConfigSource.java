@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -49,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class ZooKeeperConfigSource implements AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(ZooKeeperConfigSource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ZooKeeperConfigSource.class);
 
   private final ZooKeeperConfigSourceConfig config;
   private final Map<String, String> configCache;
@@ -112,9 +113,9 @@ public class ZooKeeperConfigSource implements AutoCloseable {
       startWatching();
 
       started = true;
-      logger.info("ZooKeeper config source started: {}", config.getConnectString());
+      LOGGER.info("ZooKeeper config source started: {}", config.getConnectString());
     } catch (Exception e) {
-      logger.error("Failed to start ZooKeeper config source", e);
+      LOGGER.error("Failed to start ZooKeeper config source", e);
       throw new RuntimeException("Failed to start ZooKeeper client", e);
     }
   }
@@ -163,7 +164,7 @@ public class ZooKeeperConfigSource implements AutoCloseable {
     }
 
     configCache.put(key, value);
-    logger.debug("Set config: {} = {}", key, value);
+    LOGGER.debug("Set config: {} = {}", key, value);
   }
 
   /**
@@ -183,7 +184,7 @@ public class ZooKeeperConfigSource implements AutoCloseable {
     }
 
     configCache.remove(key);
-    logger.debug("Deleted config: {}", key);
+    LOGGER.debug("Deleted config: {}", key);
   }
 
   /**
@@ -219,7 +220,7 @@ public class ZooKeeperConfigSource implements AutoCloseable {
     listeners.clear();
     started = false;
 
-    logger.info("ZooKeeper config source closed");
+    LOGGER.info("ZooKeeper config source closed");
   }
 
   /**
@@ -283,7 +284,7 @@ public class ZooKeeperConfigSource implements AutoCloseable {
               try {
                 handleCacheEvent(event);
               } catch (Exception e) {
-                logger.error("Error handling cache event", e);
+                LOGGER.error("Error handling cache event", e);
               }
             });
 
@@ -326,7 +327,7 @@ public class ZooKeeperConfigSource implements AutoCloseable {
       try {
         listener.accept(snapshot);
       } catch (Exception e) {
-        logger.error("Error notifying listener", e);
+        LOGGER.error("Error notifying listener", e);
       }
     }
   }

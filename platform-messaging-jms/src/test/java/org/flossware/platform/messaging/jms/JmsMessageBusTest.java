@@ -24,12 +24,12 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import jakarta.jms.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.flossware.platform.api.Message;
 import org.flossware.platform.api.MessageHandler;
 import org.flossware.platform.api.Subscription;
@@ -37,6 +37,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import jakarta.jms.*;
 
 /** Unit tests for JmsMessageBus. */
 class JmsMessageBusTest {

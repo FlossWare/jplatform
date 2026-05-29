@@ -17,16 +17,18 @@
 
 package org.flossware.platform.registry.eureka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
+
 import org.flossware.platform.api.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Netflix Eureka-based implementation of ServiceRegistry. Stores service registrations in Eureka
@@ -47,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(EurekaServiceRegistry.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EurekaServiceRegistry.class);
 
   private final EurekaRegistryConfig config;
   private final Map<Class<?>, List<Object>> localServices;
@@ -102,7 +104,7 @@ public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
     }
 
     started = true;
-    logger.info("Eureka service registry started with app name: {}", config.getAppName());
+    LOGGER.info("Eureka service registry started with app name: {}", config.getAppName());
   }
 
   @Override
@@ -119,7 +121,7 @@ public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
       registerWithEureka(serviceInterface);
     }
 
-    logger.info("Registered service {} locally", serviceInterface.getName());
+    LOGGER.info("Registered service {} locally", serviceInterface.getName());
   }
 
   @Override
@@ -152,7 +154,7 @@ public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
       }
     }
 
-    logger.info("Unregistered service {} from local registry", serviceInterface.getName());
+    LOGGER.info("Unregistered service {} from local registry", serviceInterface.getName());
   }
 
   @Override
@@ -177,7 +179,7 @@ public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
     registeredInstances.clear();
     started = false;
 
-    logger.info("Eureka service registry closed");
+    LOGGER.info("Eureka service registry closed");
   }
 
   /** Sends heartbeats for all registered instances. */
@@ -186,9 +188,9 @@ public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
       try {
         String url = getEurekaUrl() + "/apps/" + config.getAppName() + "/" + instanceId;
         sendHttpRequest(url, "PUT", null);
-        logger.debug("Sent heartbeat for instance: {}", instanceId);
+        LOGGER.debug("Sent heartbeat for instance: {}", instanceId);
       } catch (Exception e) {
-        logger.error("Failed to send heartbeat for instance: " + instanceId, e);
+        LOGGER.error("Failed to send heartbeat for instance: " + instanceId, e);
       }
     }
   }
@@ -239,9 +241,9 @@ public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
 
       registeredInstances.put(instanceId, serviceInterface.getName());
 
-      logger.info("Registered with Eureka: {} as {}", serviceInterface.getName(), instanceId);
+      LOGGER.info("Registered with Eureka: {} as {}", serviceInterface.getName(), instanceId);
     } catch (Exception e) {
-      logger.error("Failed to register with Eureka: " + serviceInterface.getName(), e);
+      LOGGER.error("Failed to register with Eureka: " + serviceInterface.getName(), e);
     }
   }
 
@@ -250,9 +252,9 @@ public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
       try {
         String url = getEurekaUrl() + "/apps/" + config.getAppName() + "/" + instanceId;
         sendHttpRequest(url, "DELETE", null);
-        logger.info("Deregistered instance from Eureka: {}", instanceId);
+        LOGGER.info("Deregistered instance from Eureka: {}", instanceId);
       } catch (Exception e) {
-        logger.error("Failed to deregister instance: " + instanceId, e);
+        LOGGER.error("Failed to deregister instance: " + instanceId, e);
       }
     }
   }
@@ -277,7 +279,7 @@ public class EurekaServiceRegistry implements ServiceRegistry, AutoCloseable {
 
     int responseCode = conn.getResponseCode();
     if (responseCode < 200 || responseCode >= 300) {
-      logger.warn(
+      LOGGER.warn(
           "Eureka request failed: {} {} - response code: {}", method, urlString, responseCode);
     }
 

@@ -20,6 +20,7 @@ package org.flossware.platform.api;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ import org.slf4j.LoggerFactory;
  *
  * @see PlatformApiServer
  */
-public class ApiServerConfig {
+public final class ApiServerConfig {
   private final int port;
   private final String bindAddress;
   private final boolean enableAuth;
@@ -153,7 +154,7 @@ public class ApiServerConfig {
 
   /** Builder for ApiServerConfig. */
   public static class Builder {
-    private static final Logger logger = LoggerFactory.getLogger(Builder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Builder.class);
 
     private int port = 8080;
     private String bindAddress = "0.0.0.0";
@@ -244,7 +245,7 @@ public class ApiServerConfig {
         throw new IllegalArgumentException("origin cannot be null");
       }
       if ("*".equals(origin)) {
-        logger.warn(
+        LOGGER.warn(
             "SECURITY WARNING: Wildcard CORS origin (*) allows any website to access your API. "
                 + "This creates XSS and CSRF vulnerabilities. Use specific origins instead "
                 + "(e.g., \"https://console.example.com\").");

@@ -17,17 +17,19 @@
 
 package org.flossware.platform.registry.consul;
 
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.flossware.platform.api.ServiceRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.orbitz.consul.AgentClient;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import org.flossware.platform.api.ServiceRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Consul-based implementation of ServiceRegistry. Provides distributed service discovery by
@@ -68,7 +70,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
 
-  private static final Logger logger = LoggerFactory.getLogger(ConsulServiceRegistry.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConsulServiceRegistry.class);
 
   private final ConsulRegistryConfig config;
   private final Consul consulClient;
@@ -126,7 +128,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
     this.agentClient = consulClient.agentClient();
     this.kvClient = consulClient.keyValueClient();
 
-    logger.info("ConsulServiceRegistry initialized with node ID: {}", config.getNodeId());
+    LOGGER.info("ConsulServiceRegistry initialized with node ID: {}", config.getNodeId());
   }
 
   /**
@@ -143,7 +145,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
     this.localServices = new ConcurrentHashMap<>();
     this.registeredServiceIds = new ConcurrentHashMap<>();
 
-    logger.info(
+    LOGGER.info(
         "ConsulServiceRegistry initialized (test mode) with node ID: {}", config.getNodeId());
   }
 
@@ -172,7 +174,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
           implementation.getClass() + " does not implement " + serviceInterface);
     }
 
-    logger.debug(
+    LOGGER.debug(
         "Registering service: {} with implementation: {}",
         serviceInterface.getName(),
         implementation.getClass().getName());
@@ -185,7 +187,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
         .computeIfAbsent(serviceInterface, k -> new CopyOnWriteArrayList<>())
         .add(implementation);
 
-    logger.info("Registered service: {}", serviceInterface.getSimpleName());
+    LOGGER.info("Registered service: {}", serviceInterface.getSimpleName());
   }
 
   /**
@@ -231,7 +233,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
    */
   @Override
   public void unregisterService(Class<?> serviceInterface, Object implementation) {
-    logger.debug(
+    LOGGER.debug(
         "Unregistering service: {} with implementation: {}",
         serviceInterface.getName(),
         implementation.getClass().getName());
@@ -248,7 +250,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
     // Unregister from Consul
     unregisterFromConsul(serviceInterface, implementation);
 
-    logger.info("Unregistered service: {}", serviceInterface.getSimpleName());
+    LOGGER.info("Unregistered service: {}", serviceInterface.getSimpleName());
   }
 
   /**
@@ -258,22 +260,22 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
    */
   @Override
   public void close() throws Exception {
-    logger.info("Closing ConsulServiceRegistry");
+    LOGGER.info("Closing ConsulServiceRegistry");
 
     // Unregister all services from Consul
     for (String serviceId : registeredServiceIds.values()) {
       try {
         agentClient.deregister(serviceId);
-        logger.debug("Deregistered service: {}", serviceId);
+        LOGGER.debug("Deregistered service: {}", serviceId);
       } catch (Exception e) {
-        logger.error("Error deregistering service: {}", serviceId, e);
+        LOGGER.error("Error deregistering service: {}", serviceId, e);
       }
     }
 
     registeredServiceIds.clear();
     localServices.clear();
 
-    logger.info("ConsulServiceRegistry closed");
+    LOGGER.info("ConsulServiceRegistry closed");
   }
 
   /**
@@ -306,7 +308,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
       try {
         agentClient.pass(serviceId);
       } catch (com.orbitz.consul.NotRegisteredException e) {
-        logger.warn("Service health check not yet available: {}", serviceId);
+        LOGGER.warn("Service health check not yet available: {}", serviceId);
       }
 
       // Store service ID for later cleanup using composite key
@@ -317,10 +319,10 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
       String kvKey = "jplatform/services/" + config.getNodeId() + "/" + serviceInterface.getName();
       kvClient.putValue(kvKey, implementation.getClass().getName());
 
-      logger.debug("Registered service in Consul: {} with ID: {}", serviceName, serviceId);
+      LOGGER.debug("Registered service in Consul: {} with ID: {}", serviceName, serviceId);
 
     } catch (Exception e) {
-      logger.error("Failed to register service in Consul: {}", serviceInterface.getName(), e);
+      LOGGER.error("Failed to register service in Consul: {}", serviceInterface.getName(), e);
       throw new RuntimeException("Failed to register service in Consul", e);
     }
   }
@@ -338,7 +340,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
 
       if (serviceId != null) {
         agentClient.deregister(serviceId);
-        logger.debug("Unregistered service from Consul: {}", serviceId);
+        LOGGER.debug("Unregistered service from Consul: {}", serviceId);
 
         // Remove metadata from Consul KV
         String kvKey =
@@ -347,7 +349,7 @@ public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
       }
 
     } catch (Exception e) {
-      logger.error("Failed to unregister service from Consul: {}", serviceInterface.getName(), e);
+      LOGGER.error("Failed to unregister service from Consul: {}", serviceInterface.getName(), e);
     }
   }
 

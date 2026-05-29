@@ -23,10 +23,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.flossware.platform.api.VolumeManager;
 import org.flossware.platform.api.VolumeMount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -50,7 +52,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * @since 1.1
  */
 public class RedisVolumeManager implements VolumeManager, AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(RedisVolumeManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RedisVolumeManager.class);
 
   private final RedisStorageConfig config;
   private final Map<String, VolumeMount> volumes;
@@ -129,9 +131,9 @@ public class RedisVolumeManager implements VolumeManager, AutoCloseable {
       }
 
       initialized = true;
-      logger.info("Redis volume manager initialized: {}:{}", config.getHost(), config.getPort());
+      LOGGER.info("Redis volume manager initialized: {}:{}", config.getHost(), config.getPort());
     } catch (Exception e) {
-      logger.error("Failed to initialize Redis volume manager", e);
+      LOGGER.error("Failed to initialize Redis volume manager", e);
       throw new RuntimeException("Failed to initialize Redis pool", e);
     }
   }
@@ -156,7 +158,7 @@ public class RedisVolumeManager implements VolumeManager, AutoCloseable {
 
             return path;
           } catch (IOException e) {
-            logger.error("Failed to create volume directory: " + volumeName, e);
+            LOGGER.error("Failed to create volume directory: " + volumeName, e);
             throw new RuntimeException("Failed to create volume directory", e);
           }
         });
@@ -188,13 +190,13 @@ public class RedisVolumeManager implements VolumeManager, AutoCloseable {
         try {
           totalSize += Long.parseLong(sizeStr);
         } catch (NumberFormatException e) {
-          logger.warn("Skipping file {} with invalid size value: {}", fileName, sizeStr);
+          LOGGER.warn("Skipping file {} with invalid size value: {}", fileName, sizeStr);
         }
       }
 
       return totalSize;
     } catch (Exception e) {
-      logger.error("Failed to get volume usage for: " + volumeName, e);
+      LOGGER.error("Failed to get volume usage for: " + volumeName, e);
       throw new IOException("Failed to get volume usage", e);
     }
   }
@@ -262,7 +264,7 @@ public class RedisVolumeManager implements VolumeManager, AutoCloseable {
     if (jedisPool != null) {
       jedisPool.close();
       initialized = false;
-      logger.info("Redis volume manager closed");
+      LOGGER.info("Redis volume manager closed");
     }
   }
 
@@ -280,7 +282,7 @@ public class RedisVolumeManager implements VolumeManager, AutoCloseable {
       String key = config.getKeyPrefix() + volumeName + ":path";
       jedis.set(key, path);
     } catch (Exception e) {
-      logger.error("Failed to record volume path: " + volumeName, e);
+      LOGGER.error("Failed to record volume path: " + volumeName, e);
     }
   }
 }

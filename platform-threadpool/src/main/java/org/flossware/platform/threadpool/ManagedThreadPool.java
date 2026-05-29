@@ -17,14 +17,17 @@
 
 package org.flossware.platform.threadpool;
 
+import java.util.Objects;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.flossware.platform.api.ThreadPoolConfig;
 import org.flossware.platform.api.ThreadPoolStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Managed thread pool for an application.
@@ -51,7 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ManagedThreadPool implements org.flossware.platform.api.ThreadPoolExecutor {
 
-    private static final Logger logger = LoggerFactory.getLogger(ManagedThreadPool.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ManagedThreadPool.class);
     private static final long DEFAULT_SHUTDOWN_TIMEOUT_SECONDS = 30;
 
     private final String applicationId;
@@ -111,7 +114,7 @@ public class ManagedThreadPool implements org.flossware.platform.api.ThreadPoolE
             Thread t = new Thread(r, applicationId + "-thread-" + threadCounter.incrementAndGet());
             t.setDaemon(false);
             t.setUncaughtExceptionHandler((thread, throwable) -> {
-                logger.error("[{}] Uncaught exception in thread {}", applicationId, thread.getName(), throwable);
+                LOGGER.error("[{}] Uncaught exception in thread {}", applicationId, thread.getName(), throwable);
             });
             return t;
         };
@@ -126,7 +129,7 @@ public class ManagedThreadPool implements org.flossware.platform.api.ThreadPoolE
                 new ThreadPoolExecutor.CallerRunsPolicy()
         );
 
-        logger.info("[{}] Created thread pool: core={}, max={}, queue={}, shutdownTimeout={}s",
+        LOGGER.info("[{}] Created thread pool: core={}, max={}, queue={}, shutdownTimeout={}s",
                 applicationId, config.getCorePoolSize(), config.getMaxPoolSize(),
                 config.getQueueCapacity(), shutdownTimeoutSeconds);
     }
@@ -189,16 +192,16 @@ public class ManagedThreadPool implements org.flossware.platform.api.ThreadPoolE
      */
     @Override
     public void shutdown() {
-        logger.info("[{}] Shutting down thread pool", applicationId);
+        LOGGER.info("[{}] Shutting down thread pool", applicationId);
         executor.shutdown();
         try {
             if (!executor.awaitTermination(shutdownTimeoutSeconds, TimeUnit.SECONDS)) {
-                logger.warn("[{}] Thread pool did not terminate in {} seconds, forcing shutdown",
+                LOGGER.warn("[{}] Thread pool did not terminate in {} seconds, forcing shutdown",
                         applicationId, shutdownTimeoutSeconds);
                 executor.shutdownNow();
             }
         } catch (InterruptedException e) {
-            logger.warn("[{}] Interrupted while waiting for thread pool shutdown", applicationId);
+            LOGGER.warn("[{}] Interrupted while waiting for thread pool shutdown", applicationId);
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
@@ -211,7 +214,7 @@ public class ManagedThreadPool implements org.flossware.platform.api.ThreadPoolE
      */
     @Override
     public void shutdownNow() {
-        logger.info("[{}] Force shutting down thread pool", applicationId);
+        LOGGER.info("[{}] Force shutting down thread pool", applicationId);
         executor.shutdownNow();
     }
 

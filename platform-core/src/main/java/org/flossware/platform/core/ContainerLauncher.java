@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ContainerLauncher {
 
-  private static final Logger logger = LoggerFactory.getLogger(ContainerLauncher.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ContainerLauncher.class);
 
   public enum ContainerRuntime {
     DOCKER("docker"),
@@ -101,7 +102,7 @@ public class ContainerLauncher {
     Map<String, String> properties = descriptor.getProperties();
     ContainerRuntime runtime = ContainerRuntime.fromString(properties.get("container.runtime"));
 
-    logger.info(
+    LOGGER.info(
         "[{}] Launching containerized application with runtime: {}", applicationId, runtime);
 
     String containerName = properties.getOrDefault("container.name", applicationId);
@@ -118,14 +119,14 @@ public class ContainerLauncher {
 
     // Build run command
     List<String> command = buildRunCommand(runtime, containerName, image, properties);
-    logger.info("[{}] Container command: {}", applicationId, String.join(" ", command));
+    LOGGER.info("[{}] Container command: {}", applicationId, String.join(" ", command));
 
     // Launch container
     ProcessBuilder processBuilder = new ProcessBuilder(command);
     processBuilder.redirectErrorStream(true);
 
     Process process = processBuilder.start();
-    logger.info("[{}] Container launched", applicationId);
+    LOGGER.info("[{}] Container launched", applicationId);
 
     // Read container ID from output (Docker/Podman return container ID)
     String containerId = null;
@@ -135,7 +136,7 @@ public class ContainerLauncher {
       containerId = containerName; // LXC uses container name as ID
     }
 
-    logger.info("[{}] Container ID: {}", applicationId, containerId);
+    LOGGER.info("[{}] Container ID: {}", applicationId, containerId);
 
     // Create container info
     ContainerInfo containerInfo = new ContainerInfo(process, containerId, containerName, runtime);
@@ -157,7 +158,7 @@ public class ContainerLauncher {
   public void stop(String applicationId, ContainerInfo containerInfo, long gracefulTimeoutMs)
       throws InterruptedException, IOException {
 
-    logger.info("[{}] Stopping container: {}", applicationId, containerInfo.getContainerId());
+    LOGGER.info("[{}] Stopping container: {}", applicationId, containerInfo.getContainerId());
 
     ContainerRuntime runtime = containerInfo.getRuntime();
     String containerId = containerInfo.getContainerId();
@@ -191,7 +192,7 @@ public class ContainerLauncher {
           String running = reader.readLine();
           if ("false".equals(running)) {
             stopped = true;
-            logger.info("[{}] Container stopped", applicationId);
+            LOGGER.info("[{}] Container stopped", applicationId);
             break;
           }
         }
@@ -209,21 +210,21 @@ public class ContainerLauncher {
     }
 
     if (!stopped) {
-      logger.warn("[{}] Container did not stop within timeout", applicationId);
+      LOGGER.warn("[{}] Container did not stop within timeout", applicationId);
     }
 
     // Remove container
     List<String> removeCommand = buildRemoveCommand(runtime, containerId);
     executeCommand(removeCommand, applicationId, "remove");
 
-    logger.info("[{}] Container stopped and removed", applicationId);
+    LOGGER.info("[{}] Container stopped and removed", applicationId);
   }
 
   /** Pulls container image if not already present. */
   private void pullImageIfNeeded(ContainerRuntime runtime, String image, String applicationId)
       throws IOException {
 
-    logger.info("[{}] Checking if image exists: {}", applicationId, image);
+    LOGGER.info("[{}] Checking if image exists: {}", applicationId, image);
 
     // Check if image exists
     List<String> inspectCommand = new ArrayList<>();
@@ -239,7 +240,7 @@ public class ContainerLauncher {
     try {
       int exitCode = inspect.waitFor();
       if (exitCode == 0) {
-        logger.info("[{}] Image already exists: {}", applicationId, image);
+        LOGGER.info("[{}] Image already exists: {}", applicationId, image);
         return;
       }
     } catch (InterruptedException e) {
@@ -248,14 +249,14 @@ public class ContainerLauncher {
     }
 
     // Pull image
-    logger.info("[{}] Pulling image: {}", applicationId, image);
+    LOGGER.info("[{}] Pulling image: {}", applicationId, image);
     List<String> pullCommand = new ArrayList<>();
     pullCommand.add(runtime.getCommand());
     pullCommand.add("pull");
     pullCommand.add(image);
 
     executeCommand(pullCommand, applicationId, "pull");
-    logger.info("[{}] Image pulled successfully", applicationId);
+    LOGGER.info("[{}] Image pulled successfully", applicationId);
   }
 
   /** Builds the container run command. */
@@ -425,13 +426,13 @@ public class ContainerLauncher {
                   String line;
                   while ((line = reader.readLine()) != null
                       && !Thread.currentThread().isInterrupted()) {
-                    logger.info("[{}] {}", applicationId, line);
+                    LOGGER.info("[{}] {}", applicationId, line);
                   }
                 }
 
               } catch (IOException e) {
                 if (!Thread.currentThread().isInterrupted()) {
-                  logger.error("[{}] Error reading container logs", applicationId, e);
+                  LOGGER.error("[{}] Error reading container logs", applicationId, e);
                 }
               }
             },
@@ -465,7 +466,7 @@ public class ContainerLauncher {
                   output.append(line).append("\n");
                 }
               } catch (IOException e) {
-                logger.debug("Error reading command output", e);
+                LOGGER.debug("Error reading command output", e);
               }
             });
     outputReader.setDaemon(true);
@@ -476,7 +477,7 @@ public class ContainerLauncher {
       outputReader.join(5000); // Wait for output reader to finish
 
       if (exitCode != 0) {
-        logger.warn(
+        LOGGER.warn(
             "[{}] Container {} command failed (exit {}): {}",
             applicationId,
             operation,

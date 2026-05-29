@@ -19,11 +19,12 @@ package org.flossware.platform.rest.netty;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Test;
+
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import org.junit.jupiter.api.Test;
 
 /** Unit tests for RateLimitingHandler. Tests global and per-IP rate limiting behavior. */
 class RateLimitingHandlerTest {

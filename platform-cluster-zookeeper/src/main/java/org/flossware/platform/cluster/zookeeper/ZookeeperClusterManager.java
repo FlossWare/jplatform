@@ -20,6 +20,7 @@ package org.flossware.platform.cluster.zookeeper;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
@@ -47,7 +48,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class ZookeeperClusterManager implements ClusterManager {
-  private static final Logger logger = LoggerFactory.getLogger(ZookeeperClusterManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClusterManager.class);
   private static final String LEADER_PATH_PREFIX = "/jplatform/leader/";
   private static final String MEMBER_PATH_PREFIX = "/jplatform/members/";
 
@@ -134,14 +135,14 @@ public class ZookeeperClusterManager implements ClusterManager {
                 public void takeLeadership(CuratorFramework client) throws Exception {
                   isLeader = true;
                   notifyLeaderChanged(getLocalNode());
-                  logger.info("Became leader for cluster: {}", config.getClusterName());
+                  LOGGER.info("Became leader for cluster: {}", config.getClusterName());
 
                   // Hold leadership until interrupted
                   leadershipLatch = new CountDownLatch(1);
                   try {
                     leadershipLatch.await();
                   } catch (InterruptedException e) {
-                    logger.info("Leadership interrupted");
+                    LOGGER.info("Leadership interrupted");
                     Thread.currentThread().interrupt();
                   } finally {
                     isLeader = false;
@@ -203,7 +204,7 @@ public class ZookeeperClusterManager implements ClusterManager {
                 System.currentTimeMillis()));
       }
     } catch (Exception e) {
-      logger.error("Failed to get nodes", e);
+      LOGGER.error("Failed to get nodes", e);
     }
     return nodes;
   }
@@ -259,7 +260,7 @@ public class ZookeeperClusterManager implements ClusterManager {
           .withMode(org.apache.zookeeper.CreateMode.EPHEMERAL)
           .forPath(nodePath, String.valueOf(System.currentTimeMillis()).getBytes());
     } catch (Exception e) {
-      logger.error("Failed to register member", e);
+      LOGGER.error("Failed to register member", e);
     }
   }
 
@@ -271,7 +272,7 @@ public class ZookeeperClusterManager implements ClusterManager {
         client.delete().forPath(nodePath);
       }
     } catch (Exception e) {
-      logger.error("Failed to unregister member", e);
+      LOGGER.error("Failed to unregister member", e);
     }
   }
 
@@ -280,7 +281,7 @@ public class ZookeeperClusterManager implements ClusterManager {
       try {
         listener.onLeaderChanged(node);
       } catch (Exception e) {
-        logger.error("Listener error", e);
+        LOGGER.error("Listener error", e);
       }
     }
   }

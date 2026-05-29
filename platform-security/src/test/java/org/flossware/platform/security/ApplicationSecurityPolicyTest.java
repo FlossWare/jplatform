@@ -23,6 +23,7 @@ import java.io.FilePermission;
 import java.net.SocketPermission;
 import java.security.Permission;
 import java.util.Set;
+
 import org.flossware.platform.api.SecurityConfig;
 import org.junit.jupiter.api.Test;
 

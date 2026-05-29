@@ -74,7 +74,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class InMemoryMessageBus implements MessageBus {
 
-    private static final Logger logger = LoggerFactory.getLogger(InMemoryMessageBus.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryMessageBus.class);
     private static final List<SubscriptionImpl> EMPTY_SUBSCRIBERS = Collections.emptyList();
     private static final int DEFAULT_THREAD_POOL_SIZE = 4;
     private static final int DEFAULT_SHUTDOWN_TIMEOUT_SECONDS = 10;
@@ -118,7 +118,7 @@ public class InMemoryMessageBus implements MessageBus {
             t.setDaemon(true);
             return t;
         });
-        logger.info("InMemoryMessageBus started with {} dispatcher threads", threadPoolSize);
+        LOGGER.info("InMemoryMessageBus started with {} dispatcher threads", threadPoolSize);
     }
 
     /**
@@ -140,11 +140,11 @@ public class InMemoryMessageBus implements MessageBus {
         List<SubscriptionImpl> topicSubscribers = subscribers.get(topic);
 
         if (topicSubscribers == null || topicSubscribers.isEmpty()) {
-            logger.debug("No subscribers for topic: {}", topic);
+            LOGGER.debug("No subscribers for topic: {}", topic);
             return;
         }
 
-        logger.debug("Publishing message to topic '{}': {} subscribers", topic, topicSubscribers.size());
+        LOGGER.debug("Publishing message to topic '{}': {} subscribers", topic, topicSubscribers.size());
 
         for (SubscriptionImpl subscription : topicSubscribers) {
             if (subscription.isActive()) {
@@ -153,11 +153,11 @@ public class InMemoryMessageBus implements MessageBus {
                         try {
                             subscription.getHandler().onMessage(message);
                         } catch (Exception e) {
-                            logger.error("Error delivering message to subscriber on topic '{}'", topic, e);
+                            LOGGER.error("Error delivering message to subscriber on topic '{}'", topic, e);
                         }
                     });
                 } catch (RejectedExecutionException e) {
-                    logger.debug("Message bus is shut down, cannot deliver message to topic '{}'", topic);
+                    LOGGER.debug("Message bus is shut down, cannot deliver message to topic '{}'", topic);
                     // Don't propagate - gracefully skip delivery during shutdown
                 }
             }
@@ -185,7 +185,7 @@ public class InMemoryMessageBus implements MessageBus {
         subscribers.computeIfAbsent(topic, k -> new CopyOnWriteArrayList<>())
                 .add(subscription);
 
-        logger.info("New subscription to topic '{}'. Total subscribers: {}",
+        LOGGER.info("New subscription to topic '{}'. Total subscribers: {}",
                 topic, subscribers.get(topic).size());
 
         return subscription;
@@ -216,7 +216,7 @@ public class InMemoryMessageBus implements MessageBus {
      */
     void removeSubscription(SubscriptionImpl subscription) {
         if (subscription == null) {
-            logger.warn("Attempted to remove null subscription");
+            LOGGER.warn("Attempted to remove null subscription");
             return;
         }
 
@@ -225,7 +225,7 @@ public class InMemoryMessageBus implements MessageBus {
 
         if (topicSubscribers != null) {
             topicSubscribers.remove(subscription);
-            logger.info("Unsubscribed from topic '{}'. Remaining subscribers: {}",
+            LOGGER.info("Unsubscribed from topic '{}'. Remaining subscribers: {}",
                     subscription.getTopic(), topicSubscribers.size());
         }
     }
@@ -238,15 +238,15 @@ public class InMemoryMessageBus implements MessageBus {
      * within the timeout, a forced shutdown is initiated.
      */
     public void shutdown() {
-        logger.info("Shutting down message bus");
+        LOGGER.info("Shutting down message bus");
         dispatchExecutor.shutdown();
         try {
             if (!dispatchExecutor.awaitTermination(shutdownTimeoutSeconds, TimeUnit.SECONDS)) {
-                logger.warn("Message bus did not terminate within {} seconds, forcing shutdown", shutdownTimeoutSeconds);
+                LOGGER.warn("Message bus did not terminate within {} seconds, forcing shutdown", shutdownTimeoutSeconds);
                 dispatchExecutor.shutdownNow();
             }
         } catch (InterruptedException e) {
-            logger.warn("Shutdown interrupted, forcing shutdown");
+            LOGGER.warn("Shutdown interrupted, forcing shutdown");
             dispatchExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }

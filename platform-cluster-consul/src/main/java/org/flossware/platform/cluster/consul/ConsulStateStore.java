@@ -17,17 +17,19 @@
 
 package org.flossware.platform.cluster.consul;
 
+import java.util.*;
+import java.util.concurrent.*;
+
+import org.flossware.platform.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.model.kv.Value;
-import java.util.*;
-import java.util.concurrent.*;
-import org.flossware.platform.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Consul-based implementation of ClusterStateStore. Provides distributed storage for application
@@ -73,7 +75,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConsulStateStore implements ClusterStateStore {
 
-  private static final Logger logger = LoggerFactory.getLogger(ConsulStateStore.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConsulStateStore.class);
   private static final String STATE_KEY_PREFIX = "jplatform/state/";
   private static final String DESCRIPTOR_KEY_PREFIX = "jplatform/descriptor/";
 
@@ -106,7 +108,7 @@ public class ConsulStateStore implements ClusterStateStore {
     this.watchTasks = new ConcurrentHashMap<>();
     this.watchIndexes = new ConcurrentHashMap<>();
 
-    logger.info(
+    LOGGER.info(
         "ConsulStateStore initialized with key prefixes: {}, {}",
         STATE_KEY_PREFIX,
         DESCRIPTOR_KEY_PREFIX);
@@ -126,7 +128,7 @@ public class ConsulStateStore implements ClusterStateStore {
     if (state == null) {
       throw new IllegalArgumentException("state cannot be null");
     }
-    logger.debug("Storing application state: {} -> {}", applicationId, state);
+    LOGGER.debug("Storing application state: {} -> {}", applicationId, state);
     String key = STATE_KEY_PREFIX + applicationId;
     kvClient.putValue(key, state.name());
     notifyListeners(applicationId, state);
@@ -148,7 +150,7 @@ public class ConsulStateStore implements ClusterStateStore {
       try {
         return ApplicationState.valueOf(stateName);
       } catch (IllegalArgumentException e) {
-        logger.error("Invalid state value for {}: {}", applicationId, stateName);
+        LOGGER.error("Invalid state value for {}: {}", applicationId, stateName);
         return null; // Return null for invalid state value rather than throwing
       }
     }
@@ -194,12 +196,12 @@ public class ConsulStateStore implements ClusterStateStore {
     }
     try {
       String json = objectMapper.writeValueAsString(descriptor);
-      logger.debug(
+      LOGGER.debug(
           "Storing application descriptor: {} (size: {} bytes)", applicationId, json.length());
       String key = DESCRIPTOR_KEY_PREFIX + applicationId;
       kvClient.putValue(key, json);
     } catch (Exception e) {
-      logger.error("Failed to serialize application descriptor: {}", applicationId, e);
+      LOGGER.error("Failed to serialize application descriptor: {}", applicationId, e);
       throw new RuntimeException("Failed to serialize application descriptor", e);
     }
   }
@@ -220,7 +222,7 @@ public class ConsulStateStore implements ClusterStateStore {
       try {
         return objectMapper.readValue(json, ApplicationDescriptor.class);
       } catch (Exception e) {
-        logger.error("Failed to deserialize application descriptor: {}", applicationId, e);
+        LOGGER.error("Failed to deserialize application descriptor: {}", applicationId, e);
         return null; // Return null for invalid JSON rather than throwing
       }
     }
@@ -274,7 +276,7 @@ public class ConsulStateStore implements ClusterStateStore {
       startWatch(key);
     }
 
-    logger.debug("Subscribed to state changes for: {}", key);
+    LOGGER.debug("Subscribed to state changes for: {}", key);
   }
 
   /**
@@ -297,7 +299,7 @@ public class ConsulStateStore implements ClusterStateStore {
         listeners.remove(key);
         stopWatch(key);
       }
-      logger.debug("Unsubscribed from state changes for: {}", key);
+      LOGGER.debug("Unsubscribed from state changes for: {}", key);
     }
   }
 
@@ -314,7 +316,7 @@ public class ConsulStateStore implements ClusterStateStore {
         try {
           listener.onStateChanged(applicationId, newState);
         } catch (Exception e) {
-          logger.error("Error notifying listener for key: {}", applicationId, e);
+          LOGGER.error("Error notifying listener for key: {}", applicationId, e);
         }
       }
     }
@@ -330,7 +332,7 @@ public class ConsulStateStore implements ClusterStateStore {
         watchExecutor.scheduleWithFixedDelay(() -> watchKey(applicationId), 0, 5, TimeUnit.SECONDS);
     watchTasks.put(applicationId, task);
     watchIndexes.put(applicationId, 0L);
-    logger.debug("Started watch task for: {}", applicationId);
+    LOGGER.debug("Started watch task for: {}", applicationId);
   }
 
   /**
@@ -344,7 +346,7 @@ public class ConsulStateStore implements ClusterStateStore {
       task.cancel(false);
     }
     watchIndexes.remove(applicationId);
-    logger.debug("Stopped watch task for: {}", applicationId);
+    LOGGER.debug("Stopped watch task for: {}", applicationId);
   }
 
   /**
@@ -371,13 +373,13 @@ public class ConsulStateStore implements ClusterStateStore {
         watchIndexes.put(applicationId, currentIndex);
       }
     } catch (Exception e) {
-      logger.error("Error watching key: " + applicationId, e);
+      LOGGER.error("Error watching key: " + applicationId, e);
     }
   }
 
   /** Closes the state store and shuts down the watch executor. */
   public void close() {
-    logger.info("Closing ConsulStateStore");
+    LOGGER.info("Closing ConsulStateStore");
 
     // Cancel all watch tasks
     for (Future<?> task : watchTasks.values()) {
@@ -398,7 +400,7 @@ public class ConsulStateStore implements ClusterStateStore {
     }
 
     listeners.clear();
-    logger.info("ConsulStateStore closed");
+    LOGGER.info("ConsulStateStore closed");
   }
 
   /**

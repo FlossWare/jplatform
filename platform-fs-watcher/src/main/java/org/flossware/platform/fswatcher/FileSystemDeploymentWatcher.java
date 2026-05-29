@@ -24,6 +24,7 @@ import java.nio.file.*;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
+
 import org.flossware.platform.api.DeploymentEventListener;
 import org.flossware.platform.api.DeploymentWatcher;
 import org.flossware.platform.api.WatcherConfig;
@@ -76,7 +77,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FileSystemDeploymentWatcher implements DeploymentWatcher {
 
-  private static final Logger logger = LoggerFactory.getLogger(FileSystemDeploymentWatcher.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemDeploymentWatcher.class);
 
   private final WatcherConfig config;
   private final CopyOnWriteArrayList<DeploymentEventListener> listeners;
@@ -106,7 +107,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
   @Override
   public void start() throws Exception {
     if (running) {
-      logger.warn("Watcher is already running");
+      LOGGER.warn("Watcher is already running");
       return;
     }
 
@@ -123,7 +124,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
       throw new IllegalStateException("Watch path is not a directory: " + watchDir);
     }
 
-    logger.info("Starting filesystem watcher on directory: {}", watchDir);
+    LOGGER.info("Starting filesystem watcher on directory: {}", watchDir);
 
     try {
       // Create watch service
@@ -154,13 +155,13 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
       running = true;
       watcherExecutor.submit(this::watchLoop);
 
-      logger.info("Filesystem watcher started successfully");
+      LOGGER.info("Filesystem watcher started successfully");
 
       // Scan existing files
       scanExistingFiles(watchDir);
 
     } catch (Exception e) {
-      logger.error("Failed to start filesystem watcher", e);
+      LOGGER.error("Failed to start filesystem watcher", e);
       cleanup();
       throw e;
     }
@@ -169,16 +170,16 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
   @Override
   public void stop() throws Exception {
     if (!running) {
-      logger.warn("Watcher is not running");
+      LOGGER.warn("Watcher is not running");
       return;
     }
 
-    logger.info("Stopping filesystem watcher");
+    LOGGER.info("Stopping filesystem watcher");
     running = false;
 
     cleanup();
 
-    logger.info("Filesystem watcher stopped");
+    LOGGER.info("Filesystem watcher stopped");
   }
 
   @Override
@@ -192,7 +193,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
       throw new NullPointerException("listener cannot be null");
     }
     listeners.add(listener);
-    logger.debug("Added deployment listener: {}", listener.getClass().getName());
+    LOGGER.debug("Added deployment listener: {}", listener.getClass().getName());
   }
 
   @Override
@@ -201,7 +202,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
       throw new NullPointerException("listener cannot be null");
     }
     listeners.remove(listener);
-    logger.debug("Removed deployment listener: {}", listener.getClass().getName());
+    LOGGER.debug("Removed deployment listener: {}", listener.getClass().getName());
   }
 
   @Override
@@ -211,7 +212,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
 
   /** Main watch loop that processes filesystem events. */
   private void watchLoop() {
-    logger.debug("Watch loop started");
+    LOGGER.debug("Watch loop started");
 
     while (running) {
       WatchKey key;
@@ -222,11 +223,11 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
           continue;
         }
       } catch (InterruptedException e) {
-        logger.debug("Watch loop interrupted");
+        LOGGER.debug("Watch loop interrupted");
         Thread.currentThread().interrupt();
         break;
       } catch (ClosedWatchServiceException e) {
-        logger.debug("Watch service closed");
+        LOGGER.debug("Watch service closed");
         break;
       }
 
@@ -236,7 +237,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
 
         // Handle overflow
         if (kind == StandardWatchEventKinds.OVERFLOW) {
-          logger.warn("Watch event overflow - some events may have been lost");
+          LOGGER.warn("Watch event overflow - some events may have been lost");
           continue;
         }
 
@@ -248,11 +249,11 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
 
         // Filter by extension
         if (!matchesExtension(filename)) {
-          logger.trace("Ignoring file (extension mismatch): {}", filename);
+          LOGGER.trace("Ignoring file (extension mismatch): {}", filename);
           continue;
         }
 
-        logger.debug("Detected {} event for: {}", kind.name(), filename);
+        LOGGER.debug("Detected {} event for: {}", kind.name(), filename);
 
         // Schedule debounced event
         if (kind == ENTRY_CREATE) {
@@ -267,13 +268,13 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
       // Reset the key
       boolean valid = key.reset();
       if (!valid) {
-        logger.error("Watch key is no longer valid - stopping watcher");
+        LOGGER.error("Watch key is no longer valid - stopping watcher");
         running = false;
         break;
       }
     }
 
-    logger.debug("Watch loop exited");
+    LOGGER.debug("Watch loop exited");
   }
 
   /**
@@ -288,7 +289,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
     ScheduledFuture<?> existing = pendingEvents.remove(file);
     if (existing != null) {
       existing.cancel(false);
-      logger.trace("Cancelled pending event for: {}", file);
+      LOGGER.trace("Cancelled pending event for: {}", file);
     }
 
     // Schedule new event
@@ -303,7 +304,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
             TimeUnit.MILLISECONDS);
 
     pendingEvents.put(file, future);
-    logger.trace("Scheduled debounced event for: {} (delay: {}ms)", file, debounceMillis);
+    LOGGER.trace("Scheduled debounced event for: {} (delay: {}ms)", file, debounceMillis);
   }
 
   /**
@@ -312,17 +313,17 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
    * @param watchDir the directory to scan
    */
   private void scanExistingFiles(Path watchDir) {
-    logger.debug("Scanning for existing descriptor files");
+    LOGGER.debug("Scanning for existing descriptor files");
 
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(watchDir)) {
       for (Path file : stream) {
         if (Files.isRegularFile(file) && matchesExtension(file.getFileName())) {
-          logger.debug("Found existing descriptor: {}", file);
+          LOGGER.debug("Found existing descriptor: {}", file);
           scheduleEvent(file, () -> notifyDescriptorDetected(file));
         }
       }
     } catch (IOException e) {
-      logger.error("Failed to scan existing files", e);
+      LOGGER.error("Failed to scan existing files", e);
     }
   }
 
@@ -351,12 +352,12 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
    * @param descriptorFile the descriptor file path
    */
   private void notifyDescriptorDetected(Path descriptorFile) {
-    logger.debug("Notifying listeners: descriptor detected - {}", descriptorFile);
+    LOGGER.debug("Notifying listeners: descriptor detected - {}", descriptorFile);
     for (DeploymentEventListener listener : listeners) {
       try {
         listener.onDescriptorDetected(descriptorFile);
       } catch (Exception e) {
-        logger.error("Listener threw exception on descriptor detected", e);
+        LOGGER.error("Listener threw exception on descriptor detected", e);
         notifyError(descriptorFile, e, listener);
       }
     }
@@ -368,12 +369,12 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
    * @param descriptorFile the descriptor file path
    */
   private void notifyDescriptorModified(Path descriptorFile) {
-    logger.debug("Notifying listeners: descriptor modified - {}", descriptorFile);
+    LOGGER.debug("Notifying listeners: descriptor modified - {}", descriptorFile);
     for (DeploymentEventListener listener : listeners) {
       try {
         listener.onDescriptorModified(descriptorFile);
       } catch (Exception e) {
-        logger.error("Listener threw exception on descriptor modified", e);
+        LOGGER.error("Listener threw exception on descriptor modified", e);
         notifyError(descriptorFile, e, listener);
       }
     }
@@ -385,12 +386,12 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
    * @param descriptorFile the descriptor file path
    */
   private void notifyDescriptorRemoved(Path descriptorFile) {
-    logger.debug("Notifying listeners: descriptor removed - {}", descriptorFile);
+    LOGGER.debug("Notifying listeners: descriptor removed - {}", descriptorFile);
     for (DeploymentEventListener listener : listeners) {
       try {
         listener.onDescriptorRemoved(descriptorFile);
       } catch (Exception e) {
-        logger.error("Listener threw exception on descriptor removed", e);
+        LOGGER.error("Listener threw exception on descriptor removed", e);
         notifyError(descriptorFile, e, listener);
       }
     }
@@ -407,7 +408,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
     try {
       listener.onError(file, error);
     } catch (Exception e) {
-      logger.error("Listener threw exception in onError handler", e);
+      LOGGER.error("Listener threw exception in onError handler", e);
     }
   }
 
@@ -443,7 +444,7 @@ public class FileSystemDeploymentWatcher implements DeploymentWatcher {
       try {
         watchService.close();
       } catch (IOException e) {
-        logger.error("Error closing watch service", e);
+        LOGGER.error("Error closing watch service", e);
       }
     }
   }

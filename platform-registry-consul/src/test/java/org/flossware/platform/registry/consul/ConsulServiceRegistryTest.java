@@ -20,11 +20,13 @@ package org.flossware.platform.registry.consul;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.orbitz.consul.*;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.orbitz.consul.*;
 
 class ConsulServiceRegistryTest {
 

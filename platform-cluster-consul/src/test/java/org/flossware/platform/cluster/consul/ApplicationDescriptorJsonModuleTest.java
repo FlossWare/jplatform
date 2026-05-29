@@ -19,13 +19,15 @@ package org.flossware.platform.cluster.consul;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.Map;
+
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.flossware.platform.api.ThreadPoolConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests for ApplicationDescriptorJsonModule. Tests custom Jackson serialization/deserialization of

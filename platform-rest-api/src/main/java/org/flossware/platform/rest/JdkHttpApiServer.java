@@ -17,9 +17,6 @@
 
 package org.flossware.platform.rest;
 
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -27,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.flossware.platform.api.ApiServerConfig;
 import org.flossware.platform.api.PlatformApiServer;
 import org.flossware.platform.api.PlatformManager;
@@ -34,6 +32,10 @@ import org.flossware.platform.api.ServerShutdownException;
 import org.flossware.platform.api.ServerStartupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * REST API server implementation using JDK's built-in {@code com.sun.net.httpserver.HttpServer}.
@@ -91,7 +93,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JdkHttpApiServer implements PlatformApiServer {
 
-  private static final Logger logger = LoggerFactory.getLogger(JdkHttpApiServer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JdkHttpApiServer.class);
 
   private final ApiServerConfig config;
   private final PlatformManager manager;
@@ -125,7 +127,7 @@ public class JdkHttpApiServer implements PlatformApiServer {
       throw new IllegalStateException("Server is already running");
     }
 
-    logger.info("Starting HTTP API server on {}:{}", config.getBindAddress(), config.getPort());
+    LOGGER.info("Starting HTTP API server on {}:{}", config.getBindAddress(), config.getPort());
 
     try {
       // Create HTTP server
@@ -141,7 +143,7 @@ public class JdkHttpApiServer implements PlatformApiServer {
 
       // Log the actual bound address (may differ from config if using ephemeral port)
       InetSocketAddress boundAddress = server.getAddress();
-      logger.info(
+      LOGGER.info(
           "HTTP API server bound to {}:{}", boundAddress.getHostString(), boundAddress.getPort());
 
       // Register handlers with CORS wrapper and store the contexts
@@ -155,7 +157,7 @@ public class JdkHttpApiServer implements PlatformApiServer {
 
       // Set up authentication filter if enabled
       if (config.isEnableAuth()) {
-        logger.info("API authentication enabled with header: {}", config.getApiKeyHeader());
+        LOGGER.info("API authentication enabled with header: {}", config.getApiKeyHeader());
         ApiAuthFilter authFilter = new ApiAuthFilter(config);
         // Add filters to existing contexts (don't create new ones!)
         applicationsContext.getFilters().add(authFilter);
@@ -177,12 +179,12 @@ public class JdkHttpApiServer implements PlatformApiServer {
                 java.util.concurrent.TimeUnit.SECONDS,
                 new java.util.concurrent.SynchronousQueue<>(),
                 new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
-        logger.info(
+        LOGGER.info(
             "Configured thread pool with {} core threads and {} max threads", coreSize, maxSize);
       } else {
         // Use fixed thread pool
         executor = Executors.newFixedThreadPool(coreSize);
-        logger.info("Configured fixed thread pool with {} threads", coreSize);
+        LOGGER.info("Configured fixed thread pool with {} threads", coreSize);
       }
       server.setExecutor(executor);
 
@@ -190,14 +192,14 @@ public class JdkHttpApiServer implements PlatformApiServer {
       server.start();
       running = true;
 
-      logger.info("HTTP API server started successfully on port {}", config.getPort());
+      LOGGER.info("HTTP API server started successfully on port {}", config.getPort());
 
       if (!config.getAllowedOrigins().isEmpty()) {
-        logger.info("CORS enabled for origins: {}", config.getAllowedOrigins());
+        LOGGER.info("CORS enabled for origins: {}", config.getAllowedOrigins());
       }
 
     } catch (IOException e) {
-      logger.error("Failed to start HTTP API server", e);
+      LOGGER.error("Failed to start HTTP API server", e);
       throw new ServerStartupException(
           "Failed to start HTTP API server on port " + config.getPort(), config.getPort(), e);
     }
@@ -216,7 +218,7 @@ public class JdkHttpApiServer implements PlatformApiServer {
       throw new IllegalStateException("Server is not running");
     }
 
-    logger.info("Stopping HTTP API server");
+    LOGGER.info("Stopping HTTP API server");
 
     try {
       // Stop with 5 second delay for graceful shutdown
@@ -227,11 +229,11 @@ public class JdkHttpApiServer implements PlatformApiServer {
         executor.shutdown();
         try {
           if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-            logger.warn("Executor did not terminate in time, forcing shutdown");
+            LOGGER.warn("Executor did not terminate in time, forcing shutdown");
             executor.shutdownNow();
           }
         } catch (InterruptedException e) {
-          logger.warn("Interrupted while waiting for executor shutdown, forcing shutdown");
+          LOGGER.warn("Interrupted while waiting for executor shutdown, forcing shutdown");
           executor.shutdownNow();
           Thread.currentThread().interrupt();
         }
@@ -239,10 +241,10 @@ public class JdkHttpApiServer implements PlatformApiServer {
 
       running = false;
 
-      logger.info("HTTP API server stopped successfully");
+      LOGGER.info("HTTP API server stopped successfully");
 
     } catch (Exception e) {
-      logger.error("Error stopping HTTP API server", e);
+      LOGGER.error("Error stopping HTTP API server", e);
       throw new ServerShutdownException("Failed to stop HTTP API server", e);
     }
   }
@@ -318,7 +320,7 @@ public class JdkHttpApiServer implements PlatformApiServer {
       // No CORS origins configured - don't add CORS headers
       // This means CORS is effectively disabled (browser will block cross-origin requests)
       // This is secure by default - users must explicitly configure allowed origins
-      logger.debug("No CORS origins configured, cross-origin requests will be blocked");
+      LOGGER.debug("No CORS origins configured, cross-origin requests will be blocked");
       return;
     }
 
@@ -326,7 +328,7 @@ public class JdkHttpApiServer implements PlatformApiServer {
     if (allowedOrigins.contains("*")) {
       // Allow all origins
       responseHeaders.add("Access-Control-Allow-Origin", "*");
-      logger.debug("CORS wildcard enabled, allowing all origins");
+      LOGGER.debug("CORS wildcard enabled, allowing all origins");
     } else {
       // Get the Origin header from the request
       String requestOrigin = requestHeaders.getFirst("Origin");
@@ -336,12 +338,12 @@ public class JdkHttpApiServer implements PlatformApiServer {
         responseHeaders.add("Access-Control-Allow-Origin", requestOrigin);
         // Vary header is important for proper caching of CORS responses
         responseHeaders.add("Vary", "Origin");
-        logger.debug("Accepting CORS request from allowed origin: {}", requestOrigin);
+        LOGGER.debug("Accepting CORS request from allowed origin: {}", requestOrigin);
       } else {
         // Origin not allowed or not provided - don't add CORS header
         // Browser will block the response
         if (requestOrigin != null) {
-          logger.debug("Rejecting CORS request from disallowed origin: {}", requestOrigin);
+          LOGGER.debug("Rejecting CORS request from disallowed origin: {}", requestOrigin);
         }
       }
     }

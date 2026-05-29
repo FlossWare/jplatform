@@ -27,6 +27,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 import org.flossware.platform.api.NativeLibrary;
 import org.flossware.platform.api.Platform;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ import org.slf4j.LoggerFactory;
  */
 public class NativeLibraryLoader {
 
-  private static final Logger logger = LoggerFactory.getLogger(NativeLibraryLoader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NativeLibraryLoader.class);
   private static final String DEFAULT_BASE_PATH = "/var/platform/natives";
 
   private final String applicationId;
@@ -82,7 +83,7 @@ public class NativeLibraryLoader {
     this.basePath = Objects.requireNonNull(basePath, "basePath cannot be null");
     this.currentPlatform = Platform.detect();
 
-    logger.info(
+    LOGGER.info(
         "[{}] NativeLibraryLoader created for platform: {}", applicationId, currentPlatform);
   }
 
@@ -105,13 +106,13 @@ public class NativeLibraryLoader {
     // Create directory if it doesn't exist
     if (!Files.exists(libDir)) {
       Files.createDirectories(libDir);
-      logger.info("[{}] Created native library directory: {}", applicationId, libDir);
+      LOGGER.info("[{}] Created native library directory: {}", applicationId, libDir);
     }
 
     // Filter libraries for current platform
     List<NativeLibrary> compatibleLibs = filterByPlatform(libraries);
 
-    logger.info(
+    LOGGER.info(
         "[{}] Found {} compatible native libraries for {}",
         applicationId,
         compatibleLibs.size(),
@@ -138,7 +139,7 @@ public class NativeLibraryLoader {
       if (lib.getPlatform() == Platform.ANY || lib.getPlatform() == currentPlatform) {
         compatible.add(lib);
       } else {
-        logger.debug(
+        LOGGER.debug(
             "[{}] Skipping incompatible library {} ({})",
             applicationId,
             lib.getName(),
@@ -172,7 +173,7 @@ public class NativeLibraryLoader {
 
     // Skip if already exists
     if (Files.exists(targetFile)) {
-      logger.debug("[{}] Library already exists: {}", applicationId, targetFile);
+      LOGGER.debug("[{}] Library already exists: {}", applicationId, targetFile);
       return;
     }
 
@@ -180,13 +181,13 @@ public class NativeLibraryLoader {
     if ("file".equals(libraryUri.getScheme())) {
       Path sourcePath = Paths.get(libraryUri);
       Files.copy(sourcePath, targetFile, StandardCopyOption.REPLACE_EXISTING);
-      logger.info(
+      LOGGER.info(
           "[{}] Extracted native library: {} -> {}", applicationId, library.getName(), targetFile);
     } else if ("http".equals(libraryUri.getScheme()) || "https".equals(libraryUri.getScheme())) {
       // Download from HTTP
       try (InputStream in = libraryUri.toURL().openStream()) {
         Files.copy(in, targetFile, StandardCopyOption.REPLACE_EXISTING);
-        logger.info(
+        LOGGER.info(
             "[{}] Downloaded native library: {} from {}",
             applicationId,
             library.getName(),
@@ -199,7 +200,7 @@ public class NativeLibraryLoader {
     // Make executable on Unix-like systems
     if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
       if (!targetFile.toFile().setExecutable(true)) {
-        logger.warn("[{}] Failed to set executable permission on {}", applicationId, targetFile);
+        LOGGER.warn("[{}] Failed to set executable permission on {}", applicationId, targetFile);
       }
     }
   }
@@ -255,12 +256,12 @@ public class NativeLibraryLoader {
                   try {
                     Files.delete(path);
                   } catch (IOException e) {
-                    logger.warn("[{}] Failed to delete: {}", applicationId, path, e);
+                    LOGGER.warn("[{}] Failed to delete: {}", applicationId, path, e);
                   }
                 });
       }
 
-      logger.info("[{}] Cleaned up native libraries", applicationId);
+      LOGGER.info("[{}] Cleaned up native libraries", applicationId);
     }
   }
 

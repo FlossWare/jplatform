@@ -46,7 +46,7 @@ import java.util.Set;
  *
  * @see SecurityPolicy
  */
-public class SecurityConfig {
+public final class SecurityConfig {
   private final Set<FilePermission> filePermissions;
   private final Set<SocketPermission> socketPermissions;
   private final Set<RuntimePermission> runtimePermissions;

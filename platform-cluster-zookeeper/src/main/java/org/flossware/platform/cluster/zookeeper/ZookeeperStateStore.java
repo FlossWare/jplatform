@@ -17,16 +17,18 @@
 
 package org.flossware.platform.cluster.zookeeper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.flossware.platform.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 /**
  * ZooKeeper-based implementation of ClusterStateStore using Apache Curator. Stores distributed
@@ -47,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class ZookeeperStateStore implements ClusterStateStore {
-  private static final Logger logger = LoggerFactory.getLogger(ZookeeperStateStore.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperStateStore.class);
   private static final String STATE_PATH = "/jplatform/states";
   private static final String DESCRIPTOR_PATH = "/jplatform/descriptors";
 
@@ -88,7 +90,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
       }
       notifyListeners(id, state);
     } catch (Exception e) {
-      logger.error("Failed to put application state for " + id, e);
+      LOGGER.error("Failed to put application state for " + id, e);
       throw new RuntimeException("Failed to persist application state to ZooKeeper", e);
     }
   }
@@ -103,7 +105,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
       byte[] data = client.getData().forPath(path);
       return mapper.readValue(data, ApplicationState.class);
     } catch (Exception e) {
-      logger.error("Failed to get application state for " + id, e);
+      LOGGER.error("Failed to get application state for " + id, e);
       return null;
     }
   }
@@ -123,11 +125,11 @@ public class ZookeeperStateStore implements ClusterStateStore {
           ApplicationState state = mapper.readValue(data, ApplicationState.class);
           states.put(child, state);
         } catch (Exception e) {
-          logger.error("Failed to deserialize state for " + child, e);
+          LOGGER.error("Failed to deserialize state for " + child, e);
         }
       }
     } catch (Exception e) {
-      logger.error("Failed to get all application states", e);
+      LOGGER.error("Failed to get all application states", e);
     }
     return states;
   }
@@ -148,7 +150,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
             .forPath(path, json.getBytes());
       }
     } catch (Exception e) {
-      logger.error("Failed to put application descriptor for " + id, e);
+      LOGGER.error("Failed to put application descriptor for " + id, e);
       throw new RuntimeException("Failed to persist application descriptor to ZooKeeper", e);
     }
   }
@@ -163,7 +165,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
       byte[] data = client.getData().forPath(path);
       return mapper.readValue(data, ApplicationDescriptor.class);
     } catch (Exception e) {
-      logger.error("Failed to get application descriptor for " + id, e);
+      LOGGER.error("Failed to get application descriptor for " + id, e);
       return null;
     }
   }
@@ -183,11 +185,11 @@ public class ZookeeperStateStore implements ClusterStateStore {
           ApplicationDescriptor desc = mapper.readValue(data, ApplicationDescriptor.class);
           descriptors.put(child, desc);
         } catch (Exception e) {
-          logger.error("Failed to deserialize descriptor for " + child, e);
+          LOGGER.error("Failed to deserialize descriptor for " + child, e);
         }
       }
     } catch (Exception e) {
-      logger.error("Failed to get all application descriptors", e);
+      LOGGER.error("Failed to get all application descriptors", e);
     }
     return descriptors;
   }
@@ -212,7 +214,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
         try {
           listener.onStateChanged(id, state);
         } catch (Exception e) {
-          logger.error("Listener error for " + id, e);
+          LOGGER.error("Listener error for " + id, e);
         }
       }
     }
@@ -228,7 +230,7 @@ public class ZookeeperStateStore implements ClusterStateStore {
         client.delete().deletingChildrenIfNeeded().forPath(DESCRIPTOR_PATH);
       }
     } catch (Exception e) {
-      logger.error("Failed to clear state store", e);
+      LOGGER.error("Failed to clear state store", e);
     }
   }
 }

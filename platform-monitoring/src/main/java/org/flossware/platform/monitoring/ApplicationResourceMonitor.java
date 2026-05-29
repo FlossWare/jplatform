@@ -81,7 +81,7 @@ import java.util.concurrent.*;
  */
 public class ApplicationResourceMonitor implements ResourceMonitor {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApplicationResourceMonitor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationResourceMonitor.class);
     private static final long DEFAULT_POLL_INTERVAL_SECONDS = 5;
     private static final int DEFAULT_HISTORY_SIZE = 720; // 1 hour at 5s intervals
 
@@ -144,7 +144,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
         });
 
         scheduler.scheduleAtFixedRate(this::collectMetrics, 0, pollIntervalSeconds, TimeUnit.SECONDS);
-        logger.info("[{}] Started resource monitor (poll interval: {}s, history size: {})",
+        LOGGER.info("[{}] Started resource monitor (poll interval: {}s, history size: {})",
                    applicationId, pollIntervalSeconds, maxHistorySize);
     }
 
@@ -200,7 +200,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
             }
 
         } catch (Exception e) {
-            logger.warn("[{}] Error collecting metrics", applicationId, e);
+            LOGGER.warn("[{}] Error collecting metrics", applicationId, e);
         }
     }
 
@@ -216,7 +216,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
         // Prevent overflow: activeCount() * 2 must fit in int and leave room for retry growth
         if (initialSize >= MAX_THREADS / 2) {
             initialSize = MAX_THREADS / 2 - 1;
-            logger.warn("[{}] Thread count {} exceeds reasonable limit, capping at {}",
+            LOGGER.warn("[{}] Thread count {} exceeds reasonable limit, capping at {}",
                        applicationId, applicationThreadGroup.activeCount(), initialSize * 2);
         }
 
@@ -227,7 +227,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
         // Retry with larger array if needed (count == length means array was full, some threads missed)
         while ((count = applicationThreadGroup.enumerate(threads, true)) == threads.length) {
             if (++retries > MAX_RETRIES) {
-                logger.warn("[{}] Thread enumeration retry limit reached after {} attempts, may miss some threads",
+                LOGGER.warn("[{}] Thread enumeration retry limit reached after {} attempts, may miss some threads",
                            applicationId, retries);
                 break;
             }
@@ -236,7 +236,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
             int newSize = threads.length * 2;
             if (newSize < 0 || newSize > MAX_THREADS) {
                 newSize = MAX_THREADS;
-                logger.warn("[{}] Thread array size capped at {}", applicationId, MAX_THREADS);
+                LOGGER.warn("[{}] Thread array size capped at {}", applicationId, MAX_THREADS);
             }
             threads = new Thread[newSize];
         }
@@ -307,7 +307,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
     @Override
     public void setQuota(ResourceQuota quota) {
         this.quota = quota;
-        logger.info("[{}] Resource quota set: {}", applicationId, quota);
+        LOGGER.info("[{}] Resource quota set: {}", applicationId, quota);
     }
 
     /**
@@ -332,7 +332,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
      */
     public void setEnforcer(ResourceEnforcer enforcer) {
         this.enforcer = enforcer;
-        logger.info("[{}] Resource enforcer {}", applicationId,
+        LOGGER.info("[{}] Resource enforcer {}", applicationId,
                 enforcer != null ? "enabled" : "disabled");
     }
 
@@ -375,7 +375,7 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
             try {
                 listener.onQuotaExceeded(applicationId, quota, snapshot);
             } catch (Exception e) {
-                logger.warn("[{}] Error in quota exceeded listener", applicationId, e);
+                LOGGER.warn("[{}] Error in quota exceeded listener", applicationId, e);
             }
         }
     }
@@ -395,26 +395,26 @@ public class ApplicationResourceMonitor implements ResourceMonitor {
      * If the scheduler does not terminate within 5 seconds, forces shutdown.
      */
     public void shutdown() {
-        logger.info("[{}] Shutting down resource monitor", applicationId);
+        LOGGER.info("[{}] Shutting down resource monitor", applicationId);
         scheduler.shutdown();
 
         try {
             if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                logger.warn("[{}] Resource monitor did not terminate in 5 seconds, forcing shutdown",
+                LOGGER.warn("[{}] Resource monitor did not terminate in 5 seconds, forcing shutdown",
                         applicationId);
                 scheduler.shutdownNow();
 
                 // Wait a bit longer for shutdownNow() to take effect
                 if (!scheduler.awaitTermination(2, TimeUnit.SECONDS)) {
-                    logger.error("[{}] Resource monitor failed to terminate", applicationId);
+                    LOGGER.error("[{}] Resource monitor failed to terminate", applicationId);
                 }
             }
         } catch (InterruptedException e) {
-            logger.warn("[{}] Interrupted while waiting for resource monitor shutdown", applicationId);
+            LOGGER.warn("[{}] Interrupted while waiting for resource monitor shutdown", applicationId);
             scheduler.shutdownNow();
             Thread.currentThread().interrupt();
         }
 
-        logger.info("[{}] Resource monitor shut down", applicationId);
+        LOGGER.info("[{}] Resource monitor shut down", applicationId);
     }
 }

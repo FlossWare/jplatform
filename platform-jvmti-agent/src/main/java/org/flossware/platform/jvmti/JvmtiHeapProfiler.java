@@ -56,7 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *     profiler.disableProfiling("my-app");
  * } else {
  *     // Fall back to estimation-based approach
- *     logger.warn("JVMTI agent not available, using estimation");
+ *     LOGGER.warn("JVMTI agent not available, using estimation");
  * }
  * }</pre>
  *
@@ -80,7 +80,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JvmtiHeapProfiler implements HeapProfiler {
 
-    private static final Logger logger = LoggerFactory.getLogger(JvmtiHeapProfiler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JvmtiHeapProfiler.class);
 
     /**
      * Name of the native library to load.
@@ -104,9 +104,9 @@ public class JvmtiHeapProfiler implements HeapProfiler {
         try {
             System.loadLibrary(NATIVE_LIBRARY_NAME);
             nativeLibraryLoaded = true;
-            logger.info("Successfully loaded JVMTI native library: {}", NATIVE_LIBRARY_NAME);
+            LOGGER.info("Successfully loaded JVMTI native library: {}", NATIVE_LIBRARY_NAME);
         } catch (UnsatisfiedLinkError e) {
-            logger.warn("Failed to load JVMTI native library '{}'. Profiling will not be available. " +
+            LOGGER.warn("Failed to load JVMTI native library '{}'. Profiling will not be available. " +
                        "Ensure the library is in java.library.path or the JVMTI agent is loaded at startup.",
                        NATIVE_LIBRARY_NAME, e);
         }
@@ -170,9 +170,9 @@ public class JvmtiHeapProfiler implements HeapProfiler {
 
         boolean added = enabledApplications.add(applicationId);
         if (added) {
-            logger.info("Enabled JVMTI heap profiling for application: {}", applicationId);
+            LOGGER.info("Enabled JVMTI heap profiling for application: {}", applicationId);
         } else {
-            logger.debug("JVMTI heap profiling already enabled for application: {}", applicationId);
+            LOGGER.debug("JVMTI heap profiling already enabled for application: {}", applicationId);
         }
     }
 
@@ -184,9 +184,9 @@ public class JvmtiHeapProfiler implements HeapProfiler {
 
         boolean removed = enabledApplications.remove(applicationId);
         if (removed) {
-            logger.info("Disabled JVMTI heap profiling for application: {}", applicationId);
+            LOGGER.info("Disabled JVMTI heap profiling for application: {}", applicationId);
         } else {
-            logger.debug("JVMTI heap profiling was not enabled for application: {}", applicationId);
+            LOGGER.debug("JVMTI heap profiling was not enabled for application: {}", applicationId);
         }
     }
 
@@ -203,11 +203,11 @@ public class JvmtiHeapProfiler implements HeapProfiler {
 
         try {
             long heapBytes = getHeapUsageBytesNative(classLoader);
-            logger.debug("Heap usage for ClassLoader {}: {} bytes",
+            LOGGER.debug("Heap usage for ClassLoader {}: {} bytes",
                         classLoader.getName(), heapBytes);
             return heapBytes;
         } catch (Exception e) {
-            logger.error("Error retrieving heap usage from JVMTI agent", e);
+            LOGGER.error("Error retrieving heap usage from JVMTI agent", e);
             throw new RuntimeException("Failed to retrieve heap usage from JVMTI agent", e);
         }
     }
@@ -221,15 +221,15 @@ public class JvmtiHeapProfiler implements HeapProfiler {
         try {
             Map<String, Long> heapByClass = getHeapByClassNative(classLoader);
             if (heapByClass == null) {
-                logger.warn("JVMTI agent returned null for heap-by-class data");
+                LOGGER.warn("JVMTI agent returned null for heap-by-class data");
                 return Collections.emptyMap();
             }
 
-            logger.debug("Retrieved heap breakdown for ClassLoader {}: {} classes",
+            LOGGER.debug("Retrieved heap breakdown for ClassLoader {}: {} classes",
                         classLoader.getName(), heapByClass.size());
             return Collections.unmodifiableMap(heapByClass);
         } catch (Exception e) {
-            logger.error("Error retrieving heap-by-class data from JVMTI agent", e);
+            LOGGER.error("Error retrieving heap-by-class data from JVMTI agent", e);
             throw new RuntimeException("Failed to retrieve heap-by-class data from JVMTI agent", e);
         }
     }

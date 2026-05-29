@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class HelloWorldApp implements Application {
 
-    private static final Logger logger = LoggerFactory.getLogger(HelloWorldApp.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HelloWorldApp.class);
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private Thread workerThread;
@@ -66,9 +66,9 @@ public class HelloWorldApp implements Application {
      */
     @Override
     public void start(ApplicationContext context) throws ApplicationStartupException {
-        logger.info("Hello World Application starting!");
-        logger.info("Application ID: {}", context.getApplicationId());
-        logger.info("Classpath: {}", System.getProperty("java.class.path"));
+        LOGGER.info("Hello World Application starting!");
+        LOGGER.info("Application ID: {}", context.getApplicationId());
+        LOGGER.info("Classpath: {}", System.getProperty("java.class.path"));
 
         running.set(true);
 
@@ -76,20 +76,20 @@ public class HelloWorldApp implements Application {
             int count = 0;
             while (running.get()) {
                 count++;
-                logger.info("Hello from JPlatform! Message #{}", count);
+                LOGGER.info("Hello from JPlatform! Message #{}", count);
                 System.out.println("Hello from JPlatform! Message #" + count);
 
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
-                    logger.info("Worker thread interrupted");
+                    LOGGER.info("Worker thread interrupted");
                     break;
                 }
             }
         }, "hello-world-worker");
 
         workerThread.start();
-        logger.info("Hello World Application started successfully");
+        LOGGER.info("Hello World Application started successfully");
     }
 
     /**
@@ -102,7 +102,7 @@ public class HelloWorldApp implements Application {
      */
     @Override
     public void stop() throws ApplicationShutdownException {
-        logger.info("Hello World Application stopping...");
+        LOGGER.info("Hello World Application stopping...");
         running.set(false);
 
         if (workerThread != null) {
@@ -116,6 +116,6 @@ public class HelloWorldApp implements Application {
             }
         }
 
-        logger.info("Hello World Application stopped");
+        LOGGER.info("Hello World Application stopped");
     }
 }

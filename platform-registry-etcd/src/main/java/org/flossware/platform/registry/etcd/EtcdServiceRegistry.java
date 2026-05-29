@@ -17,19 +17,22 @@
 
 package org.flossware.platform.registry.etcd;
 
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.*;
+
+import org.flossware.platform.api.ServiceRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
 import io.etcd.jetcd.Lease;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
 import io.etcd.jetcd.options.PutOption;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
-import org.flossware.platform.api.ServiceRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * etcd-based implementation of ServiceRegistry. Stores service registrations in etcd with automatic
@@ -50,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
-  private static final Logger logger = LoggerFactory.getLogger(EtcdServiceRegistry.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EtcdServiceRegistry.class);
   private static final String SERVICE_KEY_PREFIX = "/jplatform/services/";
 
   private final EtcdRegistryConfig config;
@@ -95,7 +98,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
   public void start() {
     synchronized (startLock) {
       if (started) {
-        logger.warn("EtcdServiceRegistry already started, ignoring start() call");
+        LOGGER.warn("EtcdServiceRegistry already started, ignoring start() call");
         return;
       }
 
@@ -103,7 +106,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
 
       // Warn if TTL is very large (services take long to disappear after crash)
       if (leaseTtl > 3600) {
-        logger.warn(
+        LOGGER.warn(
             "Lease TTL is very large ({} seconds). "
                 + "Services may take up to {} seconds to disappear after crash.",
             leaseTtl,
@@ -112,7 +115,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
 
       if (client == null) {
         client = Client.builder().endpoints(config.getEndpoints().toArray(new String[0])).build();
-        logger.info("Created etcd client with endpoints: {}", config.getEndpoints());
+        LOGGER.info("Created etcd client with endpoints: {}", config.getEndpoints());
       }
 
       leaseRenewalExecutor =
@@ -125,7 +128,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
 
       // Schedule renewal at 1/3 of TTL to provide safety margin
       long renewalPeriod = leaseTtl / 3;
-      logger.info(
+      LOGGER.info(
           "Starting lease renewal with TTL={} seconds, renewal period={} seconds",
           leaseTtl,
           renewalPeriod);
@@ -135,7 +138,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
             try {
               renewLeases();
             } catch (Exception e) {
-              logger.error("Exception during lease renewal, will retry on next cycle", e);
+              LOGGER.error("Exception during lease renewal, will retry on next cycle", e);
             }
           },
           renewalPeriod,
@@ -143,7 +146,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
           TimeUnit.SECONDS);
 
       started = true;
-      logger.info("EtcdServiceRegistry started");
+      LOGGER.info("EtcdServiceRegistry started");
     }
   }
 
@@ -156,7 +159,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
     // Check if already registered (prevents duplicates)
     List<Object> existingServices = localServices.get(serviceInterface);
     if (existingServices != null && existingServices.contains(implementation)) {
-      logger.warn(
+      LOGGER.warn(
           "Service {} with implementation {} is already registered, ignoring duplicate",
           serviceInterface.getName(),
           implementation.getClass().getName());
@@ -195,14 +198,14 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
       registeredServices.put(key, leaseId);
       serviceToKey.put(implementation, key); // Track service-to-key mapping
 
-      logger.info("Registered service {} in etcd at key {}", serviceInterface.getName(), key);
+      LOGGER.info("Registered service {} in etcd at key {}", serviceInterface.getName(), key);
     } catch (Exception e) {
       // Remove from local registry if etcd registration failed
       List<Object> services = localServices.get(serviceInterface);
       if (services != null) {
         services.remove(implementation);
       }
-      logger.error("Failed to register service in etcd: " + serviceInterface.getName(), e);
+      LOGGER.error("Failed to register service in etcd: " + serviceInterface.getName(), e);
       throw new RuntimeException("Failed to register service in etcd", e);
     }
   }
@@ -228,7 +231,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
     List<T> result = new ArrayList<>(services.size());
     for (Object service : services) {
       if (!serviceInterface.isInstance(service)) {
-        logger.error(
+        LOGGER.error(
             "Service registry corruption: found {} in registry for {}",
             service.getClass().getName(),
             serviceInterface.getName());
@@ -274,13 +277,13 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
             .delete(ByteSequence.from(key, StandardCharsets.UTF_8))
             .get(5, TimeUnit.SECONDS);
 
-        logger.info(
+        LOGGER.info(
             "Unregistered service {} from etcd and local registry", serviceInterface.getName());
       } catch (Exception e) {
-        logger.error("Failed to unregister service from etcd: " + serviceInterface.getName(), e);
+        LOGGER.error("Failed to unregister service from etcd: " + serviceInterface.getName(), e);
       }
     } else {
-      logger.info(
+      LOGGER.info(
           "Unregistered service {} from local registry only (not in etcd)",
           serviceInterface.getName());
     }
@@ -290,7 +293,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
   public void close() {
     synchronized (startLock) {
       if (!started) {
-        logger.debug("EtcdServiceRegistry not started, nothing to close");
+        LOGGER.debug("EtcdServiceRegistry not started, nothing to close");
         return;
       }
 
@@ -299,14 +302,14 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
         leaseRenewalExecutor.shutdown();
         try {
           if (!leaseRenewalExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-            logger.warn("Lease renewal executor did not terminate in time");
+            LOGGER.warn("Lease renewal executor did not terminate in time");
             leaseRenewalExecutor.shutdownNow();
             if (!leaseRenewalExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-              logger.error("Lease renewal executor did not terminate");
+              LOGGER.error("Lease renewal executor did not terminate");
             }
           }
         } catch (InterruptedException e) {
-          logger.warn("Interrupted while waiting for executor termination");
+          LOGGER.warn("Interrupted while waiting for executor termination");
           leaseRenewalExecutor.shutdownNow();
           Thread.currentThread().interrupt();
         }
@@ -319,7 +322,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
           try {
             leaseClient.revoke(leaseId).get(5, TimeUnit.SECONDS);
           } catch (Exception e) {
-            logger.error("Failed to revoke lease: " + leaseId, e);
+            LOGGER.error("Failed to revoke lease: " + leaseId, e);
           }
         }
         client.close();
@@ -330,7 +333,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
       serviceToKey.clear();
 
       started = false;
-      logger.info("EtcdServiceRegistry closed");
+      LOGGER.info("EtcdServiceRegistry closed");
     }
   }
 
@@ -342,7 +345,7 @@ public class EtcdServiceRegistry implements ServiceRegistry, AutoCloseable {
       try {
         leaseClient.keepAliveOnce(leaseId).get(5, TimeUnit.SECONDS);
       } catch (Exception e) {
-        logger.error("Failed to renew lease: " + leaseId, e);
+        LOGGER.error("Failed to renew lease: " + leaseId, e);
       }
     }
   }

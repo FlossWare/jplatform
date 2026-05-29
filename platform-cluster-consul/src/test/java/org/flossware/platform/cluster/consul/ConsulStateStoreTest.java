@@ -20,15 +20,17 @@ package org.flossware.platform.cluster.consul;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.*;
+import java.util.Base64;
+
+import org.flossware.platform.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.model.kv.ImmutableValue;
 import com.orbitz.consul.model.kv.Value;
-import java.util.*;
-import java.util.Base64;
-import org.flossware.platform.api.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 /** Unit tests for ConsulStateStore. */
 class ConsulStateStoreTest {

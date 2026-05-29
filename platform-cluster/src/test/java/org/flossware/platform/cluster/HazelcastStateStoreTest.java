@@ -21,18 +21,20 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.net.URI;
+import java.util.*;
+
+import org.flossware.platform.api.*;
+import org.flossware.platform.api.ClusterStateStore.StateChangeListener;
+import org.junit.jupiter.api.*;
+import org.mockito.ArgumentCaptor;
+
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
-import java.net.URI;
-import java.util.*;
-import org.flossware.platform.api.*;
-import org.flossware.platform.api.ClusterStateStore.StateChangeListener;
-import org.junit.jupiter.api.*;
-import org.mockito.ArgumentCaptor;
 
 /**
  * Comprehensive unit tests for HazelcastStateStore. Tests distributed state storage, descriptor

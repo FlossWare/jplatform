@@ -21,7 +21,9 @@ import java.lang.management.ManagementFactory;
 import java.rmi.registry.LocateRegistry;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.management.*;
+
 import org.flossware.platform.api.ApplicationContext;
 import org.flossware.platform.api.JmxExporterConfig;
 import org.flossware.platform.api.MetricsExporter;
@@ -82,7 +84,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JmxMetricsExporter implements MetricsExporter {
 
-  private static final Logger logger = LoggerFactory.getLogger(JmxMetricsExporter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JmxMetricsExporter.class);
 
   private final JmxExporterConfig config;
   private final PlatformManager manager;
@@ -112,7 +114,7 @@ public class JmxMetricsExporter implements MetricsExporter {
     this.registeredMBeans = new ConcurrentHashMap<>();
     this.running = false;
 
-    logger.info(
+    LOGGER.info(
         "JmxMetricsExporter created with domain: {}, port: {}",
         config.getDomain(),
         config.getPort());
@@ -121,16 +123,16 @@ public class JmxMetricsExporter implements MetricsExporter {
   @Override
   public void start() throws Exception {
     if (running) {
-      logger.warn("JmxMetricsExporter is already running");
+      LOGGER.warn("JmxMetricsExporter is already running");
       return;
     }
 
-    logger.info("Starting JmxMetricsExporter");
+    LOGGER.info("Starting JmxMetricsExporter");
 
     try {
       // Create RMI registry if port is configured
       if (config.getPort() > 0) {
-        logger.info("Creating RMI registry on port {}", config.getPort());
+        LOGGER.info("Creating RMI registry on port {}", config.getPort());
         LocateRegistry.createRegistry(config.getPort());
 
         // Set system properties for JMX remote access
@@ -138,16 +140,16 @@ public class JmxMetricsExporter implements MetricsExporter {
         System.setProperty("com.sun.management.jmxremote.authenticate", "false");
         System.setProperty("com.sun.management.jmxremote.ssl", "false");
 
-        logger.info(
+        LOGGER.info(
             "RMI registry created successfully. JMX endpoint: service:jmx:rmi:///jndi/rmi://localhost:{}/jmxrmi",
             config.getPort());
       }
 
       running = true;
-      logger.info("JmxMetricsExporter started successfully");
+      LOGGER.info("JmxMetricsExporter started successfully");
 
     } catch (Exception e) {
-      logger.error("Failed to start JmxMetricsExporter", e);
+      LOGGER.error("Failed to start JmxMetricsExporter", e);
       throw new Exception("Failed to start JMX metrics exporter", e);
     }
   }
@@ -155,11 +157,11 @@ public class JmxMetricsExporter implements MetricsExporter {
   @Override
   public void stop() throws Exception {
     if (!running) {
-      logger.warn("JmxMetricsExporter is not running");
+      LOGGER.warn("JmxMetricsExporter is not running");
       return;
     }
 
-    logger.info("Stopping JmxMetricsExporter");
+    LOGGER.info("Stopping JmxMetricsExporter");
 
     try {
       // Unregister all MBeans
@@ -169,21 +171,21 @@ public class JmxMetricsExporter implements MetricsExporter {
 
         try {
           mBeanServer.unregisterMBean(objectName);
-          logger.debug("Unregistered MBean for application: {}", appId);
+          LOGGER.debug("Unregistered MBean for application: {}", appId);
         } catch (InstanceNotFoundException e) {
-          logger.warn("MBean not found during shutdown for application: {}", appId);
+          LOGGER.warn("MBean not found during shutdown for application: {}", appId);
         } catch (Exception e) {
-          logger.error("Error unregistering MBean for application: {}", appId, e);
+          LOGGER.error("Error unregistering MBean for application: {}", appId, e);
         }
       }
 
       registeredMBeans.clear();
       running = false;
 
-      logger.info("JmxMetricsExporter stopped successfully");
+      LOGGER.info("JmxMetricsExporter stopped successfully");
 
     } catch (Exception e) {
-      logger.error("Failed to stop JmxMetricsExporter", e);
+      LOGGER.error("Failed to stop JmxMetricsExporter", e);
       throw new Exception("Failed to stop JMX metrics exporter", e);
     }
   }
@@ -191,7 +193,7 @@ public class JmxMetricsExporter implements MetricsExporter {
   @Override
   public void registerApplication(String applicationId, ApplicationContext context) {
     if (!running) {
-      logger.warn("Cannot register application: JmxMetricsExporter is not running");
+      LOGGER.warn("Cannot register application: JmxMetricsExporter is not running");
       return;
     }
 
@@ -202,7 +204,7 @@ public class JmxMetricsExporter implements MetricsExporter {
       throw new IllegalArgumentException("ApplicationContext cannot be null");
     }
 
-    logger.info("[{}] Registering application with JMX", applicationId);
+    LOGGER.info("[{}] Registering application with JMX", applicationId);
 
     try {
       // Create ObjectName with configured domain
@@ -214,7 +216,7 @@ public class JmxMetricsExporter implements MetricsExporter {
 
       // Check if already registered
       if (registeredMBeans.containsKey(applicationId)) {
-        logger.warn("[{}] Application is already registered, unregistering first", applicationId);
+        LOGGER.warn("[{}] Application is already registered, unregistering first", applicationId);
         unregisterApplication(applicationId);
       }
 
@@ -225,14 +227,14 @@ public class JmxMetricsExporter implements MetricsExporter {
 
       registeredMBeans.put(applicationId, objectName);
 
-      logger.info(
+      LOGGER.info(
           "[{}] Application registered successfully with JMX: {}", applicationId, objectNameStr);
 
     } catch (InstanceAlreadyExistsException e) {
-      logger.error("[{}] MBean already exists with this ObjectName", applicationId, e);
+      LOGGER.error("[{}] MBean already exists with this ObjectName", applicationId, e);
       throw new RuntimeException("Failed to register application: MBean already exists", e);
     } catch (Exception e) {
-      logger.error("[{}] Failed to register application with JMX", applicationId, e);
+      LOGGER.error("[{}] Failed to register application with JMX", applicationId, e);
       throw new RuntimeException("Failed to register application with JMX: " + applicationId, e);
     }
   }
@@ -243,23 +245,23 @@ public class JmxMetricsExporter implements MetricsExporter {
       throw new IllegalArgumentException("Application ID cannot be null or empty");
     }
 
-    logger.info("[{}] Unregistering application from JMX", applicationId);
+    LOGGER.info("[{}] Unregistering application from JMX", applicationId);
 
     ObjectName objectName = registeredMBeans.remove(applicationId);
 
     if (objectName == null) {
-      logger.warn("[{}] Application is not registered with JMX", applicationId);
+      LOGGER.warn("[{}] Application is not registered with JMX", applicationId);
       return;
     }
 
     try {
       mBeanServer.unregisterMBean(objectName);
-      logger.info("[{}] Application unregistered successfully from JMX", applicationId);
+      LOGGER.info("[{}] Application unregistered successfully from JMX", applicationId);
 
     } catch (InstanceNotFoundException e) {
-      logger.warn("[{}] MBean not found during unregistration", applicationId);
+      LOGGER.warn("[{}] MBean not found during unregistration", applicationId);
     } catch (Exception e) {
-      logger.error("[{}] Failed to unregister application from JMX", applicationId, e);
+      LOGGER.error("[{}] Failed to unregister application from JMX", applicationId, e);
       throw new RuntimeException("Failed to unregister application from JMX: " + applicationId, e);
     }
   }

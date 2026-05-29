@@ -17,6 +17,15 @@
 
 package org.flossware.platform.cluster;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.flossware.platform.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.core.EntryEvent;
@@ -25,13 +34,6 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import org.flossware.platform.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Hazelcast-based implementation of ClusterStateStore. Provides distributed storage for application
@@ -75,7 +77,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HazelcastStateStore implements ClusterStateStore {
 
-  private static final Logger logger = LoggerFactory.getLogger(HazelcastStateStore.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(HazelcastStateStore.class);
   private static final String STATE_MAP_NAME = "jplatform-application-states";
   private static final String DESCRIPTOR_MAP_NAME = "jplatform-application-descriptors";
 
@@ -103,7 +105,7 @@ public class HazelcastStateStore implements ClusterStateStore {
     this.objectMapper.registerModule(new ApplicationDescriptorJsonModule());
     this.listenerRegistry = new ConcurrentHashMap<>();
 
-    logger.info(
+    LOGGER.info(
         "HazelcastStateStore initialized with maps: {}, {}", STATE_MAP_NAME, DESCRIPTOR_MAP_NAME);
   }
 
@@ -116,7 +118,7 @@ public class HazelcastStateStore implements ClusterStateStore {
    */
   @Override
   public void putApplicationState(String applicationId, ApplicationState state) {
-    logger.debug("Storing application state: {} -> {}", applicationId, state);
+    LOGGER.debug("Storing application state: {} -> {}", applicationId, state);
     stateMap.put(applicationId, state);
   }
 
@@ -152,11 +154,11 @@ public class HazelcastStateStore implements ClusterStateStore {
   public void putApplicationDescriptor(String applicationId, ApplicationDescriptor descriptor) {
     try {
       String json = objectMapper.writeValueAsString(descriptor);
-      logger.debug(
+      LOGGER.debug(
           "Storing application descriptor: {} (size: {} bytes)", applicationId, json.length());
       descriptorMap.put(applicationId, json);
     } catch (Exception e) {
-      logger.error("Failed to serialize application descriptor: {}", applicationId, e);
+      LOGGER.error("Failed to serialize application descriptor: {}", applicationId, e);
       throw new RuntimeException("Failed to serialize application descriptor", e);
     }
   }
@@ -178,7 +180,7 @@ public class HazelcastStateStore implements ClusterStateStore {
     try {
       return objectMapper.readValue(json, ApplicationDescriptor.class);
     } catch (Exception e) {
-      logger.error("Failed to deserialize application descriptor: {}", applicationId, e);
+      LOGGER.error("Failed to deserialize application descriptor: {}", applicationId, e);
       throw new RuntimeException("Failed to deserialize application descriptor", e);
     }
   }
@@ -200,7 +202,7 @@ public class HazelcastStateStore implements ClusterStateStore {
             objectMapper.readValue(entry.getValue(), ApplicationDescriptor.class);
         result.put(entry.getKey(), descriptor);
       } catch (Exception e) {
-        logger.error("Failed to deserialize descriptor for: {}", entry.getKey(), e);
+        LOGGER.error("Failed to deserialize descriptor for: {}", entry.getKey(), e);
         throw new RuntimeException(
             "Failed to deserialize application descriptor for "
                 + entry.getKey()
@@ -229,7 +231,7 @@ public class HazelcastStateStore implements ClusterStateStore {
 
     listenerRegistry.computeIfAbsent(key, k -> new ConcurrentHashMap<>()).put(listener, listenerId);
 
-    logger.debug("Subscribed to state changes for: {}", key);
+    LOGGER.debug("Subscribed to state changes for: {}", key);
   }
 
   /**
@@ -249,7 +251,7 @@ public class HazelcastStateStore implements ClusterStateStore {
       UUID listenerId = listeners.remove(listener);
       if (listenerId != null) {
         stateMap.removeEntryListener(listenerId);
-        logger.debug("Unsubscribed from state changes for: {}", key);
+        LOGGER.debug("Unsubscribed from state changes for: {}", key);
       }
     }
   }
@@ -271,7 +273,7 @@ public class HazelcastStateStore implements ClusterStateStore {
       try {
         listener.onStateChanged(event.getKey(), event.getValue());
       } catch (Exception e) {
-        logger.error("Error in state change listener for key: {}", event.getKey(), e);
+        LOGGER.error("Error in state change listener for key: {}", event.getKey(), e);
       }
     }
 
@@ -280,7 +282,7 @@ public class HazelcastStateStore implements ClusterStateStore {
       try {
         listener.onStateChanged(event.getKey(), event.getValue());
       } catch (Exception e) {
-        logger.error("Error in state change listener for key: {}", event.getKey(), e);
+        LOGGER.error("Error in state change listener for key: {}", event.getKey(), e);
       }
     }
 
@@ -289,7 +291,7 @@ public class HazelcastStateStore implements ClusterStateStore {
       try {
         listener.onStateChanged(event.getKey(), null);
       } catch (Exception e) {
-        logger.error("Error in state change listener for key: {}", event.getKey(), e);
+        LOGGER.error("Error in state change listener for key: {}", event.getKey(), e);
       }
     }
   }

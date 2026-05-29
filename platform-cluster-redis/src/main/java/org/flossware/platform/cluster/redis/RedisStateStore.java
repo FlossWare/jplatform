@@ -17,14 +17,17 @@
 
 package org.flossware.platform.cluster.redis;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.flossware.platform.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -47,7 +50,7 @@ import redis.clients.jedis.JedisPool;
  * @since 1.1
  */
 public class RedisStateStore implements ClusterStateStore {
-  private static final Logger logger = LoggerFactory.getLogger(RedisStateStore.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RedisStateStore.class);
   private static final String STATE_KEY = "jplatform:states";
   private static final String DESCRIPTOR_KEY = "jplatform:descriptors";
 
@@ -78,7 +81,7 @@ public class RedisStateStore implements ClusterStateStore {
       jedis.hset(STATE_KEY, id, json);
       notifyListeners(id, state);
     } catch (Exception e) {
-      logger.error("Failed to put application state for " + id, e);
+      LOGGER.error("Failed to put application state for " + id, e);
       throw new RuntimeException("Failed to persist application state to Redis", e);
     }
   }
@@ -95,7 +98,7 @@ public class RedisStateStore implements ClusterStateStore {
         throw new RuntimeException("Failed to deserialize state for " + id, e);
       }
     } catch (Exception e) {
-      logger.error("Failed to get application state for " + id, e);
+      LOGGER.error("Failed to get application state for " + id, e);
       throw new RuntimeException("Redis error getting application state", e);
     }
   }
@@ -110,11 +113,11 @@ public class RedisStateStore implements ClusterStateStore {
           ApplicationState state = mapper.readValue(entry.getValue(), ApplicationState.class);
           states.put(entry.getKey(), state);
         } catch (Exception e) {
-          logger.error("Failed to deserialize state for " + entry.getKey(), e);
+          LOGGER.error("Failed to deserialize state for " + entry.getKey(), e);
         }
       }
     } catch (Exception e) {
-      logger.error("Failed to get all application states", e);
+      LOGGER.error("Failed to get all application states", e);
     }
     return states;
   }
@@ -125,7 +128,7 @@ public class RedisStateStore implements ClusterStateStore {
       String json = mapper.writeValueAsString(desc);
       jedis.hset(DESCRIPTOR_KEY, id, json);
     } catch (Exception e) {
-      logger.error("Failed to put application descriptor for " + id, e);
+      LOGGER.error("Failed to put application descriptor for " + id, e);
       throw new RuntimeException("Failed to persist application descriptor to Redis", e);
     }
   }
@@ -142,7 +145,7 @@ public class RedisStateStore implements ClusterStateStore {
         throw new RuntimeException("Failed to deserialize descriptor for " + id, e);
       }
     } catch (Exception e) {
-      logger.error("Failed to get application descriptor for " + id, e);
+      LOGGER.error("Failed to get application descriptor for " + id, e);
       throw new RuntimeException("Redis error getting application descriptor", e);
     }
   }
@@ -158,11 +161,11 @@ public class RedisStateStore implements ClusterStateStore {
               mapper.readValue(entry.getValue(), ApplicationDescriptor.class);
           descriptors.put(entry.getKey(), desc);
         } catch (Exception e) {
-          logger.error("Failed to deserialize descriptor for " + entry.getKey(), e);
+          LOGGER.error("Failed to deserialize descriptor for " + entry.getKey(), e);
         }
       }
     } catch (Exception e) {
-      logger.error("Failed to get all application descriptors", e);
+      LOGGER.error("Failed to get all application descriptors", e);
     }
     return descriptors;
   }
@@ -187,7 +190,7 @@ public class RedisStateStore implements ClusterStateStore {
         try {
           listener.onStateChanged(id, state);
         } catch (Exception e) {
-          logger.error("Listener error for " + id, e);
+          LOGGER.error("Listener error for " + id, e);
         }
       }
     }
@@ -198,7 +201,7 @@ public class RedisStateStore implements ClusterStateStore {
     try (Jedis jedis = pool.getResource()) {
       jedis.del(STATE_KEY, DESCRIPTOR_KEY);
     } catch (Exception e) {
-      logger.error("Failed to clear state store", e);
+      LOGGER.error("Failed to clear state store", e);
       throw new RuntimeException("Failed to clear state store", e);
     }
   }

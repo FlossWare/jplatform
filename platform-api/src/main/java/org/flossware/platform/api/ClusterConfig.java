@@ -40,7 +40,7 @@ import java.util.List;
  *
  * @see ClusterManager
  */
-public class ClusterConfig {
+public final class ClusterConfig {
   private final String clusterName;
   private final String bindAddress;
   private final int bindPort;

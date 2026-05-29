@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.flossware.platform.api.*;
 import org.flossware.platform.classloader.IsolatedClassLoader;
 import org.flossware.platform.monitoring.ApplicationResourceMonitor;
@@ -42,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ApplicationManager implements PlatformManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApplicationManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationManager.class);
 
   // Thread-safe maps - operations protected by per-application locks
   private final ConcurrentHashMap<String, ApplicationContextImpl> applications;
@@ -82,13 +83,13 @@ public class ApplicationManager implements PlatformManager {
     org.flossware.platform.vm.VmLauncher tempVmLauncher = null;
     try {
       tempVmLauncher = new org.flossware.platform.vm.VmLauncher();
-      logger.info("VM management initialized (libvirt connection established)");
+      LOGGER.info("VM management initialized (libvirt connection established)");
     } catch (Exception e) {
-      logger.warn("VM management not available (libvirt not accessible): {}", e.getMessage());
+      LOGGER.warn("VM management not available (libvirt not accessible): {}", e.getMessage());
     }
     this.vmLauncher = tempVmLauncher;
 
-    logger.info(
+    LOGGER.info(
         "ApplicationManager initialized with fine-grained locking, dependency resolution, hot reload, native process, container, and VM support");
   }
 
@@ -111,7 +112,7 @@ public class ApplicationManager implements PlatformManager {
         throw new IllegalStateException("Application already deployed: " + appId);
       }
 
-      logger.info("[{}] Deploying application: {}", appId, descriptor.getName());
+      LOGGER.info("[{}] Deploying application: {}", appId, descriptor.getName());
 
       try {
         // Create isolated classloader
@@ -129,7 +130,7 @@ public class ApplicationManager implements PlatformManager {
         // Register security policy with enforcer (for StackWalker-based enforcement)
         org.flossware.platform.security.SecurityEnforcer.getInstance()
             .registerPolicy(classLoader, securityPolicy);
-        logger.info("[{}] Registered security policy with enforcer", appId);
+        LOGGER.info("[{}] Registered security policy with enforcer", appId);
 
         // Create resource monitor
         ThreadGroup threadGroup = new ThreadGroup(appId + "-threads");
@@ -163,13 +164,13 @@ public class ApplicationManager implements PlatformManager {
                     try {
                       stop(id);
                     } catch (Exception e) {
-                      logger.error("[{}] Enforcer failed to stop application", id, e);
+                      LOGGER.error("[{}] Enforcer failed to stop application", id, e);
                     }
                   }, // shutdown action
                   this::forceKill // kill action
                   );
           resourceMonitor.setEnforcer(enforcer);
-          logger.info(
+          LOGGER.info(
               "[{}] Resource enforcer configured with grace period: {}",
               appId,
               resourceConfig.getViolationGracePeriod());
@@ -180,12 +181,12 @@ public class ApplicationManager implements PlatformManager {
         if (!descriptor.getVolumes().isEmpty()) {
           try {
             volumeManager = new FileSystemVolumeManager(appId, descriptor.getVolumes());
-            logger.info(
+            LOGGER.info(
                 "[{}] Created volume manager with {} volumes",
                 appId,
                 descriptor.getVolumes().size());
           } catch (Exception e) {
-            logger.error("[{}] Failed to create volume manager", appId, e);
+            LOGGER.error("[{}] Failed to create volume manager", appId, e);
             throw e;
           }
         }
@@ -201,13 +202,13 @@ public class ApplicationManager implements PlatformManager {
             // Applications must use System.load(absolutePath) to load these libraries.
             // The library directory path is: libDir.toString()
 
-            logger.info(
+            LOGGER.info(
                 "[{}] Loaded {} native libraries to {}",
                 appId,
                 descriptor.getNativeLibraries().size(),
                 libDir);
           } catch (Exception e) {
-            logger.error("[{}] Failed to load native libraries", appId, e);
+            LOGGER.error("[{}] Failed to load native libraries", appId, e);
             throw e;
           }
         }
@@ -235,15 +236,15 @@ public class ApplicationManager implements PlatformManager {
         // Validate dependencies
         List<String> validationErrors = dependencyResolver.validateDependencies(appId);
         if (!validationErrors.isEmpty()) {
-          logger.warn("[{}] Dependency validation warnings: {}", appId, validationErrors);
+          LOGGER.warn("[{}] Dependency validation warnings: {}", appId, validationErrors);
           // Note: We log warnings but don't fail deployment for missing optional dependencies
           // Required dependencies will cause start() to fail
         }
 
-        logger.info("[{}] Application deployed successfully", appId);
+        LOGGER.info("[{}] Application deployed successfully", appId);
 
       } catch (Exception e) {
-        logger.error("[{}] Failed to deploy application", appId, e);
+        LOGGER.error("[{}] Failed to deploy application", appId, e);
         throw new Exception("Failed to deploy application: " + appId, e);
       }
     } finally {
@@ -278,7 +279,7 @@ public class ApplicationManager implements PlatformManager {
             "Application cannot be started from state: " + context.getState());
       }
 
-      logger.info("[{}] Starting application", applicationId);
+      LOGGER.info("[{}] Starting application", applicationId);
       context.setState(ApplicationState.STARTING);
 
       try {
@@ -291,24 +292,24 @@ public class ApplicationManager implements PlatformManager {
           }
 
           // Launch as VM
-          logger.info("[{}] Launching as virtual machine", applicationId);
+          LOGGER.info("[{}] Launching as virtual machine", applicationId);
           org.flossware.platform.vm.VmLauncher.VmInfo vmInfo =
               vmLauncher.launch(applicationId, descriptor);
           context.setVmInfo(vmInfo);
 
           context.setState(ApplicationState.RUNNING);
-          logger.info("[{}] VM started successfully (UUID: {})", applicationId, vmInfo.getUuid());
+          LOGGER.info("[{}] VM started successfully (UUID: {})", applicationId, vmInfo.getUuid());
         }
         // Check if this is a containerized application
         else if (isContainerized(descriptor)) {
           // Launch as container
-          logger.info("[{}] Launching as container", applicationId);
+          LOGGER.info("[{}] Launching as container", applicationId);
           ContainerLauncher.ContainerInfo containerInfo =
               containerLauncher.launch(applicationId, descriptor);
           context.setContainerInfo(containerInfo);
 
           context.setState(ApplicationState.RUNNING);
-          logger.info(
+          LOGGER.info(
               "[{}] Container started successfully (ID: {})",
               applicationId,
               containerInfo.getContainerId());
@@ -316,7 +317,7 @@ public class ApplicationManager implements PlatformManager {
         // Check if this is a native image application
         else if (descriptor.isNativeImage()) {
           // Launch as native process
-          logger.info("[{}] Launching as native process", applicationId);
+          LOGGER.info("[{}] Launching as native process", applicationId);
           java.nio.file.Path workingDir =
               java.nio.file.Paths.get(
                   descriptor
@@ -330,7 +331,7 @@ public class ApplicationManager implements PlatformManager {
           context.setNativeProcess(process);
 
           context.setState(ApplicationState.RUNNING);
-          logger.info(
+          LOGGER.info(
               "[{}] Native process started successfully (PID: {})", applicationId, process.pid());
         } else {
           // Load main class using application's classloader
@@ -354,14 +355,14 @@ public class ApplicationManager implements PlatformManager {
               String[] args = new String[0];
               mainMethod.invoke(null, (Object) args);
             } catch (NoSuchMethodException e) {
-              logger.warn(
+              LOGGER.warn(
                   "[{}] Main class does not implement Application interface and has no main() method",
                   applicationId);
             }
           }
 
           context.setState(ApplicationState.RUNNING);
-          logger.info("[{}] Application started successfully", applicationId);
+          LOGGER.info("[{}] Application started successfully", applicationId);
         }
 
       } catch (Exception e) {
@@ -369,7 +370,7 @@ public class ApplicationManager implements PlatformManager {
         if (ctx != null) {
           ctx.setState(ApplicationState.FAILED);
         }
-        logger.error("[{}] Failed to start application", applicationId, e);
+        LOGGER.error("[{}] Failed to start application", applicationId, e);
         throw new Exception("Failed to start application: " + applicationId, e);
       } finally {
         Thread.currentThread().setContextClassLoader(platformSharedLoader);
@@ -401,14 +402,14 @@ public class ApplicationManager implements PlatformManager {
       }
 
       if (context.getState() != ApplicationState.RUNNING) {
-        logger.warn(
+        LOGGER.warn(
             "[{}] Application is not running, current state: {}",
             applicationId,
             context.getState());
         return;
       }
 
-      logger.info("[{}] Stopping application", applicationId);
+      LOGGER.info("[{}] Stopping application", applicationId);
       context.setState(ApplicationState.STOPPING);
 
       try {
@@ -419,7 +420,7 @@ public class ApplicationManager implements PlatformManager {
             throw new IllegalStateException("VM management not available (libvirt not accessible)");
           }
           // Stop VM (graceful shutdown)
-          logger.info("[{}] Stopping virtual machine", applicationId);
+          LOGGER.info("[{}] Stopping virtual machine", applicationId);
           vmLauncher.stop(applicationId, vmInfo.get(), true);
           context.setVmInfo(null);
         }
@@ -428,7 +429,7 @@ public class ApplicationManager implements PlatformManager {
           Optional<ContainerLauncher.ContainerInfo> containerInfo = context.getContainerInfo();
           if (containerInfo.isPresent()) {
             // Stop container
-            logger.info("[{}] Stopping container", applicationId);
+            LOGGER.info("[{}] Stopping container", applicationId);
             containerLauncher.stop(
                 applicationId, containerInfo.get(), 10000); // 10 second grace period
             context.setContainerInfo(null);
@@ -438,7 +439,7 @@ public class ApplicationManager implements PlatformManager {
             Optional<Process> nativeProcess = context.getNativeProcess();
             if (nativeProcess.isPresent()) {
               // Stop native process
-              logger.info("[{}] Stopping native process", applicationId);
+              LOGGER.info("[{}] Stopping native process", applicationId);
               nativeProcessLauncher.stop(
                   applicationId, nativeProcess.get(), 10000); // 10 second grace period
               context.setNativeProcess(null);
@@ -454,11 +455,11 @@ public class ApplicationManager implements PlatformManager {
         }
 
         context.setState(ApplicationState.STOPPED);
-        logger.info("[{}] Application stopped successfully", applicationId);
+        LOGGER.info("[{}] Application stopped successfully", applicationId);
 
       } catch (Exception e) {
         context.setState(ApplicationState.FAILED);
-        logger.error("[{}] Failed to stop application", applicationId, e);
+        LOGGER.error("[{}] Failed to stop application", applicationId, e);
         throw new Exception("Failed to stop application: " + applicationId, e);
       }
     } finally {
@@ -476,11 +477,11 @@ public class ApplicationManager implements PlatformManager {
     ApplicationContextImpl context = applications.get(applicationId);
 
     if (context == null) {
-      logger.warn("[{}] Cannot force kill: application not deployed", applicationId);
+      LOGGER.warn("[{}] Cannot force kill: application not deployed", applicationId);
       return;
     }
 
-    logger.warn("[{}] Force killing application due to resource enforcement", applicationId);
+    LOGGER.warn("[{}] Force killing application due to resource enforcement", applicationId);
 
     try {
       // Immediately shutdown thread pool without waiting
@@ -496,7 +497,7 @@ public class ApplicationManager implements PlatformManager {
         try {
           ((AutoCloseable) context.getClassLoader()).close();
         } catch (Exception e) {
-          logger.error("[{}] Error closing classloader during force kill", applicationId, e);
+          LOGGER.error("[{}] Error closing classloader during force kill", applicationId, e);
         }
       }
 
@@ -508,15 +509,15 @@ public class ApplicationManager implements PlatformManager {
                   applicationId, context.getClassLoader());
           cleanup.cleanupAll();
         } catch (Exception e) {
-          logger.error("[{}] Error during ClassLoader cleanup in force kill", applicationId, e);
+          LOGGER.error("[{}] Error during ClassLoader cleanup in force kill", applicationId, e);
         }
       }
 
       context.setState(ApplicationState.FAILED);
-      logger.error("[{}] Application force killed", applicationId);
+      LOGGER.error("[{}] Application force killed", applicationId);
 
     } catch (Exception e) {
-      logger.error("[{}] Error during force kill", applicationId, e);
+      LOGGER.error("[{}] Error during force kill", applicationId, e);
     }
   }
 
@@ -542,7 +543,7 @@ public class ApplicationManager implements PlatformManager {
         throw new IllegalStateException("Application not deployed: " + applicationId);
       }
 
-      logger.info("[{}] Undeploying application", applicationId);
+      LOGGER.info("[{}] Undeploying application", applicationId);
 
       try {
         // Stop if running (stop() will reacquire the lock, but ReentrantLock allows this)
@@ -566,7 +567,7 @@ public class ApplicationManager implements PlatformManager {
         // Unregister security policy
         org.flossware.platform.security.SecurityEnforcer.getInstance()
             .unregisterPolicy(context.getClassLoader());
-        logger.info("[{}] Unregistered security policy from enforcer", applicationId);
+        LOGGER.info("[{}] Unregistered security policy from enforcer", applicationId);
 
         // Comprehensive ClassLoader cleanup to prevent memory leaks
         if (context.getClassLoader() != null) {
@@ -589,9 +590,9 @@ public class ApplicationManager implements PlatformManager {
                   if (vm instanceof FileSystemVolumeManager) {
                     try {
                       ((FileSystemVolumeManager) vm).cleanupEphemeralVolumes();
-                      logger.info("[{}] Cleaned up ephemeral volumes", applicationId);
+                      LOGGER.info("[{}] Cleaned up ephemeral volumes", applicationId);
                     } catch (Exception e) {
-                      logger.error("[{}] Failed to cleanup ephemeral volumes", applicationId, e);
+                      LOGGER.error("[{}] Failed to cleanup ephemeral volumes", applicationId, e);
                     }
                   }
                 });
@@ -601,9 +602,9 @@ public class ApplicationManager implements PlatformManager {
           try {
             NativeLibraryLoader nativeLoader = new NativeLibraryLoader(applicationId);
             nativeLoader.cleanup();
-            logger.info("[{}] Cleaned up native libraries", applicationId);
+            LOGGER.info("[{}] Cleaned up native libraries", applicationId);
           } catch (Exception e) {
-            logger.error("[{}] Failed to cleanup native libraries", applicationId, e);
+            LOGGER.error("[{}] Failed to cleanup native libraries", applicationId, e);
           }
         }
 
@@ -615,10 +616,10 @@ public class ApplicationManager implements PlatformManager {
         // Clear reload history
         reloader.clearHistory(applicationId);
 
-        logger.info("[{}] Application undeployed successfully", applicationId);
+        LOGGER.info("[{}] Application undeployed successfully", applicationId);
 
       } catch (Exception e) {
-        logger.error("[{}] Failed to undeploy application", applicationId, e);
+        LOGGER.error("[{}] Failed to undeploy application", applicationId, e);
         throw new Exception("Failed to undeploy application: " + applicationId, e);
       }
     } finally {
@@ -661,7 +662,7 @@ public class ApplicationManager implements PlatformManager {
         throw new IllegalStateException("Application not deployed: " + applicationId);
       }
 
-      logger.info("[{}] Initiating hot code reload", applicationId);
+      LOGGER.info("[{}] Initiating hot code reload", applicationId);
 
       try {
         reloader.reload(applicationId, newDescriptor, context, this);
@@ -670,13 +671,13 @@ public class ApplicationManager implements PlatformManager {
         dependencyResolver.removeApplication(applicationId);
         dependencyResolver.addApplication(applicationId, newDescriptor);
 
-        logger.info(
+        LOGGER.info(
             "[{}] Hot reload successful - now on version {}",
             applicationId,
             reloader.getCurrentVersion(applicationId));
 
       } catch (Exception e) {
-        logger.error("[{}] Hot reload failed", applicationId, e);
+        LOGGER.error("[{}] Hot reload failed", applicationId, e);
         throw new Exception("Failed to reload application: " + applicationId, e);
       }
     } finally {
@@ -717,29 +718,29 @@ public class ApplicationManager implements PlatformManager {
    * @throws Exception if startup order cannot be determined (circular dependencies)
    */
   public void startAll() throws Exception {
-    logger.info("Starting all applications in dependency order");
+    LOGGER.info("Starting all applications in dependency order");
 
     List<String> startupOrder = dependencyResolver.getStartupOrder();
-    logger.info("Startup order: {}", startupOrder);
+    LOGGER.info("Startup order: {}", startupOrder);
 
     Set<String> runningApps = new HashSet<>();
 
     for (String appId : startupOrder) {
       ApplicationContextImpl context = applications.get(appId);
       if (context == null) {
-        logger.warn("[{}] Application not deployed, skipping", appId);
+        LOGGER.warn("[{}] Application not deployed, skipping", appId);
         continue;
       }
 
       ApplicationState state = context.getState();
       if (state == ApplicationState.RUNNING) {
-        logger.debug("[{}] Already running", appId);
+        LOGGER.debug("[{}] Already running", appId);
         runningApps.add(appId);
         continue;
       }
 
       if (state != ApplicationState.DEPLOYED && state != ApplicationState.STOPPED) {
-        logger.warn("[{}] Cannot start from state {}", appId, state);
+        LOGGER.warn("[{}] Cannot start from state {}", appId, state);
         continue;
       }
 
@@ -747,14 +748,14 @@ public class ApplicationManager implements PlatformManager {
         // start() method now handles its own locking
         start(appId);
         runningApps.add(appId);
-        logger.info("[{}] Started successfully", appId);
+        LOGGER.info("[{}] Started successfully", appId);
       } catch (Exception e) {
-        logger.error("[{}] Failed to start, skipping dependent applications", appId, e);
+        LOGGER.error("[{}] Failed to start, skipping dependent applications", appId, e);
         // Don't start apps that depend on this one
       }
     }
 
-    logger.info("Startup complete: {} applications running", runningApps.size());
+    LOGGER.info("Startup complete: {} applications running", runningApps.size());
   }
 
   /**
@@ -784,7 +785,7 @@ public class ApplicationManager implements PlatformManager {
    * <p>Note: Each application is locked individually during its undeploy operation.
    */
   public void shutdown() {
-    logger.info("Shutting down platform");
+    LOGGER.info("Shutting down platform");
 
     // Get a snapshot of application IDs to avoid concurrent modification
     List<String> appIds = new ArrayList<>(applications.keySet());
@@ -794,11 +795,11 @@ public class ApplicationManager implements PlatformManager {
         // undeploy() method now handles its own locking
         undeploy(appId);
       } catch (Exception e) {
-        logger.error("Error undeploying application during shutdown: {}", appId, e);
+        LOGGER.error("Error undeploying application during shutdown: {}", appId, e);
       }
     }
 
-    logger.info("Platform shutdown complete");
+    LOGGER.info("Platform shutdown complete");
   }
 
   private String getMainClassName(String applicationId) {

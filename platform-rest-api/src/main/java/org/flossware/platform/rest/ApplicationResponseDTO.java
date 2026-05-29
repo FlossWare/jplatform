@@ -17,11 +17,12 @@
 
 package org.flossware.platform.rest;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.flossware.platform.api.ApplicationContext;
 import org.flossware.platform.api.ApplicationState;
 import org.flossware.platform.api.ResourceSnapshot;
 import org.flossware.platform.api.ThreadPoolStats;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Data transfer object for application information in REST API responses. Contains application

@@ -26,6 +26,7 @@ import java.security.Permission;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.flossware.platform.api.SecurityPolicy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

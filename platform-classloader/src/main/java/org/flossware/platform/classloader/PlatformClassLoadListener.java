@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PlatformClassLoadListener implements ClassLoaderLifecycleListener {
 
-  private static final Logger logger = LoggerFactory.getLogger(PlatformClassLoadListener.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PlatformClassLoadListener.class);
 
   private final String applicationId;
 
@@ -43,8 +43,8 @@ public class PlatformClassLoadListener implements ClassLoaderLifecycleListener {
 
   @Override
   public void onClassLoaded(ClassLoadEvent event) {
-    if (logger.isDebugEnabled()) {
-      logger.debug(
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(
           "[{}] Loaded class {} from {} in {}ms ({}B)",
           applicationId,
           event.getClassName(),
@@ -59,13 +59,13 @@ public class PlatformClassLoadListener implements ClassLoaderLifecycleListener {
 
   @Override
   public void onClassLoadFailed(String className, Throwable error) {
-    logger.warn("[{}] Failed to load class {}: {}", applicationId, className, error.getMessage());
+    LOGGER.warn("[{}] Failed to load class {}: {}", applicationId, className, error.getMessage());
   }
 
   @Override
   public void onClassCacheHit(String className) {
-    if (logger.isTraceEnabled()) {
-      logger.trace("[{}] Cache hit for class {}", applicationId, className);
+    if (LOGGER.isTraceEnabled()) {
+      LOGGER.trace("[{}] Cache hit for class {}", applicationId, className);
     }
   }
 }

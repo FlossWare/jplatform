@@ -17,14 +17,16 @@
 
 package org.flossware.platform.cluster;
 
+import java.io.IOException;
+import java.net.URI;
+
+import org.flossware.platform.api.ApplicationDescriptor;
+import org.flossware.platform.api.ThreadPoolConfig;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.io.IOException;
-import java.net.URI;
-import org.flossware.platform.api.ApplicationDescriptor;
-import org.flossware.platform.api.ThreadPoolConfig;
 
 /**
  * Jackson module for serializing/deserializing ApplicationDescriptor. Handles the Builder pattern

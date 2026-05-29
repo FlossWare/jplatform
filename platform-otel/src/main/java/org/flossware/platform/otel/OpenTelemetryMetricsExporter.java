@@ -17,6 +17,16 @@
 
 package org.flossware.platform.otel;
 
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.flossware.platform.api.ApplicationContext;
+import org.flossware.platform.api.MetricsExporter;
+import org.flossware.platform.api.ResourceSnapshot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -26,14 +36,6 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.flossware.platform.api.ApplicationContext;
-import org.flossware.platform.api.MetricsExporter;
-import org.flossware.platform.api.ResourceSnapshot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * OpenTelemetry metrics exporter for JPlatform.
@@ -60,7 +62,7 @@ import org.slf4j.LoggerFactory;
  */
 public class OpenTelemetryMetricsExporter implements MetricsExporter {
 
-  private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryMetricsExporter.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OpenTelemetryMetricsExporter.class);
   private static final AttributeKey<String> APP_ID_KEY = AttributeKey.stringKey("app_id");
 
   private final OpenTelemetry openTelemetry;
@@ -117,20 +119,20 @@ public class OpenTelemetryMetricsExporter implements MetricsExporter {
     this.meter = openTelemetry.getMeter("jplatform");
     this.running = false;
 
-    logger.info("OpenTelemetryMetricsExporter initialized with endpoint: {}", otlpEndpoint);
+    LOGGER.info("OpenTelemetryMetricsExporter initialized with endpoint: {}", otlpEndpoint);
   }
 
   @Override
   public void start() throws Exception {
     running = true;
-    logger.info("OpenTelemetry metrics exporter started");
+    LOGGER.info("OpenTelemetry metrics exporter started");
   }
 
   @Override
   public void stop() throws Exception {
     running = false;
     shutdown();
-    logger.info("OpenTelemetry metrics exporter stopped");
+    LOGGER.info("OpenTelemetry metrics exporter stopped");
   }
 
   @Override
@@ -184,13 +186,13 @@ public class OpenTelemetryMetricsExporter implements MetricsExporter {
 
     instruments.put(applicationId, appInstruments);
 
-    logger.info("[{}] Registered with OpenTelemetry metrics exporter", applicationId);
+    LOGGER.info("[{}] Registered with OpenTelemetry metrics exporter", applicationId);
   }
 
   @Override
   public void unregisterApplication(String applicationId) {
     instruments.remove(applicationId);
-    logger.info("[{}] Unregistered from OpenTelemetry metrics exporter", applicationId);
+    LOGGER.info("[{}] Unregistered from OpenTelemetry metrics exporter", applicationId);
   }
 
   /**
@@ -203,7 +205,7 @@ public class OpenTelemetryMetricsExporter implements MetricsExporter {
   public void exportMetrics(String applicationId, ResourceSnapshot snapshot) {
     MetricInstruments appInstruments = instruments.get(applicationId);
     if (appInstruments == null) {
-      logger.warn("[{}] Not registered, cannot export metrics", applicationId);
+      LOGGER.warn("[{}] Not registered, cannot export metrics", applicationId);
       return;
     }
 
@@ -216,7 +218,7 @@ public class OpenTelemetryMetricsExporter implements MetricsExporter {
     // Note: Gauges are updated via callbacks
     // In a full implementation, we'd store latest values and update in callbacks
 
-    logger.debug(
+    LOGGER.debug(
         "[{}] Exported metrics to OpenTelemetry: cpu={}s, heap={}b, threads={}",
         applicationId,
         cpuTimeSeconds,
@@ -232,7 +234,7 @@ public class OpenTelemetryMetricsExporter implements MetricsExporter {
   public void shutdown() {
     if (openTelemetry instanceof OpenTelemetrySdk) {
       ((OpenTelemetrySdk) openTelemetry).getSdkMeterProvider().shutdown();
-      logger.info("OpenTelemetry SDK shutdown complete");
+      LOGGER.info("OpenTelemetry SDK shutdown complete");
     }
   }
 

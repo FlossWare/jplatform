@@ -17,17 +17,20 @@
 
 package org.flossware.platform.cluster.etcd;
 
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.*;
+
+import org.flossware.platform.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.etcd.jetcd.*;
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.lock.LockResponse;
 import io.etcd.jetcd.options.GetOption;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
-import org.flossware.platform.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * etcd-based ClusterManager implementation. Provides clustering via etcd's distributed coordination
@@ -36,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.1
  */
 public class EtcdClusterManager implements ClusterManager {
-  private static final Logger logger = LoggerFactory.getLogger(EtcdClusterManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EtcdClusterManager.class);
   private static final String LEADER_KEY_PREFIX = "/jplatform/leader/";
   private static final String NODES_KEY_PREFIX = "/jplatform/nodes/";
 
@@ -124,7 +127,7 @@ public class EtcdClusterManager implements ClusterManager {
       try {
         scheduler.shutdown();
       } catch (Exception e) {
-        logger.error("Failed to shutdown scheduler", e);
+        LOGGER.error("Failed to shutdown scheduler", e);
         firstException = e;
       }
     }
@@ -134,7 +137,7 @@ public class EtcdClusterManager implements ClusterManager {
       try {
         leaseClient.revoke(leaseId).get(5, TimeUnit.SECONDS);
       } catch (Exception e) {
-        logger.error("Failed to revoke lease", e);
+        LOGGER.error("Failed to revoke lease", e);
         if (firstException == null) firstException = e;
       }
     }
@@ -144,7 +147,7 @@ public class EtcdClusterManager implements ClusterManager {
       try {
         etcdClient.close();
       } catch (Exception e) {
-        logger.error("Failed to close client", e);
+        LOGGER.error("Failed to close client", e);
         if (firstException == null) firstException = e;
       }
     }
@@ -179,7 +182,7 @@ public class EtcdClusterManager implements ClusterManager {
         nodes.add(node);
       }
     } catch (Exception e) {
-      logger.error("Failed to get cluster nodes from etcd", e);
+      LOGGER.error("Failed to get cluster nodes from etcd", e);
     }
 
     return nodes;
@@ -233,7 +236,7 @@ public class EtcdClusterManager implements ClusterManager {
         notifyLeaderChanged(getLocalNode());
       }
     } catch (Exception e) {
-      logger.debug("Not leader", e);
+      LOGGER.debug("Not leader", e);
       isLeader = false;
     }
   }
@@ -243,7 +246,7 @@ public class EtcdClusterManager implements ClusterManager {
       try {
         leaseClient.keepAliveOnce(leaseId).get(5, TimeUnit.SECONDS);
       } catch (Exception e) {
-        logger.error("Failed to keep alive", e);
+        LOGGER.error("Failed to keep alive", e);
       }
     }
   }
@@ -253,7 +256,7 @@ public class EtcdClusterManager implements ClusterManager {
       try {
         listener.onLeaderChanged(node);
       } catch (Exception e) {
-        logger.error("Listener error", e);
+        LOGGER.error("Listener error", e);
       }
     }
   }
