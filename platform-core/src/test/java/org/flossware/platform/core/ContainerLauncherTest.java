@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Test;
  * Unit tests for ContainerLauncher. Tests configuration validation, runtime detection, and API
  * contract.
  *
- * <p>Note: Full integration tests require Docker/Podman/LXC installed. These tests focus on
- * configuration parsing and validation.
+ * <p>Note: Full integration tests require Docker/Podman/containerd/LXC installed. These tests focus
+ * on configuration parsing and validation.
  */
 class ContainerLauncherTest {
 
@@ -50,6 +50,9 @@ class ContainerLauncherTest {
     assertEquals(
         ContainerLauncher.ContainerRuntime.PODMAN,
         ContainerLauncher.ContainerRuntime.fromString("podman"));
+    assertEquals(
+        ContainerLauncher.ContainerRuntime.CONTAINERD,
+        ContainerLauncher.ContainerRuntime.fromString("containerd"));
     assertEquals(
         ContainerLauncher.ContainerRuntime.LXC,
         ContainerLauncher.ContainerRuntime.fromString("lxc"));
@@ -77,7 +80,16 @@ class ContainerLauncherTest {
   void testContainerRuntimeGetCommand() {
     assertEquals("docker", ContainerLauncher.ContainerRuntime.DOCKER.getCommand());
     assertEquals("podman", ContainerLauncher.ContainerRuntime.PODMAN.getCommand());
+    assertEquals("nerdctl", ContainerLauncher.ContainerRuntime.CONTAINERD.getCommand());
     assertEquals("lxc", ContainerLauncher.ContainerRuntime.LXC.getCommand());
+  }
+
+  @Test
+  void testContainerRuntimeIsDockerCompatible() {
+    assertTrue(ContainerLauncher.ContainerRuntime.DOCKER.isDockerCompatible());
+    assertTrue(ContainerLauncher.ContainerRuntime.PODMAN.isDockerCompatible());
+    assertTrue(ContainerLauncher.ContainerRuntime.CONTAINERD.isDockerCompatible());
+    assertFalse(ContainerLauncher.ContainerRuntime.LXC.isDockerCompatible());
   }
 
   @Test
@@ -127,14 +139,22 @@ class ContainerLauncherTest {
             .map(info -> (Process) null)
             .orElse(null);
 
+    java.util.Map<String, String> properties = new java.util.HashMap<>();
+    properties.put("container.runtime", "docker");
+
     ContainerLauncher.ContainerInfo info =
         new ContainerLauncher.ContainerInfo(
-            mockProcess, "abc123", "my-container", ContainerLauncher.ContainerRuntime.DOCKER);
+            mockProcess,
+            "abc123",
+            "my-container",
+            ContainerLauncher.ContainerRuntime.DOCKER,
+            properties);
 
     assertEquals(mockProcess, info.getProcess());
     assertEquals("abc123", info.getContainerId());
     assertEquals("my-container", info.getContainerName());
     assertEquals(ContainerLauncher.ContainerRuntime.DOCKER, info.getRuntime());
+    assertEquals(properties, info.getProperties());
   }
 
   @Test
@@ -148,12 +168,14 @@ class ContainerLauncherTest {
   @Test
   void testContainerRuntimeEnumValues() {
     ContainerLauncher.ContainerRuntime[] runtimes = ContainerLauncher.ContainerRuntime.values();
-    assertEquals(3, runtimes.length, "Should have exactly 3 runtime types");
+    assertEquals(4, runtimes.length, "Should have exactly 4 runtime types");
 
     assertTrue(
         java.util.Arrays.asList(runtimes).contains(ContainerLauncher.ContainerRuntime.DOCKER));
     assertTrue(
         java.util.Arrays.asList(runtimes).contains(ContainerLauncher.ContainerRuntime.PODMAN));
+    assertTrue(
+        java.util.Arrays.asList(runtimes).contains(ContainerLauncher.ContainerRuntime.CONTAINERD));
     assertTrue(java.util.Arrays.asList(runtimes).contains(ContainerLauncher.ContainerRuntime.LXC));
   }
 
@@ -166,6 +188,9 @@ class ContainerLauncherTest {
         ContainerLauncher.ContainerRuntime.PODMAN,
         ContainerLauncher.ContainerRuntime.valueOf("PODMAN"));
     assertEquals(
+        ContainerLauncher.ContainerRuntime.CONTAINERD,
+        ContainerLauncher.ContainerRuntime.valueOf("CONTAINERD"));
+    assertEquals(
         ContainerLauncher.ContainerRuntime.LXC, ContainerLauncher.ContainerRuntime.valueOf("LXC"));
   }
 
@@ -177,6 +202,9 @@ class ContainerLauncherTest {
     assertEquals(
         ContainerLauncher.ContainerRuntime.PODMAN,
         ContainerLauncher.ContainerRuntime.fromString("Podman"));
+    assertEquals(
+        ContainerLauncher.ContainerRuntime.CONTAINERD,
+        ContainerLauncher.ContainerRuntime.fromString("Containerd"));
     assertEquals(
         ContainerLauncher.ContainerRuntime.LXC,
         ContainerLauncher.ContainerRuntime.fromString("LXC"));

@@ -1,13 +1,14 @@
 # Container Deployment
 
-platform-java supports deploying applications as Docker, Podman, or LXC containers. This enables containerized workloads to be managed by the platform alongside JVM applications and native processes.
+platform-java supports deploying applications as Docker, Podman, containerd, or LXC containers. This enables containerized workloads to be managed by the platform alongside JVM applications and native processes.
 
 ## Overview
 
-Containerized applications run as **managed container instances**, with the platform handling container lifecycle (launch, stop, remove), image management, and log forwarding. The platform supports three container runtimes:
+Containerized applications run as **managed container instances**, with the platform handling container lifecycle (launch, stop, remove), image management, and log forwarding. The platform supports four container runtimes:
 
 - **Docker** - Industry-standard container runtime
-- **Podman** - Daemonless, rootless container engine
+- **Podman** - Daemonless, rootless container engine  
+- **containerd** - Kubernetes-native container runtime (via nerdctl)
 - **LXC** - Linux Containers for system-level virtualization
 
 ## Configuration
@@ -34,7 +35,7 @@ ApplicationDescriptor webApp = ApplicationDescriptor.builder()
 
 | Property | Description | Example |
 |----------|-------------|---------|
-| `container.runtime` | Runtime to use (defaults to `docker`) | `docker`, `podman`, `lxc` |
+| `container.runtime` | Runtime to use (defaults to `docker`) | `docker`, `podman`, `containerd`, `lxc` |
 | `container.name` | Container name (defaults to applicationId) | `my-web-server` |
 | `container.ports` | Port mappings (host:container, comma-separated) | `8080:80,8443:443` |
 | `container.volumes` | Volume mounts (host:container, comma-separated) | `/data:/app/data,/logs:/app/logs` |
@@ -42,6 +43,8 @@ ApplicationDescriptor webApp = ApplicationDescriptor.builder()
 | `container.env.*` | Environment variables (strip `container.env.` prefix) | `container.env.DB_HOST=postgres` |
 | `container.args` | Additional arguments to pass to container | `--verbose --debug` |
 | `container.lxc.config` | LXC config file path (LXC only) | `/etc/lxc/myapp.conf` |
+| `container.containerd.namespace` | Containerd namespace (containerd only, default: `default`) | `k8s.io`, `default` |
+| `container.containerd.snapshotter` | Containerd snapshotter (containerd only, default: `overlayfs`) | `overlayfs`, `native` |
 
 ## Example: Docker Web Server
 
@@ -98,6 +101,42 @@ manager.deploy(postgres);
 manager.start("database");
 ```
 
+## Example: containerd (Kubernetes-Native)
+
+Deploy a container using containerd with Kubernetes namespace:
+
+```java
+ApplicationDescriptor app = ApplicationDescriptor.builder()
+    .applicationId("k8s-app")
+    .name("Kubernetes-Native Application")
+    .property("container.runtime", "containerd")
+    .property("container.image", "myapp:v1.0")
+    .property("container.ports", "8080:8080")
+    .property("container.containerd.namespace", "k8s.io")  // Use K8s namespace
+    .property("container.containerd.snapshotter", "overlayfs")
+    .property("container.env.APP_ENV", "production")
+    .build();
+
+manager.deploy(app);
+manager.start("k8s-app");
+```
+
+This executes (via `nerdctl`):
+```bash
+nerdctl --namespace k8s.io run -d \
+  --name k8s-app \
+  --snapshotter overlayfs \
+  -p 8080:8080 \
+  -e APP_ENV=production \
+  myapp:v1.0
+```
+
+**containerd Notes:**
+- Requires **nerdctl** installed (Docker-compatible CLI for containerd)
+- Default namespace is `default`; use `k8s.io` for Kubernetes compatibility
+- Supports all Docker-style options (ports, volumes, env, network)
+- Ideal for Kubernetes node-local workloads or edge computing
+
 ## Example: LXC System Container
 
 Deploy an LXC container for system-level isolation:
@@ -122,22 +161,23 @@ manager.start("ubuntu-container");
 When `manager.start(applicationId)` is called for a containerized application:
 
 1. Platform detects `container.runtime` or `container.image` property
-2. Determines container runtime (Docker/Podman/LXC)
-3. **For Docker/Podman**: Checks if image exists locally
-4. **If image missing**: Pulls image via `docker pull` or `podman pull`
+2. Determines container runtime (Docker/Podman/containerd/LXC)
+3. **For Docker/Podman/containerd**: Checks if image exists locally
+4. **If image missing**: Pulls image via `docker pull`, `podman pull`, or `nerdctl pull`
 5. Builds container run command with ports, volumes, env vars, network
-6. Launches container in detached mode (`-d`)
-7. Captures container ID from command output
-8. Starts background thread to follow container logs
-9. Sets state to `RUNNING`
+6. **For containerd**: Adds namespace and snapshotter options
+7. Launches container in detached mode (`-d`)
+8. Captures container ID from command output
+9. Starts background thread to follow container logs
+10. Sets state to `RUNNING`
 
 ### Stop
 
 When `manager.stop(applicationId)` is called:
 
-1. Platform sends stop command (`docker stop`, `podman stop`, `lxc-stop`)
+1. Platform sends stop command (`docker stop`, `podman stop`, `nerdctl stop`, `lxc-stop`)
 2. Waits up to 10 seconds for graceful shutdown
-3. Removes container (`docker rm -f`, `podman rm -f`, `lxc-destroy`)
+3. Removes container (`docker rm -f`, `podman rm -f`, `nerdctl rm -f`, `lxc-destroy`)
 4. Sets state to `STOPPED`
 
 ### Log Forwarding

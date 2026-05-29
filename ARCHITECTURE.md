@@ -346,7 +346,7 @@ GraalVM native images run as separate OS processes:
 
 ### 3. Container Deployment
 
-Applications run in Docker/Podman containers:
+Applications run in Docker/Podman/containerd containers:
 
 ```
 ┌──────────────────────────────────────┐
@@ -354,12 +354,12 @@ Applications run in Docker/Podman containers:
 │  (Orchestrates)                      │
 └────────┬─────────────────────────────┘
          │
-         ├─→ Container: App A
-         ├─→ Container: App B
-         └─→ Container: App C
+         ├─→ Container: App A (Docker/Podman/containerd)
+         ├─→ Container: App B (Docker/Podman/containerd)
+         └─→ Container: App C (Docker/Podman/containerd)
 ```
 
-**Pros**: Strong isolation, portable, industry standard  
+**Pros**: Strong isolation, portable, industry standard, Kubernetes-compatible (containerd)  
 **Cons**: Highest overhead, requires container runtime
 
 ---

@@ -29,12 +29,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Launches and manages containerized applications via Docker, Podman, or LXC.
+ * Launches and manages containerized applications via Docker, Podman, containerd, or LXC.
  *
  * <p>Responsibilities:
  *
  * <ul>
- *   <li>Detects container runtime (Docker, Podman, LXC)
+ *   <li>Detects container runtime (Docker, Podman, containerd, LXC)
  *   <li>Builds container run command with image, ports, volumes, environment
  *   <li>Pulls container images if needed
  *   <li>Launches container and tracks container ID
@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * <p>Container Configuration via Properties:
  *
  * <pre>
- * container.runtime = docker|podman|lxc
+ * container.runtime = docker|podman|containerd|lxc
  * container.image = image:tag
  * container.name = container-name (optional, defaults to applicationId)
  * container.ports = 8080:80,8443:443 (host:container pairs)
@@ -53,6 +53,8 @@ import org.slf4j.LoggerFactory;
  * container.network = bridge|host|none
  * container.env.KEY = value (environment variables)
  * container.args = --arg1 --arg2 (additional container arguments)
+ * container.containerd.namespace = k8s.io (containerd namespace, default: default)
+ * container.containerd.snapshotter = overlayfs (containerd snapshotter, default: overlayfs)
  * </pre>
  *
  * @since 2.0
@@ -64,6 +66,7 @@ public class ContainerLauncher {
   public enum ContainerRuntime {
     DOCKER("docker"),
     PODMAN("podman"),
+    CONTAINERD("nerdctl"), // Use nerdctl for Docker-compatible CLI
     LXC("lxc");
 
     private final String command;
@@ -74,6 +77,15 @@ public class ContainerLauncher {
 
     public String getCommand() {
       return command;
+    }
+
+    /**
+     * Returns true if this runtime supports Docker-compatible commands.
+     *
+     * @return true for Docker, Podman, and containerd (via nerdctl)
+     */
+    public boolean isDockerCompatible() {
+      return this == DOCKER || this == PODMAN || this == CONTAINERD;
     }
 
     public static ContainerRuntime fromString(String runtime) {
@@ -112,9 +124,9 @@ public class ContainerLauncher {
       throw new IllegalArgumentException("container.image property is required");
     }
 
-    // Pull image if needed (Docker/Podman only)
-    if (runtime == ContainerRuntime.DOCKER || runtime == ContainerRuntime.PODMAN) {
-      pullImageIfNeeded(runtime, image, applicationId);
+    // Pull image if needed (Docker-compatible runtimes)
+    if (runtime.isDockerCompatible()) {
+      pullImageIfNeeded(runtime, image, properties, applicationId);
     }
 
     // Build run command
@@ -128,9 +140,9 @@ public class ContainerLauncher {
     Process process = processBuilder.start();
     LOGGER.info("[{}] Container launched", applicationId);
 
-    // Read container ID from output (Docker/Podman return container ID)
+    // Read container ID from output (Docker-compatible runtimes return container ID)
     String containerId = null;
-    if (runtime == ContainerRuntime.DOCKER || runtime == ContainerRuntime.PODMAN) {
+    if (runtime.isDockerCompatible()) {
       containerId = readContainerId(process, applicationId);
     } else {
       containerId = containerName; // LXC uses container name as ID
@@ -139,10 +151,11 @@ public class ContainerLauncher {
     LOGGER.info("[{}] Container ID: {}", applicationId, containerId);
 
     // Create container info
-    ContainerInfo containerInfo = new ContainerInfo(process, containerId, containerName, runtime);
+    ContainerInfo containerInfo =
+        new ContainerInfo(process, containerId, containerName, runtime, properties);
 
     // Start output reader thread
-    startOutputReader(applicationId, runtime, containerId, containerInfo);
+    startOutputReader(applicationId, runtime, containerId, properties, containerInfo);
 
     return containerInfo;
   }
@@ -167,7 +180,8 @@ public class ContainerLauncher {
     containerInfo.stopOutputReader();
 
     // Stop container
-    List<String> stopCommand = buildStopCommand(runtime, containerId);
+    List<String> stopCommand =
+        buildStopCommand(runtime, containerId, containerInfo.getProperties());
     executeCommand(stopCommand, applicationId, "stop");
 
     // Wait for container to actually stop (poll status)
@@ -214,14 +228,16 @@ public class ContainerLauncher {
     }
 
     // Remove container
-    List<String> removeCommand = buildRemoveCommand(runtime, containerId);
+    List<String> removeCommand =
+        buildRemoveCommand(runtime, containerId, containerInfo.getProperties());
     executeCommand(removeCommand, applicationId, "remove");
 
     LOGGER.info("[{}] Container stopped and removed", applicationId);
   }
 
   /** Pulls container image if not already present. */
-  private void pullImageIfNeeded(ContainerRuntime runtime, String image, String applicationId)
+  private void pullImageIfNeeded(
+      ContainerRuntime runtime, String image, Map<String, String> properties, String applicationId)
       throws IOException {
 
     LOGGER.info("[{}] Checking if image exists: {}", applicationId, image);
@@ -229,6 +245,14 @@ public class ContainerLauncher {
     // Check if image exists
     List<String> inspectCommand = new ArrayList<>();
     inspectCommand.add(runtime.getCommand());
+
+    // Add containerd namespace if using containerd
+    if (runtime == ContainerRuntime.CONTAINERD) {
+      String namespace = properties.getOrDefault("container.containerd.namespace", "default");
+      inspectCommand.add("--namespace");
+      inspectCommand.add(namespace);
+    }
+
     inspectCommand.add("image");
     inspectCommand.add("inspect");
     inspectCommand.add(image);
@@ -252,6 +276,14 @@ public class ContainerLauncher {
     LOGGER.info("[{}] Pulling image: {}", applicationId, image);
     List<String> pullCommand = new ArrayList<>();
     pullCommand.add(runtime.getCommand());
+
+    // Add containerd namespace if using containerd
+    if (runtime == ContainerRuntime.CONTAINERD) {
+      String namespace = properties.getOrDefault("container.containerd.namespace", "default");
+      pullCommand.add("--namespace");
+      pullCommand.add(namespace);
+    }
+
     pullCommand.add("pull");
     pullCommand.add(image);
 
@@ -271,12 +303,27 @@ public class ContainerLauncher {
       return buildLxcCommand(containerName, properties);
     }
 
-    // Docker/Podman command
+    // Docker/Podman/containerd command
     command.add(runtime.getCommand());
+
+    // Add containerd namespace if using containerd
+    if (runtime == ContainerRuntime.CONTAINERD) {
+      String namespace = properties.getOrDefault("container.containerd.namespace", "default");
+      command.add("--namespace");
+      command.add(namespace);
+    }
+
     command.add("run");
     command.add("-d"); // Detached mode
     command.add("--name");
     command.add(containerName);
+
+    // containerd snapshotter option
+    if (runtime == ContainerRuntime.CONTAINERD) {
+      String snapshotter = properties.getOrDefault("container.containerd.snapshotter", "overlayfs");
+      command.add("--snapshotter");
+      command.add(snapshotter);
+    }
 
     // Ports
     String ports = properties.get("container.ports");
@@ -344,7 +391,8 @@ public class ContainerLauncher {
   }
 
   /** Builds stop command for the runtime. */
-  private List<String> buildStopCommand(ContainerRuntime runtime, String containerId) {
+  private List<String> buildStopCommand(
+      ContainerRuntime runtime, String containerId, Map<String, String> properties) {
     List<String> command = new ArrayList<>();
 
     if (runtime == ContainerRuntime.LXC) {
@@ -353,6 +401,14 @@ public class ContainerLauncher {
       command.add(containerId);
     } else {
       command.add(runtime.getCommand());
+
+      // Add containerd namespace if using containerd
+      if (runtime == ContainerRuntime.CONTAINERD) {
+        String namespace = properties.getOrDefault("container.containerd.namespace", "default");
+        command.add("--namespace");
+        command.add(namespace);
+      }
+
       command.add("stop");
       command.add(containerId);
     }
@@ -361,7 +417,8 @@ public class ContainerLauncher {
   }
 
   /** Builds remove command for the runtime. */
-  private List<String> buildRemoveCommand(ContainerRuntime runtime, String containerId) {
+  private List<String> buildRemoveCommand(
+      ContainerRuntime runtime, String containerId, Map<String, String> properties) {
     List<String> command = new ArrayList<>();
 
     if (runtime == ContainerRuntime.LXC) {
@@ -370,6 +427,14 @@ public class ContainerLauncher {
       command.add(containerId);
     } else {
       command.add(runtime.getCommand());
+
+      // Add containerd namespace if using containerd
+      if (runtime == ContainerRuntime.CONTAINERD) {
+        String namespace = properties.getOrDefault("container.containerd.namespace", "default");
+        command.add("--namespace");
+        command.add(namespace);
+      }
+
       command.add("rm");
       command.add("-f"); // Force remove
       command.add(containerId);
@@ -396,6 +461,7 @@ public class ContainerLauncher {
       String applicationId,
       ContainerRuntime runtime,
       String containerId,
+      Map<String, String> properties,
       ContainerInfo containerInfo) {
     Thread outputReader =
         new Thread(
@@ -410,6 +476,15 @@ public class ContainerLauncher {
                   logsCommand.add(containerId);
                 } else {
                   logsCommand.add(runtime.getCommand());
+
+                  // Add containerd namespace if using containerd
+                  if (runtime == ContainerRuntime.CONTAINERD) {
+                    String namespace =
+                        properties.getOrDefault("container.containerd.namespace", "default");
+                    logsCommand.add("--namespace");
+                    logsCommand.add(namespace);
+                  }
+
                   logsCommand.add("logs");
                   logsCommand.add("-f"); // Follow
                   logsCommand.add(containerId);
@@ -496,15 +571,21 @@ public class ContainerLauncher {
     private final String containerId;
     private final String containerName;
     private final ContainerRuntime runtime;
+    private final Map<String, String> properties;
     private Thread outputReaderThread;
     private Process logsProcess;
 
     public ContainerInfo(
-        Process process, String containerId, String containerName, ContainerRuntime runtime) {
+        Process process,
+        String containerId,
+        String containerName,
+        ContainerRuntime runtime,
+        Map<String, String> properties) {
       this.process = process;
       this.containerId = containerId;
       this.containerName = containerName;
       this.runtime = runtime;
+      this.properties = properties;
     }
 
     public Process getProcess() {
@@ -521,6 +602,10 @@ public class ContainerLauncher {
 
     public ContainerRuntime getRuntime() {
       return runtime;
+    }
+
+    public Map<String, String> getProperties() {
+      return properties;
     }
 
     void setOutputReaderThread(Thread thread) {

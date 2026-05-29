@@ -21,9 +21,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Configuration for the platform REST API server. Specifies port, bind address, authentication
  * settings, and CORS configuration.
@@ -154,8 +151,6 @@ public final class ApiServerConfig {
 
   /** Builder for ApiServerConfig. */
   public static class Builder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Builder.class);
-
     private int port = 8080;
     private String bindAddress = "0.0.0.0";
     private boolean enableAuth = false;
@@ -244,12 +239,8 @@ public final class ApiServerConfig {
       if (origin == null) {
         throw new IllegalArgumentException("origin cannot be null");
       }
-      if ("*".equals(origin)) {
-        LOGGER.warn(
-            "SECURITY WARNING: Wildcard CORS origin (*) allows any website to access your API. "
-                + "This creates XSS and CSRF vulnerabilities. Use specific origins instead "
-                + "(e.g., \"https://console.example.com\").");
-      }
+      // Note: Wildcard "*" is allowed but not recommended for production
+      // See class javadoc for security warnings about wildcard CORS
       if (this.allowedOrigins == null) {
         this.allowedOrigins = new HashSet<>();
       }

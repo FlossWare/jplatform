@@ -22,9 +22,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Resolves environment variable references in configuration strings.
  *
@@ -58,8 +55,6 @@ import org.slf4j.LoggerFactory;
  * @since 2.0
  */
 public class EnvironmentVariableResolver {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(EnvironmentVariableResolver.class);
 
   // Pattern for ${VAR_NAME} or ${VAR_NAME:default}
   private static final Pattern BRACED_PATTERN =
@@ -171,20 +166,17 @@ public class EnvironmentVariableResolver {
     // Check overrides first (for testing)
     if (environmentOverrides.containsKey(varName)) {
       String value = environmentOverrides.get(varName);
-      LOGGER.debug("Resolved {} from override: {}", varName, maskValue(value));
       return value;
     }
 
     // Check system environment
     String value = System.getenv(varName);
     if (value != null) {
-      LOGGER.debug("Resolved {} from environment: {}", varName, maskValue(value));
       return value;
     }
 
     // Use default value if provided
     if (defaultValue != null) {
-      LOGGER.debug("Variable {} not found, using default: {}", varName, maskValue(defaultValue));
       return defaultValue;
     }
 
@@ -194,8 +186,6 @@ public class EnvironmentVariableResolver {
           "Environment variable not found: " + varName + " and no default value provided");
     }
 
-    LOGGER.warn(
-        "Environment variable {} not found and no default provided, leaving unreplaced", varName);
     return "${" + varName + "}"; // Return original reference
   }
 
