@@ -677,6 +677,23 @@ This is currently in active development. Contributions welcome!
 
 See [LICENSE](LICENSE) file for details.
 
+## AI Capabilities (Planned - Phase 4+)
+
+platform-java will provide **application-level AI capabilities** for deploying and managing AI/ML workloads.
+
+This complements VirtOS's infrastructure-level AI (VM placement, GPU management) with application orchestration:
+- **MLOps Platform** - ML workflow orchestration, experiment tracking (Issue #303)
+- **Model Marketplace** - Curated catalog of AI models for easy deployment (Issue #304)
+- **RAG Infrastructure** - Document Q&A platform with vector databases (Issue #305)
+- **LLM Serving** - Production-grade inference with vLLM/TGI
+- **AI Governance** - Compliance, bias testing, explainability
+
+**See**: [AI_CAPABILITIES.md](AI_CAPABILITIES.md) for complete details on the AI roadmap.
+
+**Timeline**: Phase 4-5 (Month 19+, Year 3)
+
+---
+
 ## Related Projects
 
 Similar concepts:
@@ -684,6 +701,7 @@ Similar concepts:
 - **JBoss Modules**: Modular classloading system
 - **JEE Application Servers**: Full JEE stack with EAR/WAR deployment
 - **Kubernetes**: Container orchestration (but at process level)
+- **VirtOS**: Minimal virtualization OS providing infrastructure for platform-java
 
 platform-java focuses on simplicity and running arbitrary Java applications (not just web apps) with strong isolation guarantees within a single JVM.
 
