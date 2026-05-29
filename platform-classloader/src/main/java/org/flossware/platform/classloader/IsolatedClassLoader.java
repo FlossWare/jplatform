@@ -18,8 +18,9 @@
 package org.flossware.platform.classloader;
 
 import org.flossware.jclassloader.AuthConfig;
-import org.flossware.jclassloader.ApplicationClassLoader;
+import org.flossware.jclassloader.JClassLoader;
 import org.flossware.jclassloader.lifecycle.ResourceTrackingListener;
+import org.flossware.jclassloader.cache.FileSystemCache;
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,7 @@ import java.util.Objects;
 
 /**
  * Platform-specific class loader for isolated application execution.
- * Wraps ApplicationClassLoader with JPlatform-specific integration and configuration.
+ * Wraps JClassLoader with JPlatform-specific integration and configuration.
  */
 public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
 
@@ -40,12 +41,12 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
     private final String applicationId;
     private final ApplicationDescriptor descriptor;
     private final ResourceTrackingListener resourceTracker;
-    private final ApplicationClassLoader delegate;
+    private final JClassLoader delegate;
 
     private IsolatedClassLoader(String applicationId,
                                 ApplicationDescriptor descriptor,
                                 ResourceTrackingListener resourceTracker,
-                                ApplicationClassLoader delegate) {
+                                JClassLoader delegate) {
         super(delegate.getParent());
         this.applicationId = applicationId;
         this.descriptor = descriptor;
@@ -71,8 +72,8 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
 
         ResourceTrackingListener tracker = new ResourceTrackingListener();
 
-        // Build ApplicationClassLoader with platform-specific configuration
-        ApplicationClassLoader.Builder builder = ApplicationClassLoader.builder()
+        // Build JClassLoader with platform-specific configuration
+        JClassLoader.Builder builder = JClassLoader.builder()
                 .parent(platformSharedLoader)
                 // Platform-specific: parent-last with platform-java API exception
                 .parentLast(
@@ -101,13 +102,13 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
         // Platform-specific: Convert ApplicationDescriptor to class sources
         addClassSourcesFromDescriptor(builder, descriptor);
 
-        ApplicationClassLoader jcl = builder.build();
+        JClassLoader jcl = builder.build();
 
         return new IsolatedClassLoader(applicationId, descriptor, tracker, jcl);
     }
 
     /**
-     * Loads a class by delegating to the ApplicationClassLoader.
+     * Loads a class by delegating to the JClassLoader.
      *
      * @param name the name of the class to load
      * @param resolve whether to resolve the class
@@ -124,7 +125,7 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
     }
 
     /**
-     * Finds a class by delegating to the ApplicationClassLoader.
+     * Finds a class by delegating to the JClassLoader.
      *
      * @param name the name of the class to find
      * @return the loaded class
@@ -137,10 +138,10 @@ public class IsolatedClassLoader extends ClassLoader implements AutoCloseable {
     }
 
     /**
-     * Platform-specific: Translate ApplicationDescriptor to ApplicationClassLoader sources.
+     * Platform-specific: Translate ApplicationDescriptor to JClassLoader sources.
      */
     private static void addClassSourcesFromDescriptor(
-            ApplicationClassLoader.Builder builder,
+            JClassLoader.Builder builder,
             ApplicationDescriptor descriptor) {
 
         for (URI classpathEntry : descriptor.getClasspathEntries()) {
