@@ -1,20 +1,20 @@
-# Implementation Complete: jclassloader + platform-java Integration
+# Implementation Complete: classloader-java + platform-java Integration
 
 ## Summary
 
-Successfully enhanced **jclassloader** with reusable isolation features and implemented **platform-java-classloader** as a thin platform-specific wrapper. Both projects now follow a clean separation of concerns with perfect architectural alignment.
+Successfully enhanced **classloader-java** with reusable isolation features and implemented **platform-java-classloader** as a thin platform-specific wrapper. Both projects now follow a clean separation of concerns with perfect architectural alignment.
 
 ## ✅ What Was Completed
 
-### 1. Enhanced jclassloader (Reusable Features)
+### 1. Enhanced classloader-java (Reusable Features)
 
-#### Delegation Strategies (`org.flossware.jclassloader.delegation`)
+#### Delegation Strategies (`org.flossware.classloader-java.delegation`)
 - ✅ **DelegationStrategy** interface - Pluggable delegation strategies
 - ✅ **ParentFirstDelegation** - Standard Java behavior (default)
 - ✅ **ParentLastDelegation** - Isolation strategy (parent-last with exceptions)
 - ✅ **CustomDelegation** - User-defined predicate-based delegation
 
-#### Lifecycle Hooks (`org.flossware.jclassloader.lifecycle`)
+#### Lifecycle Hooks (`org.flossware.classloader-java.lifecycle`)
 - ✅ **ClassLoaderLifecycleListener** interface - Event listener for class loading
 - ✅ **ClassLoadEvent** - Event containing class load details
 - ✅ **ResourceTrackingListener** - Tracks classes and resources for cleanup
@@ -54,7 +54,7 @@ Successfully enhanced **jclassloader** with reusable isolation features and impl
               │ uses (delegates to)
               ▼
 ┌──────────────────────────────────────┐
-│   jclassloader                       │  Reusable Library
+│   classloader-java                       │  Reusable Library
 │   ├─ JClassLoader                   │  • 20+ ClassSource types
 │   ├─ DelegationStrategy             │  • Delegation strategies
 │   ├─ ClassLoaderLifecycleListener   │  • Lifecycle hooks
@@ -64,9 +64,9 @@ Successfully enhanced **jclassloader** with reusable isolation features and impl
 
 ## Files Created/Modified
 
-### jclassloader (Enhanced)
+### classloader-java (Enhanced)
 ```
-jclassloader/src/main/java/org/flossware/jclassloader/
+classloader-java/src/main/java/org/flossware/classloader/
 ├── delegation/
 │   ├── DelegationStrategy.java          ✨ NEW
 │   ├── ParentFirstDelegation.java       ✨ NEW
@@ -90,10 +90,10 @@ platform-java-classloader/src/main/java/org/flossware/platform-java/classloader/
 
 ## Build Status
 
-### jclassloader
+### classloader-java
 ```
 ✅ Compiles: 44 source files
-✅ Installed to: ~/.m2/repository/org/flossware/jclassloader/1.0/
+✅ Installed to: ~/.m2/repository/org/flossware/classloader/1.0/
 ✅ Version: 1.0
 ✅ Build time: 4.6s
 ```
@@ -108,7 +108,7 @@ platform-java-classloader/src/main/java/org/flossware/platform-java/classloader/
 
 ## Usage Examples
 
-### Using Enhanced jclassloader (Standalone)
+### Using Enhanced classloader-java (Standalone)
 
 ```java
 // Parent-last isolation for plugins
@@ -163,7 +163,7 @@ appLoader.close();
 
 ## Benefits Realized
 
-### For jclassloader
+### For classloader-java
 - ✅ More powerful and flexible
 - ✅ Supports parent-last delegation (needed by containers/plugins)
 - ✅ Lifecycle hooks for monitoring and cleanup
@@ -179,7 +179,7 @@ appLoader.close();
 - ✅ Parent-last isolation working correctly
 
 ### For Other Projects
-- ✅ Can use jclassloader 1.0 for custom class loading
+- ✅ Can use classloader-java 1.0 for custom class loading
 - ✅ Plugin systems get isolation features
 - ✅ Testing frameworks get resource tracking
 - ✅ No dependency on platform-java
@@ -222,8 +222,8 @@ public class LegacyApp {
 
 Build verification:
 ```bash
-# jclassloader
-cd /home/sfloess/Development/github/FlossWare/jclassloader
+# classloader-java
+cd /home/sfloess/Development/github/FlossWare/classloader-java
 mvn clean install
 
 # platform-java
@@ -236,7 +236,7 @@ Both build successfully with no errors! ✅
 ## Next Steps
 
 ### Immediate (Already Works)
-1. ✅ jclassloader can load from 20+ sources
+1. ✅ classloader-java can load from 20+ sources
 2. ✅ platform-java-classloader provides parent-last isolation
 3. ✅ Resource tracking for cleanup
 4. ✅ Platform API sharing works correctly
@@ -265,7 +265,7 @@ Both build successfully with no errors! ✅
 
 ## Documentation Updates Needed
 
-### jclassloader README.md
+### classloader-java README.md
 Add section documenting:
 - New delegation strategies
 - Lifecycle listeners
@@ -281,13 +281,13 @@ Update with:
 
 ## Conclusion
 
-✅ **Clean separation achieved**: Reusable in jclassloader, platform-specific in platform-java
-✅ **Both projects enhanced**: jclassloader more powerful, platform-java leaner
+✅ **Clean separation achieved**: Reusable in classloader-java, platform-specific in platform-java
+✅ **Both projects enhanced**: classloader-java more powerful, platform-java leaner
 ✅ **Full integration working**: Builds successfully, delegation works, isolation works
 ✅ **Future-proof**: Easy to extend both projects independently
 
 The architecture is exactly what you requested:
-- **jclassloader** = Reusable class loading library with isolation features
+- **classloader-java** = Reusable class loading library with isolation features
 - **platform-java-classloader** = Thin platform-specific wrapper
 
 Perfect separation of concerns! 🎯

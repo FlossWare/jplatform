@@ -7,7 +7,7 @@
 
 ## JClassLoader Status ✅
 
-All classes in jclassloader have comprehensive JavaDoc:
+All classes in classloader-java have comprehensive JavaDoc:
 
 ### Delegation Package
 - ✅ `DelegationStrategy.java` - Interface and method docs
@@ -26,7 +26,7 @@ All classes in jclassloader have comprehensive JavaDoc:
 - ✅ `ClassSource.java` - Interface fully documented
 - ✅ All 20+ ClassSource implementations have JavaDoc
 
-**Reference**: See `/home/sfloess/Development/github/FlossWare/jclassloader/DOCUMENTATION_COMPLETE.md`
+**Reference**: See `/home/sfloess/Development/github/FlossWare/classloader-java/DOCUMENTATION_COMPLETE.md`
 
 ## platform-java Status 🔄
 

@@ -180,7 +180,7 @@ public ReturnType myMethod(Type1 param1, Type2 param2) {
 
 ## References
 
-- **JClassLoader Documentation**: `/home/sfloess/Development/github/FlossWare/jclassloader/DOCUMENTATION_COMPLETE.md`
+- **JClassLoader Documentation**: `/home/sfloess/Development/github/FlossWare/classloader-java/DOCUMENTATION_COMPLETE.md`
 - **platform-java User Docs**: `README.md`, `QUICKSTART.md`, `PLATFORM_COMPLETE.md`
 - **Progress Tracking**: `JAVADOC_PROGRESS.md`
 

@@ -1,4 +1,4 @@
-# Architecture Separation: jclassloader vs platform-java-classloader
+# Architecture Separation: classloader-java vs platform-java-classloader
 
 ## Clean Separation of Concerns
 
@@ -16,13 +16,13 @@
 │  • Platform-specific cache directories                      │
 │  • Application lifecycle coordination                       │
 │                                                             │
-│  Dependencies: platform-java-api, jclassloader                  │
+│  Dependencies: platform-java-api, classloader-java                  │
 │                                                             │
 └────────────────────┬────────────────────────────────────────┘
                      │ uses
                      ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      jclassloader                           │
+│                      classloader-java                           │
 │                  (General-Purpose, Reusable)                │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
@@ -51,11 +51,11 @@
 
 ## What Goes Where
 
-### jclassloader (Reusable Library)
+### classloader-java (Reusable Library)
 
 **Question to ask**: "Could any project needing custom class loading use this?"
 
-✅ **YES - Put in jclassloader:**
+✅ **YES - Put in classloader-java:**
 - Delegation strategies (parent-first, parent-last, custom)
 - Lifecycle hooks and listeners
 - Resource tracking utilities
@@ -63,7 +63,7 @@
 - Caching mechanisms
 - Authentication support
 
-❌ **NO - Don't put in jclassloader:**
+❌ **NO - Don't put in classloader-java:**
 - ApplicationDescriptor knowledge
 - platform-java-specific API isolation rules
 - Platform service integration
@@ -99,7 +99,7 @@ public class ParentLastDelegation {
 }
 ```
 
-**✅ RIGHT - In jclassloader:**
+**✅ RIGHT - In classloader-java:**
 ```java
 // YES - Generic delegation strategy
 public class ParentLastDelegation implements DelegationStrategy {
@@ -127,7 +127,7 @@ public class ResourceTracker {
 }
 ```
 
-**✅ RIGHT - In jclassloader:**
+**✅ RIGHT - In classloader-java:**
 ```java
 // YES - Generic resource tracking listener
 public class ResourceTrackingListener implements ClassLoaderLifecycleListener {
@@ -149,9 +149,9 @@ tracker.closeAllResources();  // Platform-specific cleanup timing
 
 ### Example 3: ClassSource from Descriptor
 
-**❌ WRONG - In jclassloader:**
+**❌ WRONG - In classloader-java:**
 ```java
-// NO - jclassloader shouldn't know about ApplicationDescriptor!
+// NO - classloader-java shouldn't know about ApplicationDescriptor!
 public void addFromDescriptor(ApplicationDescriptor desc) {
     // ...
 }
@@ -180,19 +180,19 @@ platform-java-launcher
     ↓
 platform-java-core
     ↓
-platform-java-classloader ─────→ jclassloader
+platform-java-classloader ─────→ classloader-java
     ↓                             ↓
 platform-java-api              (no dependencies)
 ```
 
 **Key Points:**
-- jclassloader has NO dependency on platform-java
-- platform-java-classloader depends on BOTH jclassloader and platform-java-api
-- jclassloader remains reusable by other projects
+- classloader-java has NO dependency on platform-java
+- platform-java-classloader depends on BOTH classloader-java and platform-java-api
+- classloader-java remains reusable by other projects
 
 ## Use Cases
 
-### jclassloader can be used by:
+### classloader-java can be used by:
 1. ✅ platform-java (application server)
 2. ✅ Plugin systems (isolated plugins)
 3. ✅ OSGi containers (module isolation)
@@ -207,7 +207,7 @@ platform-java-api              (no dependencies)
 
 ## Benefits
 
-### For jclassloader Project:
+### For classloader-java Project:
 - ✅ Becomes more powerful (delegation strategies, hooks)
 - ✅ Remains general-purpose and reusable
 - ✅ Attracts wider user base
@@ -220,13 +220,13 @@ platform-java-api              (no dependencies)
 - ✅ Easier to maintain
 
 ### For Other Projects:
-- ✅ Can use jclassloader for custom class loading needs
+- ✅ Can use classloader-java for custom class loading needs
 - ✅ Don't need platform-java to get isolation features
 - ✅ Proven, tested class loading library
 
 ## Next Steps
 
-1. **Enhance jclassloader** (in jclassloader repo):
+1. **Enhance classloader-java** (in classloader-java repo):
    - Add `DelegationStrategy` interface and implementations
    - Add `ClassLoaderLifecycleListener` interface
    - Add `ResourceTrackingListener` implementation
@@ -235,7 +235,7 @@ platform-java-api              (no dependencies)
    - Release new version (e.g., 2.0)
 
 2. **Implement platform-java-classloader** (in platform-java repo):
-   - Depend on jclassloader 2.0+
+   - Depend on classloader-java 2.0+
    - Create `IsolatedClassLoader` wrapper
    - Implement platform-specific configuration
    - Integrate with `ApplicationDescriptor`
@@ -243,13 +243,13 @@ platform-java-api              (no dependencies)
    - Add tests
 
 3. **Documentation**:
-   - Update jclassloader README with new features
+   - Update classloader-java README with new features
    - Document platform-java-classloader usage
    - Create migration guide if needed
 
 ## Summary
 
-**jclassloader = The Engine (reusable)**
+**classloader-java = The Engine (reusable)**
 - How to load class bytes from anywhere
 - How to delegate (parent-first, parent-last, custom)
 - How to track resources

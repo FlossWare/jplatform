@@ -6,7 +6,7 @@ Platform-specific class loading that integrates with platform-java's application
 ## What platform-java-classloader Does (Platform-Specific)
 
 ### 1. ApplicationDescriptor Integration
-Translates platform-java's application configuration into jclassloader sources.
+Translates platform-java's application configuration into classloader-java sources.
 
 ### 2. Platform API Isolation
 Ensures `org.flossware.platform-java.api.*` classes are shared across all applications.
@@ -25,11 +25,11 @@ Coordinates with ThreadPoolExecutor, SecurityPolicy, ResourceMonitor.
 ```
 IsolatedClassLoader (platform-java-specific)
     ↓ uses
-JClassLoader (reusable from jclassloader)
+JClassLoader (reusable from classloader-java)
     ↓ uses
-ParentLastDelegation (reusable from jclassloader)
-ResourceTrackingListener (reusable from jclassloader)
-ClassSource implementations (reusable from jclassloader)
+ParentLastDelegation (reusable from classloader-java)
+ResourceTrackingListener (reusable from classloader-java)
+ClassSource implementations (reusable from classloader-java)
 ```
 
 ## Implementation
@@ -338,7 +338,7 @@ public class ApplicationManager {
 6. ✅ Authentication extraction from ApplicationDescriptor
 7. ✅ ClassLoaderStatistics for platform monitoring
 
-### Reusable (in jclassloader):
+### Reusable (in classloader-java):
 1. ✅ Delegation strategies (parent-first, parent-last)
 2. ✅ Lifecycle hooks (ClassLoaderLifecycleListener)
 3. ✅ Resource tracking (ResourceTrackingListener)
@@ -348,19 +348,19 @@ public class ApplicationManager {
 
 ## Benefits of This Separation
 
-### For jclassloader:
+### For classloader-java:
 - Remains general-purpose and reusable
 - No dependencies on platform-java
 - Useful for plugin systems, OSGi, testing frameworks, etc.
 
 ### For platform-java:
 - Thin wrapper focused on platform concerns
-- Leverages jclassloader's 20+ class sources
+- Leverages classloader-java's 20+ class sources
 - Doesn't reinvent class loading mechanics
 - Can focus on lifecycle, security, monitoring integration
 
 ### For maintainability:
 - Clear separation of concerns
 - Each project has a focused responsibility
-- Changes to general class loading go to jclassloader
+- Changes to general class loading go to classloader-java
 - Changes to platform integration go to platform-java-classloader

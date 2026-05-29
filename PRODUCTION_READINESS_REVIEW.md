@@ -96,9 +96,9 @@ $ grep -r "Copyright" --include="*.java" . | wc -l
 **Impact**: Cannot control log levels, no structured logging, poor observability
 
 **Files Affected**:
-- `platform-api/src/main/java/org/flossware/jplatform/api/*.java` (multiple)
-- `platform-launcher/src/main/java/org/flossware/jplatform/launcher/PlatformLauncher.java`
-- `platform-terminal-ui/src/main/java/org/flossware/jplatform/terminal/TerminalConsole.java`
+- `platform-api/src/main/java/org/flossware/platform/api/*.java` (multiple)
+- `platform-launcher/src/main/java/org/flossware/platform/launcher/PlatformLauncher.java`
+- `platform-terminal-ui/src/main/java/org/flossware/platform/terminal/TerminalConsole.java`
 - And 17 more...
 
 **Required Action**: Replace all `System.out.println()` with `logger.info()` / `logger.debug()`
@@ -120,8 +120,8 @@ $ grep -r "Copyright" --include="*.java" . | wc -l
 **Impact**: Indicates incomplete implementation
 
 **Files**:
-- `platform-core/src/main/java/org/flossware/jplatform/core/DependencyResolver.java`
-- `platform-launcher/src/main/java/org/flossware/jplatform/launcher/PlatformLauncher.java`
+- `platform-core/src/main/java/org/flossware/platform/core/DependencyResolver.java`
+- `platform-launcher/src/main/java/org/flossware/platform/launcher/PlatformLauncher.java`
 
 **Required Action**: Address TODOs or create GitHub issues for them
 
@@ -135,8 +135,8 @@ $ grep -r "Copyright" --include="*.java" . | wc -l
 
 **Example Files**:
 ```
-./platform-api/src/main/java/org/flossware/jplatform/api/MessageHandler.java
-./platform-api/src/main/java/org/flossware/jplatform/api/MessageBus.java
+./platform-api/src/main/java/org/flossware/platform/api/MessageHandler.java
+./platform-api/src/main/java/org/flossware/platform/api/MessageBus.java
 ```
 
 ---

@@ -1,13 +1,13 @@
-# Proposed Enhancements to jclassloader
+# Proposed Enhancements to classloader-java
 
 ## Goal
-Add reusable isolation and lifecycle management features to jclassloader that benefit any project needing custom class loading behavior (not just platform-java).
+Add reusable isolation and lifecycle management features to classloader-java that benefit any project needing custom class loading behavior (not just platform-java).
 
 ## Enhancements to Add
 
 ### 1. Delegation Strategies (Reusable)
 
-**Package**: `org.flossware.jclassloader.delegation`
+**Package**: `org.flossware.classloader-java.delegation`
 
 ```java
 /**
@@ -112,7 +112,7 @@ public class CustomDelegation implements DelegationStrategy {
 
 ### 2. Lifecycle Hooks (Reusable)
 
-**Package**: `org.flossware.jclassloader.lifecycle`
+**Package**: `org.flossware.classloader-java.lifecycle`
 
 ```java
 /**
@@ -222,7 +222,7 @@ public class LoggingListener implements ClassLoaderLifecycleListener {
 
 ### 3. Enhanced JClassLoader
 
-**Changes to**: `org.flossware.jclassloader.JClassLoader`
+**Changes to**: `org.flossware.classloader-java.JClassLoader`
 
 ```java
 public class JClassLoader extends ClassLoader {
@@ -463,7 +463,7 @@ JClassLoader moduleLoader = JClassLoader.builder()
 
 ## Benefits
 
-### For jclassloader users:
+### For classloader-java users:
 - ✅ More flexible delegation strategies
 - ✅ Better resource management
 - ✅ Debugging and monitoring capabilities
