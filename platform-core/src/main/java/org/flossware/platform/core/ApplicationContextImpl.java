@@ -59,6 +59,7 @@ public final class ApplicationContextImpl implements ApplicationContext {
       containerInfo; // Non-null for containerized applications
   private volatile org.flossware.platform.vm.VmLauncher.VmInfo
       vmInfo; // Non-null for VM applications
+  private volatile RestartManager restartManager; // Non-null if auto-restart is enabled
   private final Instant deployedAt; // Timestamp when application was deployed
 
   private ApplicationContextImpl(Builder builder) {
@@ -218,6 +219,25 @@ public final class ApplicationContextImpl implements ApplicationContext {
    */
   void setVmInfo(org.flossware.platform.vm.VmLauncher.VmInfo vmInfo) {
     this.vmInfo = vmInfo;
+  }
+
+  /**
+   * Returns the restart manager for this application. Package-private for use by
+   * ApplicationManager.
+   *
+   * @return Optional containing the restart manager, or empty if auto-restart is disabled
+   */
+  Optional<RestartManager> getRestartManager() {
+    return Optional.ofNullable(restartManager);
+  }
+
+  /**
+   * Sets the restart manager for this application. Package-private for use by ApplicationManager.
+   *
+   * @param restartManager the restart manager
+   */
+  void setRestartManager(RestartManager restartManager) {
+    this.restartManager = restartManager;
   }
 
   /**

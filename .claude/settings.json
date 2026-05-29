@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Write",
+      "Edit",
+      "Read",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "TaskGet"
+    ],
+    "alwaysAllow": {
+      "tools": [
+        {
+          "name": "Bash",
+          "patterns": [
+            "*git status*",
+            "*git diff*",
+            "*git add*",
+            "*git commit*",
+            "*git push*",
+            "*mvn*",
+            "*gh issue*",
+            "*gh pr*",
+            "*.claude/scripts/*",
+            "*find*",
+            "*grep*",
+            "*ls*",
+            "*cat*",
+            "*chmod*"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -70,6 +70,7 @@ public class ApplicationManager implements PlatformManager {
   private final NativeProcessLauncher nativeProcessLauncher;
   private final ContainerLauncher containerLauncher;
   private final org.flossware.platform.vm.VmLauncher vmLauncher;
+  private final RestartPolicyParser restartPolicyParser;
 
   /** Creates a new application manager without messaging support. */
   public ApplicationManager() {
@@ -92,6 +93,7 @@ public class ApplicationManager implements PlatformManager {
     this.reloader = new ApplicationReloader(platformSharedLoader);
     this.nativeProcessLauncher = new NativeProcessLauncher();
     this.containerLauncher = new ContainerLauncher();
+    this.restartPolicyParser = new RestartPolicyParser();
 
     // Initialize VM launcher
     org.flossware.platform.vm.VmLauncher tempVmLauncher = null;
@@ -245,6 +247,17 @@ public class ApplicationManager implements PlatformManager {
 
         applications.put(appId, context);
 
+        // Create and configure restart manager if restart policy is configured
+        Optional<org.flossware.platform.api.RestartPolicy> restartPolicyOpt =
+            restartPolicyParser.parse(descriptor);
+        if (restartPolicyOpt.isPresent()) {
+          org.flossware.platform.api.RestartPolicy restartPolicy = restartPolicyOpt.get();
+          RestartManager restartManager = new RestartManager(context, restartPolicy, this);
+          context.setRestartManager(restartManager);
+          restartManager.start();
+          LOGGER.info("[{}] Restart manager configured: {}", appId, restartPolicy);
+        }
+
         // Register with dependency resolver
         dependencyResolver.addApplication(appId, descriptor);
 
@@ -322,6 +335,32 @@ public class ApplicationManager implements PlatformManager {
               containerLauncher.launch(applicationId, descriptor);
           context.setContainerInfo(containerInfo);
 
+          // Monitor container exit for restart manager
+          context
+              .getRestartManager()
+              .ifPresent(
+                  restartManager -> {
+                    Process containerProcess = containerInfo.getProcess();
+                    if (containerProcess != null) {
+                      context
+                          .getThreadPool()
+                          .submit(
+                              () -> {
+                                try {
+                                  int exitCode = containerProcess.waitFor();
+                                  LOGGER.info(
+                                      "[{}] Container exited with code {}",
+                                      applicationId,
+                                      exitCode);
+                                  restartManager.onApplicationExit(exitCode);
+                                } catch (InterruptedException e) {
+                                  Thread.currentThread().interrupt();
+                                  LOGGER.debug("[{}] Container monitor interrupted", applicationId);
+                                }
+                              });
+                    }
+                  });
+
           context.setState(ApplicationState.RUNNING);
           LOGGER.info(
               "[{}] Container started successfully (ID: {})",
@@ -342,6 +381,29 @@ public class ApplicationManager implements PlatformManager {
 
           Process process = nativeProcessLauncher.launch(applicationId, descriptor, workingDir);
           context.setNativeProcess(process);
+
+          // Monitor process exit for restart manager
+          context
+              .getRestartManager()
+              .ifPresent(
+                  restartManager -> {
+                    context
+                        .getThreadPool()
+                        .submit(
+                            () -> {
+                              try {
+                                int exitCode = process.waitFor();
+                                LOGGER.info(
+                                    "[{}] Native process exited with code {}",
+                                    applicationId,
+                                    exitCode);
+                                restartManager.onApplicationExit(exitCode);
+                              } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                LOGGER.debug("[{}] Process monitor interrupted", applicationId);
+                              }
+                            });
+                  });
 
           context.setState(ApplicationState.RUNNING);
           LOGGER.info(
@@ -564,6 +626,15 @@ public class ApplicationManager implements PlatformManager {
 
         // Shutdown thread pool
         context.getThreadPool().shutdown();
+
+        // Shutdown restart manager if present
+        context
+            .getRestartManager()
+            .ifPresent(
+                restartManager -> {
+                  restartManager.stop();
+                  LOGGER.info("[{}] Restart manager stopped", applicationId);
+                });
 
         // Shutdown resource monitor
         if (context.getResourceMonitor() instanceof ApplicationResourceMonitor) {
