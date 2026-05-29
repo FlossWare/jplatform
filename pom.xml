@@ -355,22 +355,22 @@
                     <limit>
                       <counter>INSTRUCTION</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.01</minimum>
+                      <minimum>0.60</minimum>
                     </limit>
                     <limit>
                       <counter>BRANCH</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.01</minimum>
+                      <minimum>0.60</minimum>
                     </limit>
                     <limit>
                       <counter>LINE</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.01</minimum>
+                      <minimum>0.60</minimum>
                     </limit>
                     <limit>
                       <counter>CLASS</counter>
                       <value>MISSEDCOUNT</value>
-                      <maximum>100</maximum>
+                      <maximum>10</maximum>
                     </limit>
                   </limits>
                 </rule>

@@ -266,28 +266,47 @@ java -jar platform-launcher/target/platform-launcher-1.1.jar \
 
 ### Java Code Style
 
-We follow standard Java conventions with some specific rules:
+We follow **Google Java Style** enforced by Spotless and Checkstyle:
 
 #### 1. Formatting
-- **Indentation**: 4 spaces (no tabs)
+
+Code is automatically formatted using Spotless with Google Java Format:
+
+```bash
+# Auto-format all code before committing
+mvn spotless:apply
+
+# Check formatting without changing files
+mvn spotless:check
+```
+
+**Key Formatting Rules**:
+- **Indentation**: 2 spaces (not tabs) - enforced by Google Java Format
 - **Line length**: 120 characters max
 - **Braces**: K&R style (opening brace on same line)
 
 ```java
-// Good
+// Good (Google Java Style - 2 space indent)
+public void myMethod() {
+  if (condition) {
+    doSomething();
+  }
+}
+
+// Bad - wrong indentation
 public void myMethod() {
     if (condition) {
         doSomething();
     }
 }
 
-// Bad
+// Bad - wrong brace style
 public void myMethod()
 {
-    if (condition)
-    {
-        doSomething();
-    }
+  if (condition)
+  {
+    doSomething();
+  }
 }
 ```
 
@@ -352,15 +371,50 @@ logger.info("Deploying application: {}", appId);
 System.out.println("Deploying application: " + appId);
 ```
 
-### Checkstyle
+### Automated Code Quality Tools
+
+#### Spotless (Auto-Formatting)
+
+Spotless automatically formats code to Google Java Style:
+
+```bash
+# Format all code (run before committing)
+mvn spotless:apply
+
+# Check if code is formatted correctly
+mvn spotless:check
+
+# Runs automatically during verify phase
+mvn clean verify
+```
+
+**What Spotless Does**:
+- Applies Google Java Format
+- Removes unused imports
+- Trims trailing whitespace
+- Ensures file ends with newline
+
+#### Checkstyle (Style Validation)
 
 All code must pass Checkstyle validation:
 
 ```bash
+# Check code style
 mvn checkstyle:check
+
+# Runs automatically during validate phase
+mvn clean verify
 ```
 
-Configuration: `checkstyle.xml` (based on Google Java Style)
+**Configuration**: `checkstyle.xml` (based on Google Java Style with FlossWare conventions)
+
+**Key Rules**:
+- No wildcard imports (`import java.util.*`)
+- Missing `@Override` annotations detected
+- Method length limit: 150 lines
+- Parameter count limit: 7
+- Nested block depth limits
+- Javadoc required for public APIs
 
 Common violations to avoid:
 - Wildcard imports (`import java.util.*;`)
