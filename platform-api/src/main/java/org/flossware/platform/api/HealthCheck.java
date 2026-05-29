@@ -18,63 +18,45 @@
 package org.flossware.platform.api;
 
 /**
- * Optional interface for services to report their health status.
+ * Health check interface for applications.
  *
- * <p>Services can implement this interface to provide health information beyond basic availability.
- * The platform can periodically check service health and notify dependent applications when a
- * service becomes unavailable.
+ * <p>Applications can implement this interface to provide custom health checks that are
+ * periodically executed by the platform. If the health check fails, the platform can take action
+ * based on configured policies (log, restart, etc.).
  *
  * <p>Example implementation:
  *
  * <pre>{@code
- * public class DatabaseService implements HealthCheck {
- *     private Connection connection;
+ * public class MyApp implements Application, HealthCheck {
+ *     private Database db;
  *
- *     @Override
- *     public boolean isHealthy() {
+ *     {@literal @}Override
+ *     public HealthStatus checkHealth() {
  *         try {
- *             return connection != null && connection.isValid(1);
- *         } catch (SQLException e) {
- *             return false;
- *         }
- *     }
- *
- *     @Override
- *     public String getHealthStatus() {
- *         if (connection == null) {
- *             return "Not connected to database";
- *         }
- *         try {
- *             return connection.isValid(1) ? "Connected" : "Connection lost";
- *         } catch (SQLException e) {
- *             return "Error checking connection: " + e.getMessage();
+ *             db.ping();
+ *             return HealthStatus.healthy("Database connection OK");
+ *         } catch (Exception e) {
+ *             return HealthStatus.unhealthy("Database unreachable: " + e.getMessage());
  *         }
  *     }
  * }
  * }</pre>
  *
- * @since 2.0
+ * @since 2.3
+ * @see HealthStatus
  */
 public interface HealthCheck {
 
   /**
-   * Checks if the service is currently healthy and able to handle requests.
+   * Performs a health check for this application.
    *
-   * <p>This method should return quickly (typically within 1 second) and not perform expensive
-   * operations. It should verify that the service has all required resources and dependencies
-   * available.
+   * <p>This method should return quickly (within a few seconds) and should not block indefinitely.
+   * The platform will call this method periodically based on the configured health check interval.
    *
-   * @return true if the service is healthy, false otherwise
+   * <p>Return {@link HealthStatus#healthy(String)} if the application is functioning normally, or
+   * {@link HealthStatus#unhealthy(String)} if there are issues.
+   *
+   * @return the current health status of the application
    */
-  boolean isHealthy();
-
-  /**
-   * Returns a human-readable description of the current health status.
-   *
-   * <p>This can provide additional context beyond the boolean health flag, such as error messages,
-   * resource availability, or performance metrics.
-   *
-   * @return a status message describing the service health
-   */
-  String getHealthStatus();
+  HealthStatus checkHealth();
 }

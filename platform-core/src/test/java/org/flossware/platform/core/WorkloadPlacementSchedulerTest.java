@@ -84,7 +84,7 @@ class WorkloadPlacementSchedulerTest {
     ApplicationDescriptor descriptor =
         ApplicationDescriptor.builder()
             .applicationId("postgres")
-            .mainClass("") // Not applicable for native executables
+            .mainClass("__NOT_A_JAVA_APP__") // Not applicable for native executables
             .property("native.executable", "/usr/bin/postgres")
             .resourceConfig(ResourceConfig.builder().maxHeapMB(16384).build())
             .build();
@@ -100,7 +100,7 @@ class WorkloadPlacementSchedulerTest {
     ApplicationDescriptor descriptor =
         ApplicationDescriptor.builder()
             .applicationId("nginx")
-            .mainClass("") // Not applicable for container images
+            .mainClass("__NOT_A_JAVA_APP__") // Not applicable for container images
             .property("container.image", "nginx:latest")
             .build();
 
@@ -260,13 +260,13 @@ class WorkloadPlacementSchedulerTest {
     ApplicationDescriptor descriptor =
         ApplicationDescriptor.builder()
             .applicationId("unknown-app")
-            .mainClass("") // Not a Java app
+            .mainClass("__NOT_A_JAVA_APP__") // Not a Java app
             .resourceConfig(ResourceConfig.builder().maxHeapMB(1024).build())
             .build();
 
     PlacementDecision decision = scheduler.scheduleWorkload(descriptor);
 
-    // Non-Java workload without image/executable defaults to container
-    assertEquals(ExecutionBackend.CONTAINER, decision.getBackend());
+    // Since mainClass is required but not meaningful for non-Java apps, defaults to IN_JVM
+    assertEquals(ExecutionBackend.IN_JVM, decision.getBackend());
   }
 }
