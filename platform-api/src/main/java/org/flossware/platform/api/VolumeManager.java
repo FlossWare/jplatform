@@ -23,11 +23,12 @@ import java.util.List;
 /**
  * Manages persistent and ephemeral storage volumes for an application.
  *
- * <p>The VolumeManager provides access to mounted directories that can
- * persist data across application restarts. Volumes are isolated per
- * application and can be configured with size limits.</p>
+ * <p>The VolumeManager provides access to mounted directories that can persist data across
+ * application restarts. Volumes are isolated per application and can be configured with size
+ * limits.
  *
- * <p>Usage example:</p>
+ * <p>Usage example:
+ *
  * <pre>{@code
  * ApplicationContext context = ...;
  * Optional<VolumeManager> volumeMgr = context.getVolumeManager();
@@ -47,62 +48,61 @@ import java.util.List;
  */
 public interface VolumeManager {
 
-    /**
-     * Returns the filesystem path for a named volume.
-     *
-     * <p>The returned path is the actual directory on the filesystem
-     * where the application can read and write files. The volume must
-     * be defined in the application descriptor.</p>
-     *
-     * @param volumeName the name of the volume
-     * @return the filesystem path to the volume directory
-     * @throws IllegalArgumentException if volume name is not defined
-     */
-    Path getVolumePath(String volumeName);
+  /**
+   * Returns the filesystem path for a named volume.
+   *
+   * <p>The returned path is the actual directory on the filesystem where the application can read
+   * and write files. The volume must be defined in the application descriptor.
+   *
+   * @param volumeName the name of the volume
+   * @return the filesystem path to the volume directory
+   * @throws IllegalArgumentException if volume name is not defined
+   */
+  Path getVolumePath(String volumeName);
 
-    /**
-     * Returns all volume mounts defined for this application.
-     *
-     * @return immutable list of volume mounts
-     */
-    List<VolumeMount> getVolumes();
+  /**
+   * Returns all volume mounts defined for this application.
+   *
+   * @return immutable list of volume mounts
+   */
+  List<VolumeMount> getVolumes();
 
-    /**
-     * Returns the current disk usage for a volume in bytes.
-     *
-     * <p>Calculates the total size of all files in the volume directory
-     * by walking the file tree. This may be slow for large volumes.</p>
-     *
-     * @param volumeName the name of the volume
-     * @return the current usage in bytes
-     * @throws IllegalArgumentException if volume name is not defined
-     * @throws java.io.IOException if unable to calculate usage
-     */
-    long getVolumeUsageBytes(String volumeName) throws java.io.IOException;
+  /**
+   * Returns the current disk usage for a volume in bytes.
+   *
+   * <p>Calculates the total size of all files in the volume directory by walking the file tree.
+   * This may be slow for large volumes.
+   *
+   * @param volumeName the name of the volume
+   * @return the current usage in bytes
+   * @throws IllegalArgumentException if volume name is not defined
+   * @throws java.io.IOException if unable to calculate usage
+   */
+  long getVolumeUsageBytes(String volumeName) throws java.io.IOException;
 
-    /**
-     * Checks if a volume exists and is accessible.
-     *
-     * @param volumeName the name of the volume
-     * @return true if the volume exists and is readable/writable
-     */
-    boolean volumeExists(String volumeName);
+  /**
+   * Checks if a volume exists and is accessible.
+   *
+   * @param volumeName the name of the volume
+   * @return true if the volume exists and is readable/writable
+   */
+  boolean volumeExists(String volumeName);
 
-    /**
-     * Returns the maximum size limit for a volume in bytes.
-     *
-     * @param volumeName the name of the volume
-     * @return the size limit in bytes, or 0 if unlimited
-     * @throws IllegalArgumentException if volume name is not defined
-     */
-    long getVolumeSizeLimit(String volumeName);
+  /**
+   * Returns the maximum size limit for a volume in bytes.
+   *
+   * @param volumeName the name of the volume
+   * @return the size limit in bytes, or 0 if unlimited
+   * @throws IllegalArgumentException if volume name is not defined
+   */
+  long getVolumeSizeLimit(String volumeName);
 
-    /**
-     * Returns whether a volume is persistent (survives restarts).
-     *
-     * @param volumeName the name of the volume
-     * @return true if persistent, false if ephemeral
-     * @throws IllegalArgumentException if volume name is not defined
-     */
-    boolean isPersistent(String volumeName);
+  /**
+   * Returns whether a volume is persistent (survives restarts).
+   *
+   * @param volumeName the name of the volume
+   * @return true if persistent, false if ephemeral
+   * @throws IllegalArgumentException if volume name is not defined
+   */
+  boolean isPersistent(String volumeName);
 }

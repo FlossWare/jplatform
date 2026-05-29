@@ -18,10 +18,11 @@
 package org.flossware.platform.api;
 
 /**
- * Configuration for application thread pool.
- * Defines core pool size, maximum pool size, keep-alive time, and queue capacity.
+ * Configuration for application thread pool. Defines core pool size, maximum pool size, keep-alive
+ * time, and queue capacity.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * ThreadPoolConfig config = ThreadPoolConfig.builder()
  *     .corePoolSize(5)
@@ -39,167 +40,167 @@ package org.flossware.platform.api;
  * @see ThreadPoolStats
  */
 public class ThreadPoolConfig {
-    private final int corePoolSize;
-    private final int maxPoolSize;
-    private final long keepAliveTimeSeconds;
-    private final int queueCapacity;
+  private final int corePoolSize;
+  private final int maxPoolSize;
+  private final long keepAliveTimeSeconds;
+  private final int queueCapacity;
 
-    private ThreadPoolConfig(Builder builder) {
-        this.corePoolSize = builder.corePoolSize;
-        this.maxPoolSize = builder.maxPoolSize;
-        this.keepAliveTimeSeconds = builder.keepAliveTimeSeconds;
-        this.queueCapacity = builder.queueCapacity;
-    }
+  private ThreadPoolConfig(Builder builder) {
+    this.corePoolSize = builder.corePoolSize;
+    this.maxPoolSize = builder.maxPoolSize;
+    this.keepAliveTimeSeconds = builder.keepAliveTimeSeconds;
+    this.queueCapacity = builder.queueCapacity;
+  }
+
+  /**
+   * Returns the minimum number of threads to keep in the pool.
+   *
+   * @return the core pool size
+   */
+  public int getCorePoolSize() {
+    return corePoolSize;
+  }
+
+  /**
+   * Returns the maximum number of threads allowed in the pool.
+   *
+   * @return the maximum pool size
+   */
+  public int getMaxPoolSize() {
+    return maxPoolSize;
+  }
+
+  /**
+   * Returns the time that excess idle threads wait before terminating.
+   *
+   * @return the keep-alive time in seconds
+   */
+  public long getKeepAliveTimeSeconds() {
+    return keepAliveTimeSeconds;
+  }
+
+  /**
+   * Returns the maximum number of tasks that can be queued for execution.
+   *
+   * @return the queue capacity
+   */
+  public int getQueueCapacity() {
+    return queueCapacity;
+  }
+
+  /**
+   * Creates a thread pool configuration with default settings. Defaults: core=2, max=10,
+   * keepAlive=60s, queue=100
+   *
+   * @return a configuration with default values
+   */
+  public static ThreadPoolConfig defaultConfig() {
+    return builder().build();
+  }
+
+  /**
+   * Creates a new builder for constructing thread pool configurations.
+   *
+   * @return a new builder instance with default values
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /** Builder for constructing ThreadPoolConfig instances. All properties have default values. */
+  public static class Builder {
+    private int corePoolSize = 2;
+    private int maxPoolSize = 10;
+    private long keepAliveTimeSeconds = 60;
+    private int queueCapacity = 100;
 
     /**
-     * Returns the minimum number of threads to keep in the pool.
+     * Sets the core pool size.
      *
-     * @return the core pool size
+     * @param corePoolSize the minimum number of threads to keep in the pool
+     * @return this builder
+     * @throws IllegalArgumentException if corePoolSize is negative
      */
-    public int getCorePoolSize() {
-        return corePoolSize;
+    public Builder corePoolSize(int corePoolSize) {
+      if (corePoolSize < 0) {
+        throw new IllegalArgumentException("corePoolSize must be >= 0, got: " + corePoolSize);
+      }
+      this.corePoolSize = corePoolSize;
+      return this;
     }
 
     /**
-     * Returns the maximum number of threads allowed in the pool.
+     * Sets the maximum pool size.
      *
-     * @return the maximum pool size
+     * @param maxPoolSize the maximum number of threads allowed in the pool
+     * @return this builder
+     * @throws IllegalArgumentException if maxPoolSize is <= 0
      */
-    public int getMaxPoolSize() {
-        return maxPoolSize;
+    public Builder maxPoolSize(int maxPoolSize) {
+      if (maxPoolSize <= 0) {
+        throw new IllegalArgumentException("maxPoolSize must be > 0, got: " + maxPoolSize);
+      }
+      this.maxPoolSize = maxPoolSize;
+      return this;
     }
 
     /**
-     * Returns the time that excess idle threads wait before terminating.
+     * Sets the keep-alive time for excess idle threads.
      *
-     * @return the keep-alive time in seconds
+     * @param keepAliveTimeSeconds the time in seconds that excess idle threads wait before
+     *     terminating
+     * @return this builder
+     * @throws IllegalArgumentException if keepAliveTimeSeconds is negative
      */
-    public long getKeepAliveTimeSeconds() {
-        return keepAliveTimeSeconds;
+    public Builder keepAliveTimeSeconds(long keepAliveTimeSeconds) {
+      if (keepAliveTimeSeconds < 0) {
+        throw new IllegalArgumentException(
+            "keepAliveTimeSeconds must be >= 0, got: " + keepAliveTimeSeconds);
+      }
+      this.keepAliveTimeSeconds = keepAliveTimeSeconds;
+      return this;
     }
 
     /**
-     * Returns the maximum number of tasks that can be queued for execution.
+     * Sets the task queue capacity.
      *
-     * @return the queue capacity
+     * @param queueCapacity the maximum number of tasks that can be queued
+     * @return this builder
+     * @throws IllegalArgumentException if queueCapacity is negative
      */
-    public int getQueueCapacity() {
-        return queueCapacity;
+    public Builder queueCapacity(int queueCapacity) {
+      if (queueCapacity < 0) {
+        throw new IllegalArgumentException("queueCapacity must be >= 0, got: " + queueCapacity);
+      }
+      this.queueCapacity = queueCapacity;
+      return this;
     }
 
     /**
-     * Creates a thread pool configuration with default settings.
-     * Defaults: core=2, max=10, keepAlive=60s, queue=100
+     * Builds the ThreadPoolConfig instance.
      *
-     * @return a configuration with default values
+     * @return a new ThreadPoolConfig with the configured values
+     * @throws IllegalArgumentException if any parameter is invalid
      */
-    public static ThreadPoolConfig defaultConfig() {
-        return builder().build();
+    public ThreadPoolConfig build() {
+      if (corePoolSize < 0) {
+        throw new IllegalArgumentException("corePoolSize must be >= 0, got: " + corePoolSize);
+      }
+      if (maxPoolSize <= 0) {
+        throw new IllegalArgumentException("maxPoolSize must be > 0, got: " + maxPoolSize);
+      }
+      if (maxPoolSize < corePoolSize) {
+        throw new IllegalArgumentException(
+            "maxPoolSize (" + maxPoolSize + ") must be >= corePoolSize (" + corePoolSize + ")");
+      }
+      if (keepAliveTimeSeconds < 0) {
+        throw new IllegalArgumentException(
+            "keepAliveTimeSeconds must be >= 0, got: " + keepAliveTimeSeconds);
+      }
+      if (queueCapacity < 0) {
+        throw new IllegalArgumentException("queueCapacity must be >= 0, got: " + queueCapacity);
+      }
+      return new ThreadPoolConfig(this);
     }
-
-    /**
-     * Creates a new builder for constructing thread pool configurations.
-     *
-     * @return a new builder instance with default values
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Builder for constructing ThreadPoolConfig instances.
-     * All properties have default values.
-     */
-    public static class Builder {
-        private int corePoolSize = 2;
-        private int maxPoolSize = 10;
-        private long keepAliveTimeSeconds = 60;
-        private int queueCapacity = 100;
-
-        /**
-         * Sets the core pool size.
-         *
-         * @param corePoolSize the minimum number of threads to keep in the pool
-         * @return this builder
-         * @throws IllegalArgumentException if corePoolSize is negative
-         */
-        public Builder corePoolSize(int corePoolSize) {
-            if (corePoolSize < 0) {
-                throw new IllegalArgumentException("corePoolSize must be >= 0, got: " + corePoolSize);
-            }
-            this.corePoolSize = corePoolSize;
-            return this;
-        }
-
-        /**
-         * Sets the maximum pool size.
-         *
-         * @param maxPoolSize the maximum number of threads allowed in the pool
-         * @return this builder
-         * @throws IllegalArgumentException if maxPoolSize is <= 0
-         */
-        public Builder maxPoolSize(int maxPoolSize) {
-            if (maxPoolSize <= 0) {
-                throw new IllegalArgumentException("maxPoolSize must be > 0, got: " + maxPoolSize);
-            }
-            this.maxPoolSize = maxPoolSize;
-            return this;
-        }
-
-        /**
-         * Sets the keep-alive time for excess idle threads.
-         *
-         * @param keepAliveTimeSeconds the time in seconds that excess idle threads wait before terminating
-         * @return this builder
-         * @throws IllegalArgumentException if keepAliveTimeSeconds is negative
-         */
-        public Builder keepAliveTimeSeconds(long keepAliveTimeSeconds) {
-            if (keepAliveTimeSeconds < 0) {
-                throw new IllegalArgumentException("keepAliveTimeSeconds must be >= 0, got: " + keepAliveTimeSeconds);
-            }
-            this.keepAliveTimeSeconds = keepAliveTimeSeconds;
-            return this;
-        }
-
-        /**
-         * Sets the task queue capacity.
-         *
-         * @param queueCapacity the maximum number of tasks that can be queued
-         * @return this builder
-         * @throws IllegalArgumentException if queueCapacity is negative
-         */
-        public Builder queueCapacity(int queueCapacity) {
-            if (queueCapacity < 0) {
-                throw new IllegalArgumentException("queueCapacity must be >= 0, got: " + queueCapacity);
-            }
-            this.queueCapacity = queueCapacity;
-            return this;
-        }
-
-        /**
-         * Builds the ThreadPoolConfig instance.
-         *
-         * @return a new ThreadPoolConfig with the configured values
-         * @throws IllegalArgumentException if any parameter is invalid
-         */
-        public ThreadPoolConfig build() {
-            if (corePoolSize < 0) {
-                throw new IllegalArgumentException("corePoolSize must be >= 0, got: " + corePoolSize);
-            }
-            if (maxPoolSize <= 0) {
-                throw new IllegalArgumentException("maxPoolSize must be > 0, got: " + maxPoolSize);
-            }
-            if (maxPoolSize < corePoolSize) {
-                throw new IllegalArgumentException(
-                    "maxPoolSize (" + maxPoolSize + ") must be >= corePoolSize (" + corePoolSize + ")");
-            }
-            if (keepAliveTimeSeconds < 0) {
-                throw new IllegalArgumentException("keepAliveTimeSeconds must be >= 0, got: " + keepAliveTimeSeconds);
-            }
-            if (queueCapacity < 0) {
-                throw new IllegalArgumentException("queueCapacity must be >= 0, got: " + queueCapacity);
-            }
-            return new ThreadPoolConfig(this);
-        }
-    }
+  }
 }

@@ -21,13 +21,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 /**
- * Isolated thread pool executor for an application.
- * Provides concurrent execution while maintaining resource isolation.
+ * Isolated thread pool executor for an application. Provides concurrent execution while maintaining
+ * resource isolation.
  *
- * <p>Each application has its own dedicated thread pool to prevent
- * resource contention and enable proper resource tracking.</p>
+ * <p>Each application has its own dedicated thread pool to prevent resource contention and enable
+ * proper resource tracking.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * ThreadPoolExecutor executor = context.getThreadPool();
  *
@@ -44,61 +45,57 @@ import java.util.concurrent.Future;
  * @see ApplicationContext#getThreadPool()
  */
 public interface ThreadPoolExecutor {
-    /**
-     * Submits a Runnable task for execution.
-     *
-     * @param task the task to execute
-     * @return a Future representing pending completion of the task
-     */
-    Future<?> submit(Runnable task);
+  /**
+   * Submits a Runnable task for execution.
+   *
+   * @param task the task to execute
+   * @return a Future representing pending completion of the task
+   */
+  Future<?> submit(Runnable task);
 
-    /**
-     * Submits a Callable task for execution and returns a Future
-     * representing the pending result.
-     *
-     * @param <T> the type of the task's result
-     * @param task the task to execute
-     * @return a Future representing pending completion of the task
-     */
-    <T> Future<T> submit(Callable<T> task);
+  /**
+   * Submits a Callable task for execution and returns a Future representing the pending result.
+   *
+   * @param <T> the type of the task's result
+   * @param task the task to execute
+   * @return a Future representing pending completion of the task
+   */
+  <T> Future<T> submit(Callable<T> task);
 
-    /**
-     * Executes the given command at some time in the future.
-     *
-     * @param command the runnable task
-     */
-    void execute(Runnable command);
+  /**
+   * Executes the given command at some time in the future.
+   *
+   * @param command the runnable task
+   */
+  void execute(Runnable command);
 
-    /**
-     * Initiates an orderly shutdown in which previously submitted tasks
-     * are executed, but no new tasks will be accepted.
-     */
-    void shutdown();
+  /**
+   * Initiates an orderly shutdown in which previously submitted tasks are executed, but no new
+   * tasks will be accepted.
+   */
+  void shutdown();
 
-    /**
-     * Attempts to stop all actively executing tasks and halts the
-     * processing of waiting tasks.
-     */
-    void shutdownNow();
+  /** Attempts to stop all actively executing tasks and halts the processing of waiting tasks. */
+  void shutdownNow();
 
-    /**
-     * Returns true if this executor has been shut down.
-     *
-     * @return true if shut down
-     */
-    boolean isShutdown();
+  /**
+   * Returns true if this executor has been shut down.
+   *
+   * @return true if shut down
+   */
+  boolean isShutdown();
 
-    /**
-     * Returns true if all tasks have completed following shut down.
-     *
-     * @return true if terminated
-     */
-    boolean isTerminated();
+  /**
+   * Returns true if all tasks have completed following shut down.
+   *
+   * @return true if terminated
+   */
+  boolean isTerminated();
 
-    /**
-     * Returns statistics about this thread pool's current state.
-     *
-     * @return current thread pool statistics
-     */
-    ThreadPoolStats getStats();
+  /**
+   * Returns statistics about this thread pool's current state.
+   *
+   * @return current thread pool statistics
+   */
+  ThreadPoolStats getStats();
 }

@@ -17,135 +17,112 @@
 
 package org.flossware.platform.core;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for PlacementDecision.
- */
+import org.junit.jupiter.api.Test;
+
+/** Unit tests for PlacementDecision. */
 class PlacementDecisionTest {
 
-    @Test
-    void testConstructorWithoutApplicationId() {
-        PlacementDecision decision = new PlacementDecision(
-                ExecutionBackend.IN_JVM,
-                "Lightweight Java app"
-        );
+  @Test
+  void testConstructorWithoutApplicationId() {
+    PlacementDecision decision =
+        new PlacementDecision(ExecutionBackend.IN_JVM, "Lightweight Java app");
 
-        assertNull(decision.getApplicationId());
-        assertEquals(ExecutionBackend.IN_JVM, decision.getBackend());
-        assertEquals("Lightweight Java app", decision.getReason());
-        assertTrue(decision.getTimestamp() > 0);
-    }
+    assertNull(decision.getApplicationId());
+    assertEquals(ExecutionBackend.IN_JVM, decision.getBackend());
+    assertEquals("Lightweight Java app", decision.getReason());
+    assertTrue(decision.getTimestamp() > 0);
+  }
 
-    @Test
-    void testConstructorWithApplicationId() {
-        PlacementDecision decision = new PlacementDecision(
-                "auth-service",
-                ExecutionBackend.CONTAINER,
-                "Heavy Java app"
-        );
+  @Test
+  void testConstructorWithApplicationId() {
+    PlacementDecision decision =
+        new PlacementDecision("auth-service", ExecutionBackend.CONTAINER, "Heavy Java app");
 
-        assertEquals("auth-service", decision.getApplicationId());
-        assertEquals(ExecutionBackend.CONTAINER, decision.getBackend());
-        assertEquals("Heavy Java app", decision.getReason());
-        assertTrue(decision.getTimestamp() > 0);
-    }
+    assertEquals("auth-service", decision.getApplicationId());
+    assertEquals(ExecutionBackend.CONTAINER, decision.getBackend());
+    assertEquals("Heavy Java app", decision.getReason());
+    assertTrue(decision.getTimestamp() > 0);
+  }
 
-    @Test
-    void testConstructorWithExplicitTimestamp() {
-        long timestamp = 1234567890L;
-        PlacementDecision decision = new PlacementDecision(
-                "test-app",
-                ExecutionBackend.VIRTUAL_MACHINE,
-                "Kernel access required",
-                timestamp
-        );
+  @Test
+  void testConstructorWithExplicitTimestamp() {
+    long timestamp = 1234567890L;
+    PlacementDecision decision =
+        new PlacementDecision(
+            "test-app", ExecutionBackend.VIRTUAL_MACHINE, "Kernel access required", timestamp);
 
-        assertEquals("test-app", decision.getApplicationId());
-        assertEquals(ExecutionBackend.VIRTUAL_MACHINE, decision.getBackend());
-        assertEquals("Kernel access required", decision.getReason());
-        assertEquals(timestamp, decision.getTimestamp());
-    }
+    assertEquals("test-app", decision.getApplicationId());
+    assertEquals(ExecutionBackend.VIRTUAL_MACHINE, decision.getBackend());
+    assertEquals("Kernel access required", decision.getReason());
+    assertEquals(timestamp, decision.getTimestamp());
+  }
 
-    @Test
-    void testConstructorNullBackend() {
-        assertThrows(NullPointerException.class, () ->
-                new PlacementDecision(null, "reason")
-        );
-    }
+  @Test
+  void testConstructorNullBackend() {
+    assertThrows(NullPointerException.class, () -> new PlacementDecision(null, "reason"));
+  }
 
-    @Test
-    void testConstructorNullReason() {
-        assertThrows(NullPointerException.class, () ->
-                new PlacementDecision(ExecutionBackend.IN_JVM, null)
-        );
-    }
+  @Test
+  void testConstructorNullReason() {
+    assertThrows(
+        NullPointerException.class, () -> new PlacementDecision(ExecutionBackend.IN_JVM, null));
+  }
 
-    @Test
-    void testConstructorNegativeTimestamp() {
-        assertThrows(IllegalArgumentException.class, () ->
-                new PlacementDecision("app", ExecutionBackend.IN_JVM, "reason", -1)
-        );
-    }
+  @Test
+  void testConstructorNegativeTimestamp() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new PlacementDecision("app", ExecutionBackend.IN_JVM, "reason", -1));
+  }
 
-    @Test
-    void testEquality() {
-        long timestamp = System.currentTimeMillis();
-        PlacementDecision decision1 = new PlacementDecision(
-                "app1", ExecutionBackend.IN_JVM, "reason", timestamp
-        );
-        PlacementDecision decision2 = new PlacementDecision(
-                "app1", ExecutionBackend.IN_JVM, "reason", timestamp
-        );
+  @Test
+  void testEquality() {
+    long timestamp = System.currentTimeMillis();
+    PlacementDecision decision1 =
+        new PlacementDecision("app1", ExecutionBackend.IN_JVM, "reason", timestamp);
+    PlacementDecision decision2 =
+        new PlacementDecision("app1", ExecutionBackend.IN_JVM, "reason", timestamp);
 
-        assertEquals(decision1, decision2);
-        assertEquals(decision1.hashCode(), decision2.hashCode());
-    }
+    assertEquals(decision1, decision2);
+    assertEquals(decision1.hashCode(), decision2.hashCode());
+  }
 
-    @Test
-    void testInequality() {
-        long timestamp = System.currentTimeMillis();
+  @Test
+  void testInequality() {
+    long timestamp = System.currentTimeMillis();
 
-        PlacementDecision decision1 = new PlacementDecision(
-                "app1", ExecutionBackend.IN_JVM, "reason", timestamp
-        );
-        PlacementDecision decision2 = new PlacementDecision(
-                "app2", ExecutionBackend.IN_JVM, "reason", timestamp
-        );
-        PlacementDecision decision3 = new PlacementDecision(
-                "app1", ExecutionBackend.CONTAINER, "reason", timestamp
-        );
+    PlacementDecision decision1 =
+        new PlacementDecision("app1", ExecutionBackend.IN_JVM, "reason", timestamp);
+    PlacementDecision decision2 =
+        new PlacementDecision("app2", ExecutionBackend.IN_JVM, "reason", timestamp);
+    PlacementDecision decision3 =
+        new PlacementDecision("app1", ExecutionBackend.CONTAINER, "reason", timestamp);
 
-        assertNotEquals(decision1, decision2);
-        assertNotEquals(decision1, decision3);
-    }
+    assertNotEquals(decision1, decision2);
+    assertNotEquals(decision1, decision3);
+  }
 
-    @Test
-    void testToStringWithoutApplicationId() {
-        PlacementDecision decision = new PlacementDecision(
-                ExecutionBackend.IN_JVM,
-                "Lightweight Java app"
-        );
+  @Test
+  void testToStringWithoutApplicationId() {
+    PlacementDecision decision =
+        new PlacementDecision(ExecutionBackend.IN_JVM, "Lightweight Java app");
 
-        String str = decision.toString();
-        assertTrue(str.contains("backend=in-jvm"));
-        assertTrue(str.contains("reason='Lightweight Java app'"));
-        assertFalse(str.contains("app="));
-    }
+    String str = decision.toString();
+    assertTrue(str.contains("backend=in-jvm"));
+    assertTrue(str.contains("reason='Lightweight Java app'"));
+    assertFalse(str.contains("app="));
+  }
 
-    @Test
-    void testToStringWithApplicationId() {
-        PlacementDecision decision = new PlacementDecision(
-                "auth-service",
-                ExecutionBackend.CONTAINER,
-                "Heavy Java app"
-        );
+  @Test
+  void testToStringWithApplicationId() {
+    PlacementDecision decision =
+        new PlacementDecision("auth-service", ExecutionBackend.CONTAINER, "Heavy Java app");
 
-        String str = decision.toString();
-        assertTrue(str.contains("app=auth-service"));
-        assertTrue(str.contains("backend=container"));
-        assertTrue(str.contains("reason='Heavy Java app'"));
-    }
+    String str = decision.toString();
+    assertTrue(str.contains("app=auth-service"));
+    assertTrue(str.contains("backend=container"));
+    assertTrue(str.contains("reason='Heavy Java app'"));
+  }
 }

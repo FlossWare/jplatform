@@ -17,126 +17,122 @@
 
 package org.flossware.platform.api;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Test;
+
 /**
- * Comprehensive unit tests for EnforcementAction enum.
- * Tests all enum values, isDestructive(), and isGraceful() methods.
+ * Comprehensive unit tests for EnforcementAction enum. Tests all enum values, isDestructive(), and
+ * isGraceful() methods.
  */
 class EnforcementActionTest {
 
-    @Test
-    void testAllEnumValues() {
-        EnforcementAction[] actions = EnforcementAction.values();
+  @Test
+  void testAllEnumValues() {
+    EnforcementAction[] actions = EnforcementAction.values();
 
-        assertEquals(4, actions.length);
-        assertEquals(EnforcementAction.NOTIFY, actions[0]);
-        assertEquals(EnforcementAction.THROTTLE, actions[1]);
-        assertEquals(EnforcementAction.SHUTDOWN, actions[2]);
-        assertEquals(EnforcementAction.KILL, actions[3]);
-    }
+    assertEquals(4, actions.length);
+    assertEquals(EnforcementAction.NOTIFY, actions[0]);
+    assertEquals(EnforcementAction.THROTTLE, actions[1]);
+    assertEquals(EnforcementAction.SHUTDOWN, actions[2]);
+    assertEquals(EnforcementAction.KILL, actions[3]);
+  }
 
-    @Test
-    void testValueOf() {
-        assertEquals(EnforcementAction.NOTIFY, EnforcementAction.valueOf("NOTIFY"));
-        assertEquals(EnforcementAction.THROTTLE, EnforcementAction.valueOf("THROTTLE"));
-        assertEquals(EnforcementAction.SHUTDOWN, EnforcementAction.valueOf("SHUTDOWN"));
-        assertEquals(EnforcementAction.KILL, EnforcementAction.valueOf("KILL"));
-    }
+  @Test
+  void testValueOf() {
+    assertEquals(EnforcementAction.NOTIFY, EnforcementAction.valueOf("NOTIFY"));
+    assertEquals(EnforcementAction.THROTTLE, EnforcementAction.valueOf("THROTTLE"));
+    assertEquals(EnforcementAction.SHUTDOWN, EnforcementAction.valueOf("SHUTDOWN"));
+    assertEquals(EnforcementAction.KILL, EnforcementAction.valueOf("KILL"));
+  }
 
-    @Test
-    void testValueOfInvalid() {
-        assertThrows(IllegalArgumentException.class, () ->
-            EnforcementAction.valueOf("INVALID")
-        );
-    }
+  @Test
+  void testValueOfInvalid() {
+    assertThrows(IllegalArgumentException.class, () -> EnforcementAction.valueOf("INVALID"));
+  }
 
-    @Test
-    void testValueOfNull() {
-        assertThrows(NullPointerException.class, () ->
-            EnforcementAction.valueOf(null)
-        );
-    }
+  @Test
+  void testValueOfNull() {
+    assertThrows(NullPointerException.class, () -> EnforcementAction.valueOf(null));
+  }
 
-    @Test
-    void testIsDestructiveNotify() {
-        assertFalse(EnforcementAction.NOTIFY.isDestructive());
-    }
+  @Test
+  void testIsDestructiveNotify() {
+    assertFalse(EnforcementAction.NOTIFY.isDestructive());
+  }
 
-    @Test
-    void testIsDestructiveThrottle() {
-        assertFalse(EnforcementAction.THROTTLE.isDestructive());
-    }
+  @Test
+  void testIsDestructiveThrottle() {
+    assertFalse(EnforcementAction.THROTTLE.isDestructive());
+  }
 
-    @Test
-    void testIsDestructiveShutdown() {
-        assertTrue(EnforcementAction.SHUTDOWN.isDestructive());
-    }
+  @Test
+  void testIsDestructiveShutdown() {
+    assertTrue(EnforcementAction.SHUTDOWN.isDestructive());
+  }
 
-    @Test
-    void testIsDestructiveKill() {
-        assertTrue(EnforcementAction.KILL.isDestructive());
-    }
+  @Test
+  void testIsDestructiveKill() {
+    assertTrue(EnforcementAction.KILL.isDestructive());
+  }
 
-    @Test
-    void testIsGracefulNotify() {
-        assertTrue(EnforcementAction.NOTIFY.isGraceful());
-    }
+  @Test
+  void testIsGracefulNotify() {
+    assertTrue(EnforcementAction.NOTIFY.isGraceful());
+  }
 
-    @Test
-    void testIsGracefulThrottle() {
-        assertTrue(EnforcementAction.THROTTLE.isGraceful());
-    }
+  @Test
+  void testIsGracefulThrottle() {
+    assertTrue(EnforcementAction.THROTTLE.isGraceful());
+  }
 
-    @Test
-    void testIsGracefulShutdown() {
-        assertTrue(EnforcementAction.SHUTDOWN.isGraceful());
-    }
+  @Test
+  void testIsGracefulShutdown() {
+    assertTrue(EnforcementAction.SHUTDOWN.isGraceful());
+  }
 
-    @Test
-    void testIsGracefulKill() {
-        assertFalse(EnforcementAction.KILL.isGraceful());
-    }
+  @Test
+  void testIsGracefulKill() {
+    assertFalse(EnforcementAction.KILL.isGraceful());
+  }
 
-    @Test
-    void testEnumToString() {
-        assertEquals("NOTIFY", EnforcementAction.NOTIFY.toString());
-        assertEquals("THROTTLE", EnforcementAction.THROTTLE.toString());
-        assertEquals("SHUTDOWN", EnforcementAction.SHUTDOWN.toString());
-        assertEquals("KILL", EnforcementAction.KILL.toString());
-    }
+  @Test
+  void testEnumToString() {
+    assertEquals("NOTIFY", EnforcementAction.NOTIFY.toString());
+    assertEquals("THROTTLE", EnforcementAction.THROTTLE.toString());
+    assertEquals("SHUTDOWN", EnforcementAction.SHUTDOWN.toString());
+    assertEquals("KILL", EnforcementAction.KILL.toString());
+  }
 
-    @Test
-    void testEnumEquality() {
-        assertSame(EnforcementAction.NOTIFY, EnforcementAction.valueOf("NOTIFY"));
-        assertSame(EnforcementAction.SHUTDOWN, EnforcementAction.valueOf("SHUTDOWN"));
-        assertNotSame(EnforcementAction.NOTIFY, EnforcementAction.SHUTDOWN);
-    }
+  @Test
+  void testEnumEquality() {
+    assertSame(EnforcementAction.NOTIFY, EnforcementAction.valueOf("NOTIFY"));
+    assertSame(EnforcementAction.SHUTDOWN, EnforcementAction.valueOf("SHUTDOWN"));
+    assertNotSame(EnforcementAction.NOTIFY, EnforcementAction.SHUTDOWN);
+  }
 
-    @Test
-    void testEnumOrdinality() {
-        assertEquals(0, EnforcementAction.NOTIFY.ordinal());
-        assertEquals(1, EnforcementAction.THROTTLE.ordinal());
-        assertEquals(2, EnforcementAction.SHUTDOWN.ordinal());
-        assertEquals(3, EnforcementAction.KILL.ordinal());
-    }
+  @Test
+  void testEnumOrdinality() {
+    assertEquals(0, EnforcementAction.NOTIFY.ordinal());
+    assertEquals(1, EnforcementAction.THROTTLE.ordinal());
+    assertEquals(2, EnforcementAction.SHUTDOWN.ordinal());
+    assertEquals(3, EnforcementAction.KILL.ordinal());
+  }
 
-    @Test
-    void testDestructiveVsGraceful() {
-        // KILL is the only destructive AND non-graceful action
-        assertTrue(EnforcementAction.KILL.isDestructive());
-        assertFalse(EnforcementAction.KILL.isGraceful());
+  @Test
+  void testDestructiveVsGraceful() {
+    // KILL is the only destructive AND non-graceful action
+    assertTrue(EnforcementAction.KILL.isDestructive());
+    assertFalse(EnforcementAction.KILL.isGraceful());
 
-        // SHUTDOWN is destructive but graceful
-        assertTrue(EnforcementAction.SHUTDOWN.isDestructive());
-        assertTrue(EnforcementAction.SHUTDOWN.isGraceful());
+    // SHUTDOWN is destructive but graceful
+    assertTrue(EnforcementAction.SHUTDOWN.isDestructive());
+    assertTrue(EnforcementAction.SHUTDOWN.isGraceful());
 
-        // NOTIFY and THROTTLE are non-destructive and graceful
-        assertFalse(EnforcementAction.NOTIFY.isDestructive());
-        assertTrue(EnforcementAction.NOTIFY.isGraceful());
-        assertFalse(EnforcementAction.THROTTLE.isDestructive());
-        assertTrue(EnforcementAction.THROTTLE.isGraceful());
-    }
+    // NOTIFY and THROTTLE are non-destructive and graceful
+    assertFalse(EnforcementAction.NOTIFY.isDestructive());
+    assertTrue(EnforcementAction.NOTIFY.isGraceful());
+    assertFalse(EnforcementAction.THROTTLE.isDestructive());
+    assertTrue(EnforcementAction.THROTTLE.isGraceful());
+  }
 }

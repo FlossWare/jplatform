@@ -18,10 +18,10 @@
 package org.flossware.platform.storage.redis;
 
 /**
- * Configuration for Redis-based storage.
- * Stores volume metadata in Redis key-value store.
+ * Configuration for Redis-based storage. Stores volume metadata in Redis key-value store.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * RedisStorageConfig config = RedisStorageConfig.builder()
  *     .host("localhost")
@@ -34,214 +34,211 @@ package org.flossware.platform.storage.redis;
  */
 public class RedisStorageConfig {
 
-    private final String host;
-    private final int port;
-    private final String password;
-    private final int database;
-    private final int connectionTimeout;
-    private final int socketTimeout;
-    private final String keyPrefix;
+  private final String host;
+  private final int port;
+  private final String password;
+  private final int database;
+  private final int connectionTimeout;
+  private final int socketTimeout;
+  private final String keyPrefix;
+
+  /**
+   * Package-private constructor for builder.
+   *
+   * @param builder the builder containing configuration values
+   */
+  RedisStorageConfig(Builder builder) {
+    this.host = builder.host;
+    this.port = builder.port;
+    this.password = builder.password;
+    this.database = builder.database;
+    this.connectionTimeout = builder.connectionTimeout;
+    this.socketTimeout = builder.socketTimeout;
+    this.keyPrefix = builder.keyPrefix;
+  }
+
+  /**
+   * Returns the Redis host.
+   *
+   * @return the host (default: "localhost")
+   */
+  public String getHost() {
+    return host;
+  }
+
+  /**
+   * Returns the Redis port.
+   *
+   * @return the port (default: 6379)
+   */
+  public int getPort() {
+    return port;
+  }
+
+  /**
+   * Returns the Redis password.
+   *
+   * @return the password, or null if not using authentication
+   */
+  public String getPassword() {
+    return password;
+  }
+
+  /**
+   * Returns the Redis database number.
+   *
+   * @return the database (default: 0)
+   */
+  public int getDatabase() {
+    return database;
+  }
+
+  /**
+   * Returns the connection timeout in milliseconds.
+   *
+   * @return the connection timeout (default: 2000)
+   */
+  public int getConnectionTimeout() {
+    return connectionTimeout;
+  }
+
+  /**
+   * Returns the socket timeout in milliseconds.
+   *
+   * @return the socket timeout (default: 2000)
+   */
+  public int getSocketTimeout() {
+    return socketTimeout;
+  }
+
+  /**
+   * Returns the key prefix for all Redis keys.
+   *
+   * @return the key prefix (default: "jplatform:volumes:")
+   */
+  public String getKeyPrefix() {
+    return keyPrefix;
+  }
+
+  /**
+   * Creates a new builder for RedisStorageConfig.
+   *
+   * @return a new builder instance
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /** Builder for RedisStorageConfig instances. Provides a fluent API for configuration. */
+  public static class Builder {
+    private String host = "localhost";
+    private int port = 6379;
+    private String password;
+    private int database = 0;
+    private int connectionTimeout = 2000;
+    private int socketTimeout = 2000;
+    private String keyPrefix = "jplatform:volumes:";
 
     /**
-     * Package-private constructor for builder.
+     * Sets the Redis host.
      *
-     * @param builder the builder containing configuration values
+     * @param host the host
+     * @return this builder for chaining
      */
-    RedisStorageConfig(Builder builder) {
-        this.host = builder.host;
-        this.port = builder.port;
-        this.password = builder.password;
-        this.database = builder.database;
-        this.connectionTimeout = builder.connectionTimeout;
-        this.socketTimeout = builder.socketTimeout;
-        this.keyPrefix = builder.keyPrefix;
+    public Builder host(String host) {
+      this.host = host;
+      return this;
     }
 
     /**
-     * Returns the Redis host.
+     * Sets the Redis port.
      *
-     * @return the host (default: "localhost")
+     * @param port the port (must be between 1 and 65535)
+     * @return this builder for chaining
      */
-    public String getHost() {
-        return host;
+    public Builder port(int port) {
+      if (port < 1 || port > 65535) {
+        throw new IllegalArgumentException("Port must be between 1 and 65535");
+      }
+      this.port = port;
+      return this;
     }
 
     /**
-     * Returns the Redis port.
+     * Sets the Redis password.
      *
-     * @return the port (default: 6379)
+     * @param password the password
+     * @return this builder for chaining
      */
-    public int getPort() {
-        return port;
+    public Builder password(String password) {
+      this.password = password;
+      return this;
     }
 
     /**
-     * Returns the Redis password.
+     * Sets the Redis database number.
      *
-     * @return the password, or null if not using authentication
+     * @param database the database (must be at least 0)
+     * @return this builder for chaining
      */
-    public String getPassword() {
-        return password;
+    public Builder database(int database) {
+      if (database < 0) {
+        throw new IllegalArgumentException("Database must be at least 0");
+      }
+      this.database = database;
+      return this;
     }
 
     /**
-     * Returns the Redis database number.
+     * Sets the connection timeout.
      *
-     * @return the database (default: 0)
+     * @param connectionTimeout the timeout in milliseconds (must be at least 100)
+     * @return this builder for chaining
      */
-    public int getDatabase() {
-        return database;
+    public Builder connectionTimeout(int connectionTimeout) {
+      if (connectionTimeout < 100) {
+        throw new IllegalArgumentException("Connection timeout must be at least 100ms");
+      }
+      this.connectionTimeout = connectionTimeout;
+      return this;
     }
 
     /**
-     * Returns the connection timeout in milliseconds.
+     * Sets the socket timeout.
      *
-     * @return the connection timeout (default: 2000)
+     * @param socketTimeout the timeout in milliseconds (must be at least 100)
+     * @return this builder for chaining
      */
-    public int getConnectionTimeout() {
-        return connectionTimeout;
+    public Builder socketTimeout(int socketTimeout) {
+      if (socketTimeout < 100) {
+        throw new IllegalArgumentException("Socket timeout must be at least 100ms");
+      }
+      this.socketTimeout = socketTimeout;
+      return this;
     }
 
     /**
-     * Returns the socket timeout in milliseconds.
+     * Sets the key prefix.
      *
-     * @return the socket timeout (default: 2000)
+     * @param keyPrefix the prefix for Redis keys
+     * @return this builder for chaining
      */
-    public int getSocketTimeout() {
-        return socketTimeout;
+    public Builder keyPrefix(String keyPrefix) {
+      this.keyPrefix = keyPrefix;
+      return this;
     }
 
     /**
-     * Returns the key prefix for all Redis keys.
+     * Builds the RedisStorageConfig instance.
      *
-     * @return the key prefix (default: "jplatform:volumes:")
+     * @return a new RedisStorageConfig with the configured values
+     * @throws IllegalStateException if required fields are missing
      */
-    public String getKeyPrefix() {
-        return keyPrefix;
+    public RedisStorageConfig build() {
+      if (host == null || host.trim().isEmpty()) {
+        throw new IllegalStateException("Host must be specified");
+      }
+      return new RedisStorageConfig(this);
     }
-
-    /**
-     * Creates a new builder for RedisStorageConfig.
-     *
-     * @return a new builder instance
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Builder for RedisStorageConfig instances.
-     * Provides a fluent API for configuration.
-     */
-    public static class Builder {
-        private String host = "localhost";
-        private int port = 6379;
-        private String password;
-        private int database = 0;
-        private int connectionTimeout = 2000;
-        private int socketTimeout = 2000;
-        private String keyPrefix = "jplatform:volumes:";
-
-        /**
-         * Sets the Redis host.
-         *
-         * @param host the host
-         * @return this builder for chaining
-         */
-        public Builder host(String host) {
-            this.host = host;
-            return this;
-        }
-
-        /**
-         * Sets the Redis port.
-         *
-         * @param port the port (must be between 1 and 65535)
-         * @return this builder for chaining
-         */
-        public Builder port(int port) {
-            if (port < 1 || port > 65535) {
-                throw new IllegalArgumentException("Port must be between 1 and 65535");
-            }
-            this.port = port;
-            return this;
-        }
-
-        /**
-         * Sets the Redis password.
-         *
-         * @param password the password
-         * @return this builder for chaining
-         */
-        public Builder password(String password) {
-            this.password = password;
-            return this;
-        }
-
-        /**
-         * Sets the Redis database number.
-         *
-         * @param database the database (must be at least 0)
-         * @return this builder for chaining
-         */
-        public Builder database(int database) {
-            if (database < 0) {
-                throw new IllegalArgumentException("Database must be at least 0");
-            }
-            this.database = database;
-            return this;
-        }
-
-        /**
-         * Sets the connection timeout.
-         *
-         * @param connectionTimeout the timeout in milliseconds (must be at least 100)
-         * @return this builder for chaining
-         */
-        public Builder connectionTimeout(int connectionTimeout) {
-            if (connectionTimeout < 100) {
-                throw new IllegalArgumentException("Connection timeout must be at least 100ms");
-            }
-            this.connectionTimeout = connectionTimeout;
-            return this;
-        }
-
-        /**
-         * Sets the socket timeout.
-         *
-         * @param socketTimeout the timeout in milliseconds (must be at least 100)
-         * @return this builder for chaining
-         */
-        public Builder socketTimeout(int socketTimeout) {
-            if (socketTimeout < 100) {
-                throw new IllegalArgumentException("Socket timeout must be at least 100ms");
-            }
-            this.socketTimeout = socketTimeout;
-            return this;
-        }
-
-        /**
-         * Sets the key prefix.
-         *
-         * @param keyPrefix the prefix for Redis keys
-         * @return this builder for chaining
-         */
-        public Builder keyPrefix(String keyPrefix) {
-            this.keyPrefix = keyPrefix;
-            return this;
-        }
-
-        /**
-         * Builds the RedisStorageConfig instance.
-         *
-         * @return a new RedisStorageConfig with the configured values
-         * @throws IllegalStateException if required fields are missing
-         */
-        public RedisStorageConfig build() {
-            if (host == null || host.trim().isEmpty()) {
-                throw new IllegalStateException("Host must be specified");
-            }
-            return new RedisStorageConfig(this);
-        }
-    }
+  }
 }

@@ -17,24 +17,25 @@
 
 package org.flossware.platform.swing;
 
-import org.flossware.platform.api.PlatformManager;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Test;
+
 /**
- * Unit tests for SwingConsole.
- * Tests API contract and validation.
+ * Unit tests for SwingConsole. Tests API contract and validation.
  *
- * Note: Full UI testing requires a display environment and is not feasible in headless CI/CD.
+ * <p>Note: Full UI testing requires a display environment and is not feasible in headless CI/CD.
  * These tests focus on API validation and constructor behavior.
  */
 class SwingConsoleTest {
 
-    @Test
-    void testConstructorWithNullPlatformManagerThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new SwingConsole(null);
-        }, "Constructor should throw IllegalArgumentException for null PlatformManager");
-    }
+  @Test
+  void testConstructorWithNullPlatformManagerThrowsException() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          new SwingConsole(null);
+        },
+        "Constructor should throw IllegalArgumentException for null PlatformManager");
+  }
 }

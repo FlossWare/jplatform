@@ -22,14 +22,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 /**
- * Parser for loading ApplicationDescriptor from YAML configuration files.
- * Uses Jackson's YAMLMapper to deserialize YAML content into ApplicationDescriptor objects.
+ * Parser for loading ApplicationDescriptor from YAML configuration files. Uses Jackson's YAMLMapper
+ * to deserialize YAML content into ApplicationDescriptor objects.
  *
- * <p>This parser supports standard YAML syntax and maps configuration elements to
- * the ApplicationDescriptor domain model. Fields are deserialized through the
- * ApplicationDescriptorDTO intermediary layer.</p>
+ * <p>This parser supports standard YAML syntax and maps configuration elements to the
+ * ApplicationDescriptor domain model. Fields are deserialized through the ApplicationDescriptorDTO
+ * intermediary layer.
  *
- * <p>Example YAML configuration:</p>
+ * <p>Example YAML configuration:
+ *
  * <pre>{@code
  * applicationId: my-app
  * name: My Application
@@ -62,7 +63,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
  * enableMessaging: true
  * }</pre>
  *
- * <p>Usage example:</p>
+ * <p>Usage example:
+ *
  * <pre>{@code
  * ApplicationDescriptorParser parser = new YamlDescriptorParser();
  * ApplicationDescriptor descriptor = parser.parseFile(Paths.get("app.yaml"));
@@ -75,38 +77,41 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
  */
 public class YamlDescriptorParser extends AbstractDescriptorParser {
 
-    /**
-     * Constructs a new YAML descriptor parser.
-     * Initializes the parser with a YAMLMapper for processing YAML content.
-     */
-    public YamlDescriptorParser() {
-        super();
-    }
+  /**
+   * Constructs a new YAML descriptor parser. Initializes the parser with a YAMLMapper for
+   * processing YAML content.
+   */
+  public YamlDescriptorParser() {
+    super();
+  }
 
-    /**
-     * Creates a YAMLMapper for parsing YAML content.
-     * Configured to use private fields via @JsonProperty annotations.
-     *
-     * @return a new YAMLMapper instance
-     */
-    @Override
-    protected ObjectMapper createObjectMapper() {
-        YAMLMapper mapper = new YAMLMapper();
-        mapper.setVisibility(mapper.getSerializationConfig().getDefaultVisibilityChecker()
-                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
-                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
-                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
-                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
-        return mapper;
-    }
+  /**
+   * Creates a YAMLMapper for parsing YAML content. Configured to use private fields
+   * via @JsonProperty annotations.
+   *
+   * @return a new YAMLMapper instance
+   */
+  @Override
+  protected ObjectMapper createObjectMapper() {
+    YAMLMapper mapper = new YAMLMapper();
+    mapper.setVisibility(
+        mapper
+            .getSerializationConfig()
+            .getDefaultVisibilityChecker()
+            .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+            .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+            .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+            .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+    return mapper;
+  }
 
-    /**
-     * Returns the format supported by this parser.
-     *
-     * @return Format.YAML
-     */
-    @Override
-    public Format getSupportedFormat() {
-        return Format.YAML;
-    }
+  /**
+   * Returns the format supported by this parser.
+   *
+   * @return Format.YAML
+   */
+  @Override
+  public Format getSupportedFormat() {
+    return Format.YAML;
+  }
 }

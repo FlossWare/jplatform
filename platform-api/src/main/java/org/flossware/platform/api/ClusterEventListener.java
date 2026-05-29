@@ -18,10 +18,11 @@
 package org.flossware.platform.api;
 
 /**
- * Listener for cluster membership events.
- * Notified when nodes join, leave, or when leadership changes.
+ * Listener for cluster membership events. Notified when nodes join, leave, or when leadership
+ * changes.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * ClusterEventListener listener = new ClusterEventListener() {
  *     @Override
@@ -41,24 +42,24 @@ package org.flossware.platform.api;
  */
 public interface ClusterEventListener {
 
-    /**
-     * Called when a node joins the cluster.
-     *
-     * @param node the node that joined
-     */
-    void onNodeJoined(ClusterNode node);
+  /**
+   * Called when a node joins the cluster.
+   *
+   * @param node the node that joined
+   */
+  void onNodeJoined(ClusterNode node);
 
-    /**
-     * Called when a node leaves the cluster.
-     *
-     * @param node the node that left
-     */
-    void onNodeLeft(ClusterNode node);
+  /**
+   * Called when a node leaves the cluster.
+   *
+   * @param node the node that left
+   */
+  void onNodeLeft(ClusterNode node);
 
-    /**
-     * Called when cluster leadership changes.
-     *
-     * @param newLeader the new leader node
-     */
-    void onLeaderChanged(ClusterNode newLeader);
+  /**
+   * Called when cluster leadership changes.
+   *
+   * @param newLeader the new leader node
+   */
+  void onLeaderChanged(ClusterNode newLeader);
 }

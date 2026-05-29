@@ -20,7 +20,8 @@ package org.flossware.platform.api;
 /**
  * Functional interface for handling messages received from the message bus.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * MessageHandler handler = message -> {
  *     String payload = new String(message.getPayload());
@@ -35,10 +36,10 @@ package org.flossware.platform.api;
  */
 @FunctionalInterface
 public interface MessageHandler {
-    /**
-     * Called when a message is received on a subscribed topic.
-     *
-     * @param message the received message
-     */
-    void onMessage(Message message);
+  /**
+   * Called when a message is received on a subscribed topic.
+   *
+   * @param message the received message
+   */
+  void onMessage(Message message);
 }

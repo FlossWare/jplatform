@@ -17,34 +17,34 @@
 
 package org.flossware.platform.registry.consul;
 
-import com.orbitz.consul.Consul;
 import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.agent.Registration;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.flossware.platform.api.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
- * Consul-based implementation of ServiceRegistry.
- * Provides distributed service discovery by publishing service metadata
- * to Consul while maintaining local service instances.
+ * Consul-based implementation of ServiceRegistry. Provides distributed service discovery by
+ * publishing service metadata to Consul while maintaining local service instances.
  *
- * <p>Key features:</p>
+ * <p>Key features:
+ *
  * <ul>
- *   <li>Local service storage with in-memory registry</li>
- *   <li>Service metadata published to Consul for discovery</li>
- *   <li>Health checking via Consul TTL checks</li>
- *   <li>Support for multiple implementations per interface</li>
- *   <li>Thread-safe concurrent access</li>
+ *   <li>Local service storage with in-memory registry
+ *   <li>Service metadata published to Consul for discovery
+ *   <li>Health checking via Consul TTL checks
+ *   <li>Support for multiple implementations per interface
+ *   <li>Thread-safe concurrent access
  * </ul>
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * ConsulRegistryConfig config = ConsulRegistryConfig.builder()
  *     .consulHost("localhost")
@@ -68,312 +68,313 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ConsulServiceRegistry implements ServiceRegistry, AutoCloseable {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConsulServiceRegistry.class);
+  private static final Logger logger = LoggerFactory.getLogger(ConsulServiceRegistry.class);
 
-    private final ConsulRegistryConfig config;
-    private final Consul consulClient;
-    private final AgentClient agentClient;
-    private final KeyValueClient kvClient;
-    private final Map<Class<?>, List<Object>> localServices;
-    private final Map<ServiceKey, String> registeredServiceIds;
+  private final ConsulRegistryConfig config;
+  private final Consul consulClient;
+  private final AgentClient agentClient;
+  private final KeyValueClient kvClient;
+  private final Map<Class<?>, List<Object>> localServices;
+  private final Map<ServiceKey, String> registeredServiceIds;
 
-    /**
-     * Composite key for tracking service registrations.
-     * Uses object identity to distinguish between different instances
-     * of the same implementation class registered for the same interface.
-     */
-    private static class ServiceKey {
-        private final Class<?> serviceInterface;
-        private final Object implementation;
+  /**
+   * Composite key for tracking service registrations. Uses object identity to distinguish between
+   * different instances of the same implementation class registered for the same interface.
+   */
+  private static class ServiceKey {
+    private final Class<?> serviceInterface;
+    private final Object implementation;
 
-        ServiceKey(Class<?> serviceInterface, Object implementation) {
-            this.serviceInterface = serviceInterface;
-            this.implementation = implementation;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof ServiceKey)) return false;
-            ServiceKey that = (ServiceKey) o;
-            return serviceInterface.equals(that.serviceInterface) &&
-                   implementation == that.implementation;  // Identity comparison
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(serviceInterface, System.identityHashCode(implementation));
-        }
+    ServiceKey(Class<?> serviceInterface, Object implementation) {
+      this.serviceInterface = serviceInterface;
+      this.implementation = implementation;
     }
 
-    /**
-     * Constructs a new Consul service registry with the specified configuration.
-     *
-     * @param config the Consul registry configuration
-     */
-    public ConsulServiceRegistry(ConsulRegistryConfig config) {
-        this.config = config;
-        this.localServices = new ConcurrentHashMap<>();
-        this.registeredServiceIds = new ConcurrentHashMap<>();
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof ServiceKey)) return false;
+      ServiceKey that = (ServiceKey) o;
+      return serviceInterface.equals(that.serviceInterface)
+          && implementation == that.implementation; // Identity comparison
+    }
 
-        // Create Consul client
-        this.consulClient = Consul.builder()
+    @Override
+    public int hashCode() {
+      return Objects.hash(serviceInterface, System.identityHashCode(implementation));
+    }
+  }
+
+  /**
+   * Constructs a new Consul service registry with the specified configuration.
+   *
+   * @param config the Consul registry configuration
+   */
+  public ConsulServiceRegistry(ConsulRegistryConfig config) {
+    this.config = config;
+    this.localServices = new ConcurrentHashMap<>();
+    this.registeredServiceIds = new ConcurrentHashMap<>();
+
+    // Create Consul client
+    this.consulClient =
+        Consul.builder()
             .withHostAndPort(
                 com.google.common.net.HostAndPort.fromParts(
-                    config.getConsulHost(),
-                    config.getConsulPort()
-                )
-            )
+                    config.getConsulHost(), config.getConsulPort()))
             .build();
 
-        this.agentClient = consulClient.agentClient();
-        this.kvClient = consulClient.keyValueClient();
+    this.agentClient = consulClient.agentClient();
+    this.kvClient = consulClient.keyValueClient();
 
-        logger.info("ConsulServiceRegistry initialized with node ID: {}", config.getNodeId());
+    logger.info("ConsulServiceRegistry initialized with node ID: {}", config.getNodeId());
+  }
+
+  /**
+   * Package-private constructor for testing. Allows injection of a mock Consul client.
+   *
+   * @param config the Consul registry configuration
+   * @param consulClient the Consul client to use
+   */
+  ConsulServiceRegistry(ConsulRegistryConfig config, Consul consulClient) {
+    this.config = config;
+    this.consulClient = consulClient;
+    this.agentClient = consulClient.agentClient();
+    this.kvClient = consulClient.keyValueClient();
+    this.localServices = new ConcurrentHashMap<>();
+    this.registeredServiceIds = new ConcurrentHashMap<>();
+
+    logger.info(
+        "ConsulServiceRegistry initialized (test mode) with node ID: {}", config.getNodeId());
+  }
+
+  /**
+   * Registers a service implementation under the specified interface. The service is stored locally
+   * and its metadata is published to Consul.
+   *
+   * @param <T> the service interface type
+   * @param serviceInterface the interface class
+   * @param implementation the service implementation
+   * @throws NullPointerException if either parameter is null
+   * @throws IllegalArgumentException if serviceInterface is not an interface or implementation does
+   *     not implement the interface
+   */
+  @Override
+  public <T> void registerService(Class<T> serviceInterface, T implementation) {
+    Objects.requireNonNull(serviceInterface, "serviceInterface cannot be null");
+    Objects.requireNonNull(implementation, "implementation cannot be null");
+
+    if (!serviceInterface.isInterface()) {
+      throw new IllegalArgumentException(serviceInterface + " is not an interface");
     }
 
-    /**
-     * Package-private constructor for testing.
-     * Allows injection of a mock Consul client.
-     *
-     * @param config the Consul registry configuration
-     * @param consulClient the Consul client to use
-     */
-    ConsulServiceRegistry(ConsulRegistryConfig config, Consul consulClient) {
-        this.config = config;
-        this.consulClient = consulClient;
-        this.agentClient = consulClient.agentClient();
-        this.kvClient = consulClient.keyValueClient();
-        this.localServices = new ConcurrentHashMap<>();
-        this.registeredServiceIds = new ConcurrentHashMap<>();
-
-        logger.info("ConsulServiceRegistry initialized (test mode) with node ID: {}", config.getNodeId());
+    if (!serviceInterface.isInstance(implementation)) {
+      throw new IllegalArgumentException(
+          implementation.getClass() + " does not implement " + serviceInterface);
     }
 
-    /**
-     * Registers a service implementation under the specified interface.
-     * The service is stored locally and its metadata is published to Consul.
-     *
-     * @param <T> the service interface type
-     * @param serviceInterface the interface class
-     * @param implementation the service implementation
-     * @throws NullPointerException if either parameter is null
-     * @throws IllegalArgumentException if serviceInterface is not an interface or
-     *         implementation does not implement the interface
-     */
-    @Override
-    public <T> void registerService(Class<T> serviceInterface, T implementation) {
-        Objects.requireNonNull(serviceInterface, "serviceInterface cannot be null");
-        Objects.requireNonNull(implementation, "implementation cannot be null");
+    logger.debug(
+        "Registering service: {} with implementation: {}",
+        serviceInterface.getName(),
+        implementation.getClass().getName());
 
-        if (!serviceInterface.isInterface()) {
-            throw new IllegalArgumentException(serviceInterface + " is not an interface");
-        }
+    // Register in Consul first to ensure consistency
+    registerInConsul(serviceInterface, implementation);
 
-        if (!serviceInterface.isInstance(implementation)) {
-            throw new IllegalArgumentException(
-                implementation.getClass() + " does not implement " + serviceInterface);
-        }
+    // Only add to local registry if Consul registration succeeds
+    localServices
+        .computeIfAbsent(serviceInterface, k -> new CopyOnWriteArrayList<>())
+        .add(implementation);
 
-        logger.debug("Registering service: {} with implementation: {}",
-            serviceInterface.getName(), implementation.getClass().getName());
+    logger.info("Registered service: {}", serviceInterface.getSimpleName());
+  }
 
-        // Register in Consul first to ensure consistency
-        registerInConsul(serviceInterface, implementation);
+  /**
+   * Returns the first registered service for the specified interface.
+   *
+   * @param <T> the service interface type
+   * @param serviceInterface the interface class
+   * @return optional containing the service, or empty if none found
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> Optional<T> getService(Class<T> serviceInterface) {
+    List<Object> services = localServices.get(serviceInterface);
+    if (services != null && !services.isEmpty()) {
+      return Optional.of((T) services.get(0));
+    }
+    return Optional.empty();
+  }
 
-        // Only add to local registry if Consul registration succeeds
-        localServices.computeIfAbsent(serviceInterface, k -> new CopyOnWriteArrayList<>())
-            .add(implementation);
+  /**
+   * Returns all registered services for the specified interface.
+   *
+   * @param <T> the service interface type
+   * @param serviceInterface the interface class
+   * @return list of all registered services, empty if none found
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> List<T> getAllServices(Class<T> serviceInterface) {
+    List<Object> services = localServices.get(serviceInterface);
+    if (services != null) {
+      return (List<T>) new ArrayList<>(services);
+    }
+    return new ArrayList<>();
+  }
 
-        logger.info("Registered service: {}", serviceInterface.getSimpleName());
+  /**
+   * Unregisters a specific service implementation. Removes the service from local registry and
+   * Consul.
+   *
+   * @param serviceInterface the interface class
+   * @param implementation the service implementation to remove
+   */
+  @Override
+  public void unregisterService(Class<?> serviceInterface, Object implementation) {
+    logger.debug(
+        "Unregistering service: {} with implementation: {}",
+        serviceInterface.getName(),
+        implementation.getClass().getName());
+
+    // Remove from local registry
+    List<Object> services = localServices.get(serviceInterface);
+    if (services != null) {
+      services.remove(implementation);
+      if (services.isEmpty()) {
+        localServices.remove(serviceInterface);
+      }
     }
 
-    /**
-     * Returns the first registered service for the specified interface.
-     *
-     * @param <T> the service interface type
-     * @param serviceInterface the interface class
-     * @return optional containing the service, or empty if none found
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> Optional<T> getService(Class<T> serviceInterface) {
-        List<Object> services = localServices.get(serviceInterface);
-        if (services != null && !services.isEmpty()) {
-            return Optional.of((T) services.get(0));
-        }
-        return Optional.empty();
+    // Unregister from Consul
+    unregisterFromConsul(serviceInterface, implementation);
+
+    logger.info("Unregistered service: {}", serviceInterface.getSimpleName());
+  }
+
+  /**
+   * Closes the service registry and releases resources. Unregisters all services from Consul.
+   *
+   * @throws Exception if closing fails
+   */
+  @Override
+  public void close() throws Exception {
+    logger.info("Closing ConsulServiceRegistry");
+
+    // Unregister all services from Consul
+    for (String serviceId : registeredServiceIds.values()) {
+      try {
+        agentClient.deregister(serviceId);
+        logger.debug("Deregistered service: {}", serviceId);
+      } catch (Exception e) {
+        logger.error("Error deregistering service: {}", serviceId, e);
+      }
     }
 
-    /**
-     * Returns all registered services for the specified interface.
-     *
-     * @param <T> the service interface type
-     * @param serviceInterface the interface class
-     * @return list of all registered services, empty if none found
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> List<T> getAllServices(Class<T> serviceInterface) {
-        List<Object> services = localServices.get(serviceInterface);
-        if (services != null) {
-            return (List<T>) new ArrayList<>(services);
-        }
-        return new ArrayList<>();
+    registeredServiceIds.clear();
+    localServices.clear();
+
+    logger.info("ConsulServiceRegistry closed");
+  }
+
+  /**
+   * Registers a service in Consul's service catalog.
+   *
+   * @param serviceInterface the service interface
+   * @param implementation the service implementation
+   */
+  private void registerInConsul(Class<?> serviceInterface, Object implementation) {
+    try {
+      String serviceName =
+          config.getServicePrefix() + "-" + serviceInterface.getSimpleName().toLowerCase();
+      String serviceId =
+          serviceName + "-" + config.getNodeId() + "-" + UUID.randomUUID().toString();
+
+      Registration registration =
+          ImmutableRegistration.builder()
+              .id(serviceId)
+              .name(serviceName)
+              .check(Registration.RegCheck.ttl(config.getServiceTtl()))
+              .addTags(
+                  "interface:" + serviceInterface.getName(),
+                  "implementation:" + implementation.getClass().getName(),
+                  "node:" + config.getNodeId())
+              .build();
+
+      agentClient.register(registration);
+
+      // Pass health check
+      try {
+        agentClient.pass(serviceId);
+      } catch (com.orbitz.consul.NotRegisteredException e) {
+        logger.warn("Service health check not yet available: {}", serviceId);
+      }
+
+      // Store service ID for later cleanup using composite key
+      ServiceKey key = new ServiceKey(serviceInterface, implementation);
+      registeredServiceIds.put(key, serviceId);
+
+      // Store metadata in Consul KV
+      String kvKey = "jplatform/services/" + config.getNodeId() + "/" + serviceInterface.getName();
+      kvClient.putValue(kvKey, implementation.getClass().getName());
+
+      logger.debug("Registered service in Consul: {} with ID: {}", serviceName, serviceId);
+
+    } catch (Exception e) {
+      logger.error("Failed to register service in Consul: {}", serviceInterface.getName(), e);
+      throw new RuntimeException("Failed to register service in Consul", e);
     }
+  }
 
-    /**
-     * Unregisters a specific service implementation.
-     * Removes the service from local registry and Consul.
-     *
-     * @param serviceInterface the interface class
-     * @param implementation the service implementation to remove
-     */
-    @Override
-    public void unregisterService(Class<?> serviceInterface, Object implementation) {
-        logger.debug("Unregistering service: {} with implementation: {}",
-            serviceInterface.getName(), implementation.getClass().getName());
+  /**
+   * Unregisters a service from Consul's service catalog.
+   *
+   * @param serviceInterface the service interface
+   * @param implementation the service implementation
+   */
+  private void unregisterFromConsul(Class<?> serviceInterface, Object implementation) {
+    try {
+      ServiceKey key = new ServiceKey(serviceInterface, implementation);
+      String serviceId = registeredServiceIds.remove(key);
 
-        // Remove from local registry
-        List<Object> services = localServices.get(serviceInterface);
-        if (services != null) {
-            services.remove(implementation);
-            if (services.isEmpty()) {
-                localServices.remove(serviceInterface);
-            }
-        }
+      if (serviceId != null) {
+        agentClient.deregister(serviceId);
+        logger.debug("Unregistered service from Consul: {}", serviceId);
 
-        // Unregister from Consul
-        unregisterFromConsul(serviceInterface, implementation);
+        // Remove metadata from Consul KV
+        String kvKey =
+            "jplatform/services/" + config.getNodeId() + "/" + serviceInterface.getName();
+        kvClient.deleteKey(kvKey);
+      }
 
-        logger.info("Unregistered service: {}", serviceInterface.getSimpleName());
+    } catch (Exception e) {
+      logger.error("Failed to unregister service from Consul: {}", serviceInterface.getName(), e);
     }
+  }
 
-    /**
-     * Closes the service registry and releases resources.
-     * Unregisters all services from Consul.
-     *
-     * @throws Exception if closing fails
-     */
-    @Override
-    public void close() throws Exception {
-        logger.info("Closing ConsulServiceRegistry");
+  /**
+   * Returns the Consul client instance. Useful for accessing Consul-specific features.
+   *
+   * @return the Consul client
+   */
+  public Consul getConsulClient() {
+    return consulClient;
+  }
 
-        // Unregister all services from Consul
-        for (String serviceId : registeredServiceIds.values()) {
-            try {
-                agentClient.deregister(serviceId);
-                logger.debug("Deregistered service: {}", serviceId);
-            } catch (Exception e) {
-                logger.error("Error deregistering service: {}", serviceId, e);
-            }
-        }
+  /**
+   * Returns the registry configuration.
+   *
+   * @return the configuration
+   */
+  public ConsulRegistryConfig getConfig() {
+    return config;
+  }
 
-        registeredServiceIds.clear();
-        localServices.clear();
-
-        logger.info("ConsulServiceRegistry closed");
-    }
-
-    /**
-     * Registers a service in Consul's service catalog.
-     *
-     * @param serviceInterface the service interface
-     * @param implementation the service implementation
-     */
-    private void registerInConsul(Class<?> serviceInterface, Object implementation) {
-        try {
-            String serviceName = config.getServicePrefix() + "-" +
-                serviceInterface.getSimpleName().toLowerCase();
-            String serviceId = serviceName + "-" + config.getNodeId() + "-" +
-                UUID.randomUUID().toString();
-
-            Registration registration = ImmutableRegistration.builder()
-                .id(serviceId)
-                .name(serviceName)
-                .check(Registration.RegCheck.ttl(config.getServiceTtl()))
-                .addTags(
-                    "interface:" + serviceInterface.getName(),
-                    "implementation:" + implementation.getClass().getName(),
-                    "node:" + config.getNodeId()
-                )
-                .build();
-
-            agentClient.register(registration);
-
-            // Pass health check
-            try {
-                agentClient.pass(serviceId);
-            } catch (com.orbitz.consul.NotRegisteredException e) {
-                logger.warn("Service health check not yet available: {}", serviceId);
-            }
-
-            // Store service ID for later cleanup using composite key
-            ServiceKey key = new ServiceKey(serviceInterface, implementation);
-            registeredServiceIds.put(key, serviceId);
-
-            // Store metadata in Consul KV
-            String kvKey = "jplatform/services/" + config.getNodeId() + "/" + serviceInterface.getName();
-            kvClient.putValue(kvKey, implementation.getClass().getName());
-
-            logger.debug("Registered service in Consul: {} with ID: {}", serviceName, serviceId);
-
-        } catch (Exception e) {
-            logger.error("Failed to register service in Consul: {}", serviceInterface.getName(), e);
-            throw new RuntimeException("Failed to register service in Consul", e);
-        }
-    }
-
-    /**
-     * Unregisters a service from Consul's service catalog.
-     *
-     * @param serviceInterface the service interface
-     * @param implementation the service implementation
-     */
-    private void unregisterFromConsul(Class<?> serviceInterface, Object implementation) {
-        try {
-            ServiceKey key = new ServiceKey(serviceInterface, implementation);
-            String serviceId = registeredServiceIds.remove(key);
-
-            if (serviceId != null) {
-                agentClient.deregister(serviceId);
-                logger.debug("Unregistered service from Consul: {}", serviceId);
-
-                // Remove metadata from Consul KV
-                String kvKey = "jplatform/services/" + config.getNodeId() + "/" + serviceInterface.getName();
-                kvClient.deleteKey(kvKey);
-            }
-
-        } catch (Exception e) {
-            logger.error("Failed to unregister service from Consul: {}", serviceInterface.getName(), e);
-        }
-    }
-
-    /**
-     * Returns the Consul client instance.
-     * Useful for accessing Consul-specific features.
-     *
-     * @return the Consul client
-     */
-    public Consul getConsulClient() {
-        return consulClient;
-    }
-
-    /**
-     * Returns the registry configuration.
-     *
-     * @return the configuration
-     */
-    public ConsulRegistryConfig getConfig() {
-        return config;
-    }
-
-    /**
-     * Returns the number of locally registered services.
-     *
-     * @return the count of service interfaces
-     */
-    public int getServiceCount() {
-        return localServices.size();
-    }
+  /**
+   * Returns the number of locally registered services.
+   *
+   * @return the count of service interfaces
+   */
+  public int getServiceCount() {
+    return localServices.size();
+  }
 }

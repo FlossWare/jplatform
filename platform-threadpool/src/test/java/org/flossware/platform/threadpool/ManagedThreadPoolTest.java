@@ -17,548 +17,465 @@
 
 package org.flossware.platform.threadpool;
 
-import org.flossware.platform.api.ThreadPoolConfig;
-import org.flossware.platform.api.ThreadPoolStats;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.flossware.platform.api.ThreadPoolConfig;
+import org.flossware.platform.api.ThreadPoolStats;
+import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for ManagedThreadPool.
- * Tests thread pool creation, task execution, shutdown, and statistics.
+ * Unit tests for ManagedThreadPool. Tests thread pool creation, task execution, shutdown, and
+ * statistics.
  */
 class ManagedThreadPoolTest {
 
-    @Test
-    void testConstructorWithDefaultTimeout() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testConstructorWithDefaultTimeout() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        assertNotNull(pool);
-        assertEquals("test-app", pool.getApplicationId());
-        assertFalse(pool.isShutdown());
-        assertFalse(pool.isTerminated());
+    assertNotNull(pool);
+    assertEquals("test-app", pool.getApplicationId());
+    assertFalse(pool.isShutdown());
+    assertFalse(pool.isTerminated());
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testConstructorWithCustomTimeout() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testConstructorWithCustomTimeout() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config, 10);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config, 10);
 
-        assertNotNull(pool);
-        assertEquals("test-app", pool.getApplicationId());
+    assertNotNull(pool);
+    assertEquals("test-app", pool.getApplicationId());
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testConstructorNullApplicationId() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testConstructorNullApplicationId() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        assertThrows(NullPointerException.class, () ->
-                new ManagedThreadPool(null, config)
-        );
-    }
+    assertThrows(NullPointerException.class, () -> new ManagedThreadPool(null, config));
+  }
 
-    @Test
-    void testConstructorNullConfig() {
-        assertThrows(NullPointerException.class, () ->
-                new ManagedThreadPool("test-app", null)
-        );
-    }
+  @Test
+  void testConstructorNullConfig() {
+    assertThrows(NullPointerException.class, () -> new ManagedThreadPool("test-app", null));
+  }
 
-    @Test
-    void testConstructorNegativeTimeout() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testConstructorNegativeTimeout() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        assertThrows(IllegalArgumentException.class, () ->
-                new ManagedThreadPool("test-app", config, -1)
-        );
-    }
+    assertThrows(
+        IllegalArgumentException.class, () -> new ManagedThreadPool("test-app", config, -1));
+  }
 
-    @Test
-    void testConstructorZeroTimeout() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testConstructorZeroTimeout() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config, 0);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config, 0);
 
-        assertNotNull(pool);
-        pool.shutdownNow();
-    }
+    assertNotNull(pool);
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testSubmitRunnable() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testSubmitRunnable() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        AtomicBoolean executed = new AtomicBoolean(false);
-        Future<?> future = pool.submit(() -> executed.set(true));
+    AtomicBoolean executed = new AtomicBoolean(false);
+    Future<?> future = pool.submit(() -> executed.set(true));
 
-        assertNotNull(future);
-        future.get(1, TimeUnit.SECONDS);
-        assertTrue(executed.get());
+    assertNotNull(future);
+    future.get(1, TimeUnit.SECONDS);
+    assertTrue(executed.get());
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testSubmitCallable() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testSubmitCallable() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        Future<Integer> future = pool.submit(() -> 42);
+    Future<Integer> future = pool.submit(() -> 42);
 
-        assertNotNull(future);
-        assertEquals(42, future.get(1, TimeUnit.SECONDS));
+    assertNotNull(future);
+    assertEquals(42, future.get(1, TimeUnit.SECONDS));
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testExecute() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testExecute() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        CountDownLatch latch = new CountDownLatch(1);
-        pool.execute(latch::countDown);
+    CountDownLatch latch = new CountDownLatch(1);
+    pool.execute(latch::countDown);
 
-        assertTrue(latch.await(1, TimeUnit.SECONDS));
+    assertTrue(latch.await(1, TimeUnit.SECONDS));
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testSubmitNullTask() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testSubmitNullTask() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        assertThrows(NullPointerException.class, () ->
-                pool.submit((Runnable) null)
-        );
+    assertThrows(NullPointerException.class, () -> pool.submit((Runnable) null));
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testSubmitNullCallable() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testSubmitNullCallable() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        assertThrows(NullPointerException.class, () ->
-                pool.submit((Callable<?>) null)
-        );
+    assertThrows(NullPointerException.class, () -> pool.submit((Callable<?>) null));
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testExecuteNullCommand() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testExecuteNullCommand() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        assertThrows(NullPointerException.class, () ->
-                pool.execute(null)
-        );
+    assertThrows(NullPointerException.class, () -> pool.execute(null));
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testShutdown() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testShutdown() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config, 2);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config, 2);
 
-        CountDownLatch latch = new CountDownLatch(1);
-        pool.submit(() -> {
-            try {
-                Thread.sleep(100);
-                latch.countDown();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+    CountDownLatch latch = new CountDownLatch(1);
+    pool.submit(
+        () -> {
+          try {
+            Thread.sleep(100);
+            latch.countDown();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
         });
 
-        pool.shutdown();
+    pool.shutdown();
 
-        assertTrue(pool.isShutdown());
-        // Task should have completed
-        assertEquals(0, latch.getCount());
-    }
+    assertTrue(pool.isShutdown());
+    // Task should have completed
+    assertEquals(0, latch.getCount());
+  }
 
-    @Test
-    void testShutdownNow() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testShutdownNow() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        pool.shutdownNow();
+    pool.shutdownNow();
 
-        assertTrue(pool.isShutdown());
-    }
+    assertTrue(pool.isShutdown());
+  }
 
-    @Test
-    void testIsShutdownAfterShutdown() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testIsShutdownAfterShutdown() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        assertFalse(pool.isShutdown());
+    assertFalse(pool.isShutdown());
 
-        pool.shutdown();
+    pool.shutdown();
 
-        assertTrue(pool.isShutdown());
-    }
+    assertTrue(pool.isShutdown());
+  }
 
-    @Test
-    void testIsTerminatedAfterShutdown() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testIsTerminatedAfterShutdown() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        assertFalse(pool.isTerminated());
+    assertFalse(pool.isTerminated());
 
-        pool.shutdown();
+    pool.shutdown();
 
-        assertTrue(pool.isTerminated());
-    }
+    assertTrue(pool.isTerminated());
+  }
 
-    @Test
-    void testGetStats() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .queueCapacity(10)
-                .build();
+  @Test
+  void testGetStats() throws Exception {
+    ThreadPoolConfig config =
+        ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).queueCapacity(10).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        ThreadPoolStats stats = pool.getStats();
-        assertNotNull(stats);
-        assertEquals(2, stats.getCorePoolSize());
-        assertEquals(4, stats.getMaximumPoolSize());
-        assertEquals(0, stats.getActiveThreads());
-        assertEquals(0, stats.getQueuedTasks());
+    ThreadPoolStats stats = pool.getStats();
+    assertNotNull(stats);
+    assertEquals(2, stats.getCorePoolSize());
+    assertEquals(4, stats.getMaximumPoolSize());
+    assertEquals(0, stats.getActiveThreads());
+    assertEquals(0, stats.getQueuedTasks());
 
-        // Submit a blocking task
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch endLatch = new CountDownLatch(1);
+    // Submit a blocking task
+    CountDownLatch startLatch = new CountDownLatch(1);
+    CountDownLatch endLatch = new CountDownLatch(1);
 
-        pool.submit(() -> {
-            try {
-                startLatch.countDown();
-                endLatch.await();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+    pool.submit(
+        () -> {
+          try {
+            startLatch.countDown();
+            endLatch.await();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
         });
 
-        startLatch.await(1, TimeUnit.SECONDS);
+    startLatch.await(1, TimeUnit.SECONDS);
 
-        // Check stats while task is running
-        stats = pool.getStats();
-        assertTrue(stats.getActiveThreads() >= 0);
-        assertTrue(stats.getPoolSize() >= 0);
+    // Check stats while task is running
+    stats = pool.getStats();
+    assertTrue(stats.getActiveThreads() >= 0);
+    assertTrue(stats.getPoolSize() >= 0);
 
-        endLatch.countDown();
-        pool.shutdown();
+    endLatch.countDown();
+    pool.shutdown();
+  }
+
+  @Test
+  void testMultipleTasks() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(4).maxPoolSize(8).build();
+
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+
+    int taskCount = 10;
+    CountDownLatch latch = new CountDownLatch(taskCount);
+
+    for (int i = 0; i < taskCount; i++) {
+      pool.submit(latch::countDown);
     }
 
-    @Test
-    void testMultipleTasks() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(4)
-                .maxPoolSize(8)
-                .build();
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    pool.shutdown();
+  }
 
-        int taskCount = 10;
-        CountDownLatch latch = new CountDownLatch(taskCount);
+  @Test
+  void testTaskException() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        for (int i = 0; i < taskCount; i++) {
-            pool.submit(latch::countDown);
-        }
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+    Future<?> future =
+        pool.submit(
+            () -> {
+              throw new RuntimeException("Test exception");
+            });
 
-        pool.shutdown();
-    }
+    assertThrows(ExecutionException.class, () -> future.get(1, TimeUnit.SECONDS));
 
-    @Test
-    void testTaskException() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+    // Pool should still be operational
+    assertFalse(pool.isShutdown());
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    pool.shutdownNow();
+  }
 
-        Future<?> future = pool.submit(() -> {
-            throw new RuntimeException("Test exception");
+  @Test
+  void testQueueCapacity() throws Exception {
+    ThreadPoolConfig config =
+        ThreadPoolConfig.builder().corePoolSize(1).maxPoolSize(1).queueCapacity(2).build();
+
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+
+    CountDownLatch blockLatch = new CountDownLatch(1);
+    CountDownLatch startLatch = new CountDownLatch(1);
+
+    // Submit blocking task to occupy the single thread
+    pool.submit(
+        () -> {
+          try {
+            startLatch.countDown();
+            blockLatch.await();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
         });
 
-        assertThrows(ExecutionException.class, () ->
-                future.get(1, TimeUnit.SECONDS)
-        );
+    startLatch.await(1, TimeUnit.SECONDS);
 
-        // Pool should still be operational
-        assertFalse(pool.isShutdown());
+    // Submit tasks to fill queue
+    pool.submit(() -> {});
+    pool.submit(() -> {});
 
-        pool.shutdownNow();
-    }
+    // Queue should have 2 tasks
+    ThreadPoolStats stats = pool.getStats();
+    assertTrue(stats.getQueuedTasks() >= 0);
 
-    @Test
-    void testQueueCapacity() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(1)
-                .maxPoolSize(1)
-                .queueCapacity(2)
-                .build();
+    blockLatch.countDown();
+    pool.shutdown();
+  }
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+  @Test
+  void testThreadNaming() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(1).maxPoolSize(1).build();
 
-        CountDownLatch blockLatch = new CountDownLatch(1);
-        CountDownLatch startLatch = new CountDownLatch(1);
+    ManagedThreadPool pool = new ManagedThreadPool("my-app", config);
 
-        // Submit blocking task to occupy the single thread
-        pool.submit(() -> {
-            try {
-                startLatch.countDown();
-                blockLatch.await();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        });
+    CompletableFuture<String> threadName = new CompletableFuture<>();
 
-        startLatch.await(1, TimeUnit.SECONDS);
+    pool.submit(() -> threadName.complete(Thread.currentThread().getName()));
 
-        // Submit tasks to fill queue
-        pool.submit(() -> {});
-        pool.submit(() -> {});
+    String name = threadName.get(1, TimeUnit.SECONDS);
+    assertTrue(name.startsWith("my-app-thread-"));
 
-        // Queue should have 2 tasks
-        ThreadPoolStats stats = pool.getStats();
-        assertTrue(stats.getQueuedTasks() >= 0);
+    pool.shutdownNow();
+  }
 
-        blockLatch.countDown();
-        pool.shutdown();
-    }
+  @Test
+  void testConcurrentSubmission() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(4).maxPoolSize(8).build();
 
-    @Test
-    void testThreadNaming() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(1)
-                .maxPoolSize(1)
-                .build();
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        ManagedThreadPool pool = new ManagedThreadPool("my-app", config);
+    int threadCount = 10;
+    int tasksPerThread = 10;
+    AtomicInteger counter = new AtomicInteger(0);
+    CountDownLatch latch = new CountDownLatch(threadCount * tasksPerThread);
 
-        CompletableFuture<String> threadName = new CompletableFuture<>();
-
-        pool.submit(() -> threadName.complete(Thread.currentThread().getName()));
-
-        String name = threadName.get(1, TimeUnit.SECONDS);
-        assertTrue(name.startsWith("my-app-thread-"));
-
-        pool.shutdownNow();
-    }
-
-    @Test
-    void testConcurrentSubmission() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(4)
-                .maxPoolSize(8)
-                .build();
-
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
-
-        int threadCount = 10;
-        int tasksPerThread = 10;
-        AtomicInteger counter = new AtomicInteger(0);
-        CountDownLatch latch = new CountDownLatch(threadCount * tasksPerThread);
-
-        // Spawn multiple threads submitting tasks concurrently
-        Thread[] threads = new Thread[threadCount];
-        for (int i = 0; i < threadCount; i++) {
-            threads[i] = new Thread(() -> {
+    // Spawn multiple threads submitting tasks concurrently
+    Thread[] threads = new Thread[threadCount];
+    for (int i = 0; i < threadCount; i++) {
+      threads[i] =
+          new Thread(
+              () -> {
                 for (int j = 0; j < tasksPerThread; j++) {
-                    pool.submit(() -> {
+                  pool.submit(
+                      () -> {
                         counter.incrementAndGet();
                         latch.countDown();
-                    });
+                      });
                 }
-            });
-            threads[i].start();
-        }
-
-        for (Thread thread : threads) {
-            thread.join();
-        }
-
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-        assertEquals(threadCount * tasksPerThread, counter.get());
-
-        pool.shutdown();
+              });
+      threads[i].start();
     }
 
-    @Test
-    void testShutdownWithRunningTasks() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+    for (Thread thread : threads) {
+      thread.join();
+    }
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config, 1);
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    assertEquals(threadCount * tasksPerThread, counter.get());
 
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch endLatch = new CountDownLatch(1);
+    pool.shutdown();
+  }
 
-        pool.submit(() -> {
-            try {
-                startLatch.countDown();
-                // Short sleep so shutdown completes
-                Thread.sleep(100);
-                endLatch.countDown();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+  @Test
+  void testShutdownWithRunningTasks() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
+
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config, 1);
+
+    CountDownLatch startLatch = new CountDownLatch(1);
+    CountDownLatch endLatch = new CountDownLatch(1);
+
+    pool.submit(
+        () -> {
+          try {
+            startLatch.countDown();
+            // Short sleep so shutdown completes
+            Thread.sleep(100);
+            endLatch.countDown();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
         });
 
-        startLatch.await(1, TimeUnit.SECONDS);
+    startLatch.await(1, TimeUnit.SECONDS);
 
-        pool.shutdown();
+    pool.shutdown();
 
-        assertTrue(pool.isShutdown());
-        assertTrue(pool.isTerminated());
-        assertEquals(0, endLatch.getCount());
-    }
+    assertTrue(pool.isShutdown());
+    assertTrue(pool.isTerminated());
+    assertEquals(0, endLatch.getCount());
+  }
 
-    @Test
-    void testGetApplicationId() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testGetApplicationId() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("my-special-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("my-special-app", config);
 
-        assertEquals("my-special-app", pool.getApplicationId());
+    assertEquals("my-special-app", pool.getApplicationId());
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testStatsAfterCompletion() throws Exception {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .build();
+  @Test
+  void testStatsAfterCompletion() throws Exception {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        // Submit and complete a task
-        Future<?> future = pool.submit(() -> {});
-        future.get(1, TimeUnit.SECONDS);
+    // Submit and complete a task
+    Future<?> future = pool.submit(() -> {});
+    future.get(1, TimeUnit.SECONDS);
 
-        // Give it a moment to update stats
-        Thread.sleep(100);
+    // Give it a moment to update stats
+    Thread.sleep(100);
 
-        ThreadPoolStats stats = pool.getStats();
-        assertTrue(stats.getCompletedTasks() >= 1);
+    ThreadPoolStats stats = pool.getStats();
+    assertTrue(stats.getCompletedTasks() >= 1);
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testLargeQueueCapacity() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(2)
-                .maxPoolSize(4)
-                .queueCapacity(1000)
-                .build();
+  @Test
+  void testLargeQueueCapacity() {
+    ThreadPoolConfig config =
+        ThreadPoolConfig.builder().corePoolSize(2).maxPoolSize(4).queueCapacity(1000).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        ThreadPoolStats stats = pool.getStats();
-        assertEquals(2, stats.getCorePoolSize());
-        assertEquals(4, stats.getMaximumPoolSize());
+    ThreadPoolStats stats = pool.getStats();
+    assertEquals(2, stats.getCorePoolSize());
+    assertEquals(4, stats.getMaximumPoolSize());
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 
-    @Test
-    void testMinimalConfiguration() {
-        ThreadPoolConfig config = ThreadPoolConfig.builder()
-                .corePoolSize(1)
-                .maxPoolSize(1)
-                .build();
+  @Test
+  void testMinimalConfiguration() {
+    ThreadPoolConfig config = ThreadPoolConfig.builder().corePoolSize(1).maxPoolSize(1).build();
 
-        ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
+    ManagedThreadPool pool = new ManagedThreadPool("test-app", config);
 
-        ThreadPoolStats stats = pool.getStats();
-        assertEquals(1, stats.getCorePoolSize());
-        assertEquals(1, stats.getMaximumPoolSize());
+    ThreadPoolStats stats = pool.getStats();
+    assertEquals(1, stats.getCorePoolSize());
+    assertEquals(1, stats.getMaximumPoolSize());
 
-        pool.shutdownNow();
-    }
+    pool.shutdownNow();
+  }
 }

@@ -18,10 +18,11 @@
 package org.flossware.platform.api;
 
 /**
- * Configuration for JMX metrics exporter.
- * Specifies RMI port and MBean domain for exposing application metrics via JMX.
+ * Configuration for JMX metrics exporter. Specifies RMI port and MBean domain for exposing
+ * application metrics via JMX.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * JmxExporterConfig config = JmxExporterConfig.builder()
  *     .enabled(true)
@@ -33,110 +34,106 @@ package org.flossware.platform.api;
  * @see MetricsExporter
  */
 public class JmxExporterConfig {
-    private final boolean enabled;
-    private final int port;
-    private final String domain;
+  private final boolean enabled;
+  private final int port;
+  private final String domain;
 
-    private JmxExporterConfig(Builder builder) {
-        this.enabled = builder.enabled;
-        this.port = builder.port;
-        this.domain = builder.domain;
-    }
+  private JmxExporterConfig(Builder builder) {
+    this.enabled = builder.enabled;
+    this.port = builder.port;
+    this.domain = builder.domain;
+  }
+
+  /**
+   * Checks if JMX export is enabled.
+   *
+   * @return true if enabled
+   */
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  /**
+   * Returns the RMI registry port.
+   *
+   * @return the port number
+   */
+  public int getPort() {
+    return port;
+  }
+
+  /**
+   * Returns the JMX domain name for MBeans.
+   *
+   * @return the domain name
+   */
+  public String getDomain() {
+    return domain;
+  }
+
+  /**
+   * Creates a new builder for constructing JMX exporter configurations.
+   *
+   * @return a new builder instance
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /** Builder for JmxExporterConfig. */
+  public static class Builder {
+    private boolean enabled = true;
+    private int port = 9999;
+    private String domain = "org.flossware.jplatform";
 
     /**
-     * Checks if JMX export is enabled.
+     * Sets whether JMX export is enabled.
      *
-     * @return true if enabled
+     * @param enabled true to enable
+     * @return this builder
      */
-    public boolean isEnabled() {
-        return enabled;
+    public Builder enabled(boolean enabled) {
+      this.enabled = enabled;
+      return this;
     }
 
     /**
-     * Returns the RMI registry port.
+     * Sets the RMI registry port.
      *
-     * @return the port number
+     * @param port the port number (0 = auto-assign)
+     * @return this builder
+     * @throws IllegalArgumentException if port is not in valid range (0-65535)
      */
-    public int getPort() {
-        return port;
+    public Builder port(int port) {
+      if (port < 0 || port > 65535) {
+        throw new IllegalArgumentException("Port must be between 0 and 65535, got: " + port);
+      }
+      this.port = port;
+      return this;
     }
 
     /**
-     * Returns the JMX domain name for MBeans.
+     * Sets the JMX domain name for MBeans.
      *
-     * @return the domain name
+     * @param domain the domain name
+     * @return this builder
+     * @throws IllegalArgumentException if domain is null or empty
      */
-    public String getDomain() {
-        return domain;
+    public Builder domain(String domain) {
+      if (domain == null || domain.trim().isEmpty()) {
+        throw new IllegalArgumentException("JMX domain cannot be null or empty");
+      }
+      this.domain = domain;
+      return this;
     }
 
     /**
-     * Creates a new builder for constructing JMX exporter configurations.
+     * Builds the JmxExporterConfig instance.
      *
-     * @return a new builder instance
+     * @return a new JmxExporterConfig
      */
-    public static Builder builder() {
-        return new Builder();
+    public JmxExporterConfig build() {
+      return new JmxExporterConfig(this);
     }
-
-    /**
-     * Builder for JmxExporterConfig.
-     */
-    public static class Builder {
-        private boolean enabled = true;
-        private int port = 9999;
-        private String domain = "org.flossware.jplatform";
-
-        /**
-         * Sets whether JMX export is enabled.
-         *
-         * @param enabled true to enable
-         * @return this builder
-         */
-        public Builder enabled(boolean enabled) {
-            this.enabled = enabled;
-            return this;
-        }
-
-        /**
-         * Sets the RMI registry port.
-         *
-         * @param port the port number (0 = auto-assign)
-         * @return this builder
-         * @throws IllegalArgumentException if port is not in valid range (0-65535)
-         */
-        public Builder port(int port) {
-            if (port < 0 || port > 65535) {
-                throw new IllegalArgumentException(
-                    "Port must be between 0 and 65535, got: " + port);
-            }
-            this.port = port;
-            return this;
-        }
-
-        /**
-         * Sets the JMX domain name for MBeans.
-         *
-         * @param domain the domain name
-         * @return this builder
-         * @throws IllegalArgumentException if domain is null or empty
-         */
-        public Builder domain(String domain) {
-            if (domain == null || domain.trim().isEmpty()) {
-                throw new IllegalArgumentException(
-                    "JMX domain cannot be null or empty");
-            }
-            this.domain = domain;
-            return this;
-        }
-
-        /**
-         * Builds the JmxExporterConfig instance.
-         *
-         * @return a new JmxExporterConfig
-         */
-        public JmxExporterConfig build() {
-            return new JmxExporterConfig(this);
-        }
-    }
+  }
 }

@@ -18,18 +18,20 @@
 package org.flossware.platform.metrics.jmx;
 
 /**
- * MBean interface for exposing application metrics via JMX.
- * Provides read-only access to application state, resource usage, and thread pool statistics,
- * plus operations for lifecycle management and historical data retrieval.
+ * MBean interface for exposing application metrics via JMX. Provides read-only access to
+ * application state, resource usage, and thread pool statistics, plus operations for lifecycle
+ * management and historical data retrieval.
  *
- * <p>JMX clients can monitor:</p>
+ * <p>JMX clients can monitor:
+ *
  * <ul>
- *   <li>Application identification and state</li>
- *   <li>CPU and memory consumption</li>
- *   <li>Thread pool activity and task completion</li>
+ *   <li>Application identification and state
+ *   <li>CPU and memory consumption
+ *   <li>Thread pool activity and task completion
  * </ul>
  *
- * <p>Example JMX query using jconsole or JVisualVM:</p>
+ * <p>Example JMX query using jconsole or JVisualVM:
+ *
  * <pre>
  * ObjectName: org.flossware.jplatform:type=Application,id=my-app
  * Attributes: ApplicationId, State, CpuTimeNanos, HeapUsedBytes, ThreadCount
@@ -40,82 +42,82 @@ package org.flossware.platform.metrics.jmx;
  */
 public interface ApplicationMBean {
 
-    /**
-     * Returns the unique identifier for this application.
-     *
-     * @return the application ID
-     */
-    String getApplicationId();
+  /**
+   * Returns the unique identifier for this application.
+   *
+   * @return the application ID
+   */
+  String getApplicationId();
 
-    /**
-     * Returns the current lifecycle state of the application.
-     *
-     * @return the application state as a string (e.g., "RUNNING", "STOPPED")
-     */
-    String getState();
+  /**
+   * Returns the current lifecycle state of the application.
+   *
+   * @return the application state as a string (e.g., "RUNNING", "STOPPED")
+   */
+  String getState();
 
-    /**
-     * Returns the cumulative CPU time consumed by the application.
-     *
-     * @return the CPU time in nanoseconds
-     */
-    long getCpuTimeNanos();
+  /**
+   * Returns the cumulative CPU time consumed by the application.
+   *
+   * @return the CPU time in nanoseconds
+   */
+  long getCpuTimeNanos();
 
-    /**
-     * Returns the current heap memory usage of the application.
-     *
-     * @return the heap usage in bytes
-     */
-    long getHeapUsedBytes();
+  /**
+   * Returns the current heap memory usage of the application.
+   *
+   * @return the heap usage in bytes
+   */
+  long getHeapUsedBytes();
 
-    /**
-     * Returns the total number of threads in the application's thread pool.
-     *
-     * @return the thread count
-     */
-    int getThreadCount();
+  /**
+   * Returns the total number of threads in the application's thread pool.
+   *
+   * @return the thread count
+   */
+  int getThreadCount();
 
-    /**
-     * Returns the number of threads currently executing tasks.
-     *
-     * @return the active thread count
-     */
-    int getActiveThreads();
+  /**
+   * Returns the number of threads currently executing tasks.
+   *
+   * @return the active thread count
+   */
+  int getActiveThreads();
 
-    /**
-     * Returns the number of tasks waiting in the queue for execution.
-     *
-     * @return the queued task count
-     */
-    int getQueuedTasks();
+  /**
+   * Returns the number of tasks waiting in the queue for execution.
+   *
+   * @return the queued task count
+   */
+  int getQueuedTasks();
 
-    /**
-     * Returns the total number of tasks that have completed execution.
-     *
-     * @return the completed task count
-     */
-    long getCompletedTasks();
+  /**
+   * Returns the total number of tasks that have completed execution.
+   *
+   * @return the completed task count
+   */
+  long getCompletedTasks();
 
-    /**
-     * Starts the application if it is not already running.
-     *
-     * @throws Exception if the application cannot be started
-     */
-    void start() throws Exception;
+  /**
+   * Starts the application if it is not already running.
+   *
+   * @throws Exception if the application cannot be started
+   */
+  void start() throws Exception;
 
-    /**
-     * Stops the application if it is currently running.
-     *
-     * @throws Exception if the application cannot be stopped
-     */
-    void stop() throws Exception;
+  /**
+   * Stops the application if it is currently running.
+   *
+   * @throws Exception if the application cannot be stopped
+   */
+  void stop() throws Exception;
 
-    /**
-     * Returns a JSON string containing resource usage history for the specified time period.
-     * The history includes snapshots of CPU time, memory usage, and thread count.
-     *
-     * @param minutes the number of minutes of history to retrieve
-     * @return a JSON string representation of the resource history
-     */
-    String getResourceHistory(int minutes);
+  /**
+   * Returns a JSON string containing resource usage history for the specified time period. The
+   * history includes snapshots of CPU time, memory usage, and thread count.
+   *
+   * @param minutes the number of minutes of history to retrieve
+   * @return a JSON string representation of the resource history
+   */
+  String getResourceHistory(int minutes);
 }

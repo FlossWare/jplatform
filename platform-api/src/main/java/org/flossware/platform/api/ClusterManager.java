@@ -20,10 +20,11 @@ package org.flossware.platform.api;
 import java.util.Set;
 
 /**
- * Manages platform clustering for multi-node deployments.
- * Provides cluster membership, leader election, and node coordination.
+ * Manages platform clustering for multi-node deployments. Provides cluster membership, leader
+ * election, and node coordination.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * ClusterConfig config = ClusterConfig.builder()
  *     .clusterName("jplatform-production")
@@ -47,62 +48,62 @@ import java.util.Set;
  */
 public interface ClusterManager extends AutoCloseable {
 
-    /**
-     * Joins the cluster with the specified configuration.
-     *
-     * @param config the cluster configuration
-     * @throws ClusterJoinException if joining fails
-     * @since 1.0
-     */
-    void join(ClusterConfig config) throws ClusterJoinException;
+  /**
+   * Joins the cluster with the specified configuration.
+   *
+   * @param config the cluster configuration
+   * @throws ClusterJoinException if joining fails
+   * @since 1.0
+   */
+  void join(ClusterConfig config) throws ClusterJoinException;
 
-    /**
-     * Leaves the cluster gracefully.
-     *
-     * @throws ClusterLeaveException if leaving fails
-     * @since 1.0
-     */
-    void leave() throws ClusterLeaveException;
+  /**
+   * Leaves the cluster gracefully.
+   *
+   * @throws ClusterLeaveException if leaving fails
+   * @since 1.0
+   */
+  void leave() throws ClusterLeaveException;
 
-    /**
-     * Returns all nodes in the cluster.
-     *
-     * @return a set of cluster nodes
-     */
-    Set<ClusterNode> getNodes();
+  /**
+   * Returns all nodes in the cluster.
+   *
+   * @return a set of cluster nodes
+   */
+  Set<ClusterNode> getNodes();
 
-    /**
-     * Returns the local node.
-     *
-     * @return the local cluster node
-     */
-    ClusterNode getLocalNode();
+  /**
+   * Returns the local node.
+   *
+   * @return the local cluster node
+   */
+  ClusterNode getLocalNode();
 
-    /**
-     * Checks if this node is the cluster leader.
-     *
-     * @return true if this node is the leader
-     */
-    boolean isLeader();
+  /**
+   * Checks if this node is the cluster leader.
+   *
+   * @return true if this node is the leader
+   */
+  boolean isLeader();
 
-    /**
-     * Adds a listener for cluster events.
-     *
-     * @param listener the listener to add
-     */
-    void addListener(ClusterEventListener listener);
+  /**
+   * Adds a listener for cluster events.
+   *
+   * @param listener the listener to add
+   */
+  void addListener(ClusterEventListener listener);
 
-    /**
-     * Removes a previously registered listener.
-     *
-     * @param listener the listener to remove
-     */
-    void removeListener(ClusterEventListener listener);
+  /**
+   * Removes a previously registered listener.
+   *
+   * @param listener the listener to remove
+   */
+  void removeListener(ClusterEventListener listener);
 
-    /**
-     * Checks if this node is currently part of a cluster.
-     *
-     * @return true if joined to a cluster
-     */
-    boolean isJoined();
+  /**
+   * Checks if this node is currently part of a cluster.
+   *
+   * @return true if joined to a cluster
+   */
+  boolean isJoined();
 }

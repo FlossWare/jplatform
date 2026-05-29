@@ -17,19 +17,6 @@
 
 package org.flossware.platform.config.vault;
 
-import com.bettercloud.vault.Vault;
-import com.bettercloud.vault.VaultException;
-import com.bettercloud.vault.api.Logical;
-import com.bettercloud.vault.response.LogicalResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,322 +32,349 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.bettercloud.vault.Vault;
+import com.bettercloud.vault.VaultException;
+import com.bettercloud.vault.api.Logical;
+import com.bettercloud.vault.response.LogicalResponse;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 class VaultConfigSourceTest {
 
-    @Mock
-    private Vault vault;
+  @Mock private Vault vault;
 
-    @Mock
-    private Logical logical;
+  @Mock private Logical logical;
 
-    @Mock
-    private LogicalResponse logicalResponse;
+  @Mock private LogicalResponse logicalResponse;
 
-    private VaultConfigSourceConfig config;
+  private VaultConfigSourceConfig config;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
 
-        config = VaultConfigSourceConfig.builder()
+    config =
+        VaultConfigSourceConfig.builder()
             .address("http://localhost:8200")
             .token("test-token")
             .secretPath("secret/config")
             .build();
 
-        when(vault.logical()).thenReturn(logical);
-    }
+    when(vault.logical()).thenReturn(logical);
+  }
+
+  @Test
+  void testConstructorNullConfig() {
+    Exception exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> {
+              new VaultConfigSource(null);
+            });
+    assertTrue(exception.getMessage().contains("Config"));
+  }
+
+  @Test
+  void testLoadConfig() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
+
+    when(logical.read(anyString())).thenReturn(logicalResponse);
+    when(logicalResponse.getData()).thenReturn(Collections.emptyMap());
+
+    Map<String, String> loadedConfig = source.loadConfig();
+    assertNotNull(loadedConfig);
+  }
+
+  @Test
+  void testGetConfig() {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
+    source.getConfigCache().put("test.key", "test-value");
+
+    assertEquals("test-value", source.getConfig("test.key"));
+  }
+
+  @Test
+  void testGetConfigNotFound() {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
+
+    assertNull(source.getConfig("nonexistent"));
+  }
+
+  @Test
+  void testSetConfig() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
+
+    when(logical.write(anyString(), anyMap())).thenReturn(logicalResponse);
+
+    source.setConfig("new.key", "new-value");
+
+    verify(logical).write(anyString(), anyMap());
+    assertEquals("new-value", source.getConfig("new.key"));
+  }
+
+  @Test
+  void testDeleteConfig() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
+    source.getConfigCache().put("delete.key", "value");
+
+    when(logical.delete(anyString())).thenReturn(logicalResponse);
+
+    source.deleteConfig("delete.key");
+
+    verify(logical).delete(anyString());
+    assertNull(source.getConfig("delete.key"));
+  }
+
+  @Test
+  void testSetConfigNotStarted() {
+    VaultConfigSource source = new VaultConfigSource(config);
+
+    Exception exception =
+        assertThrows(
+            IllegalStateException.class,
+            () -> {
+              source.setConfig("key", "value");
+            });
+    assertTrue(exception.getMessage().contains("not started"));
+  }
+
+  @Test
+  void testDeleteConfigNotStarted() {
+    VaultConfigSource source = new VaultConfigSource(config);
+
+    Exception exception =
+        assertThrows(
+            IllegalStateException.class,
+            () -> {
+              source.deleteConfig("key");
+            });
+    assertTrue(exception.getMessage().contains("not started"));
+  }
 
-    @Test
-    void testConstructorNullConfig() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            new VaultConfigSource(null);
-        });
-        assertTrue(exception.getMessage().contains("Config"));
-    }
+  @Test
+  void testRefreshNotStarted() {
+    VaultConfigSource source = new VaultConfigSource(config);
+
+    Exception exception =
+        assertThrows(
+            IllegalStateException.class,
+            () -> {
+              source.refresh();
+            });
+    assertTrue(exception.getMessage().contains("not started"));
+  }
 
-    @Test
-    void testLoadConfig() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+  @Test
+  void testClose() {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        when(logical.read(anyString())).thenReturn(logicalResponse);
-        when(logicalResponse.getData()).thenReturn(Collections.emptyMap());
+    source.close();
 
-        Map<String, String> loadedConfig = source.loadConfig();
-        assertNotNull(loadedConfig);
-    }
+    assertTrue(source.getConfigCache().isEmpty());
+  }
 
-    @Test
-    void testGetConfig() {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-        source.getConfigCache().put("test.key", "test-value");
+  @Test
+  void testGetVault() {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        assertEquals("test-value", source.getConfig("test.key"));
-    }
+    assertSame(vault, source.getVault());
+  }
 
-    @Test
-    void testGetConfigNotFound() {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+  @Test
+  void testLoadConfigBeforeStart() {
+    VaultConfigSource source = new VaultConfigSource(config);
 
-        assertNull(source.getConfig("nonexistent"));
-    }
+    Map<String, String> loaded = source.loadConfig();
+    assertTrue(loaded.isEmpty());
+  }
 
-    @Test
-    void testSetConfig() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+  @Test
+  void testStartIdempotent() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        when(logical.write(anyString(), anyMap())).thenReturn(logicalResponse);
+    when(logical.read(anyString())).thenReturn(logicalResponse);
+    when(logicalResponse.getData()).thenReturn(Collections.emptyMap());
 
-        source.setConfig("new.key", "new-value");
+    source.start();
+    source.start();
 
-        verify(logical).write(anyString(), anyMap());
-        assertEquals("new-value", source.getConfig("new.key"));
-    }
+    verify(logical, times(0)).read(anyString());
+    source.close();
+  }
 
-    @Test
-    void testDeleteConfig() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-        source.getConfigCache().put("delete.key", "value");
+  @Test
+  void testLoadConfigWithValues() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        when(logical.delete(anyString())).thenReturn(logicalResponse);
+    Map<String, String> secretData = new HashMap<>();
+    secretData.put("database.host", "localhost");
+    secretData.put("database.port", "5432");
 
-        source.deleteConfig("delete.key");
+    when(logical.read(anyString())).thenReturn(logicalResponse);
+    when(logicalResponse.getData()).thenReturn(secretData);
 
-        verify(logical).delete(anyString());
-        assertNull(source.getConfig("delete.key"));
-    }
+    Map<String, String> loaded = source.loadConfig();
+    assertEquals(0, loaded.size());
+  }
 
-    @Test
-    void testSetConfigNotStarted() {
-        VaultConfigSource source = new VaultConfigSource(config);
+  @Test
+  void testSetConfigUpdatesCache() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            source.setConfig("key", "value");
-        });
-        assertTrue(exception.getMessage().contains("not started"));
-    }
+    when(logical.write(anyString(), anyMap())).thenReturn(logicalResponse);
 
-    @Test
-    void testDeleteConfigNotStarted() {
-        VaultConfigSource source = new VaultConfigSource(config);
+    source.setConfig("cache.key", "cache-value");
 
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            source.deleteConfig("key");
-        });
-        assertTrue(exception.getMessage().contains("not started"));
-    }
+    Map<String, String> loaded = source.loadConfig();
+    assertEquals("cache-value", loaded.get("cache.key"));
+  }
 
-    @Test
-    void testRefreshNotStarted() {
-        VaultConfigSource source = new VaultConfigSource(config);
+  @Test
+  void testDeleteConfigUpdatesCache() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
+    source.getConfigCache().put("to.delete", "value");
 
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            source.refresh();
-        });
-        assertTrue(exception.getMessage().contains("not started"));
-    }
+    when(logical.delete(anyString())).thenReturn(logicalResponse);
 
-    @Test
-    void testClose() {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+    source.deleteConfig("to.delete");
 
-        source.close();
+    Map<String, String> loaded = source.loadConfig();
+    assertFalse(loaded.containsKey("to.delete"));
+  }
 
-        assertTrue(source.getConfigCache().isEmpty());
-    }
+  @Test
+  void testSetConfigException() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-    @Test
-    void testGetVault() {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+    when(logical.write(anyString(), anyMap())).thenThrow(new VaultException("Connection failed"));
 
-        assertSame(vault, source.getVault());
-    }
+    Exception exception =
+        assertThrows(
+            RuntimeException.class,
+            () -> {
+              source.setConfig("fail.key", "value");
+            });
+    assertTrue(exception.getMessage().contains("Failed to set config"));
+  }
 
-    @Test
-    void testLoadConfigBeforeStart() {
-        VaultConfigSource source = new VaultConfigSource(config);
+  @Test
+  void testDeleteConfigException() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        Map<String, String> loaded = source.loadConfig();
-        assertTrue(loaded.isEmpty());
-    }
+    when(logical.delete(anyString())).thenThrow(new VaultException("Connection failed"));
 
-    @Test
-    void testStartIdempotent() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+    Exception exception =
+        assertThrows(
+            RuntimeException.class,
+            () -> {
+              source.deleteConfig("fail.key");
+            });
+    assertTrue(exception.getMessage().contains("Failed to delete config"));
+  }
 
-        when(logical.read(anyString())).thenReturn(logicalResponse);
-        when(logicalResponse.getData()).thenReturn(Collections.emptyMap());
+  @Test
+  void testGetConfigCacheReturnsInternalCache() {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
+    source.getConfigCache().put("internal.key", "internal-value");
 
-        source.start();
-        source.start();
+    assertEquals("internal-value", source.getConfigCache().get("internal.key"));
+  }
 
-        verify(logical, times(0)).read(anyString());
-        source.close();
-    }
+  @Test
+  void testRefresh() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-    @Test
-    void testLoadConfigWithValues() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+    Map<String, String> secretData = new HashMap<>();
+    secretData.put("key", "value");
 
-        Map<String, String> secretData = new HashMap<>();
-        secretData.put("database.host", "localhost");
-        secretData.put("database.port", "5432");
+    when(logical.read(anyString())).thenReturn(logicalResponse);
+    when(logicalResponse.getData()).thenReturn(secretData);
 
-        when(logical.read(anyString())).thenReturn(logicalResponse);
-        when(logicalResponse.getData()).thenReturn(secretData);
+    source.refresh();
 
-        Map<String, String> loaded = source.loadConfig();
-        assertEquals(0, loaded.size());
-    }
+    verify(logical).read(anyString());
+  }
 
-    @Test
-    void testSetConfigUpdatesCache() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+  @Test
+  void testRefreshUpdatesCache() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        when(logical.write(anyString(), anyMap())).thenReturn(logicalResponse);
+    Map<String, String> secretData = new HashMap<>();
+    secretData.put("refreshed.key", "refreshed-value");
 
-        source.setConfig("cache.key", "cache-value");
+    when(logical.read(anyString())).thenReturn(logicalResponse);
+    when(logicalResponse.getData()).thenReturn(secretData);
 
-        Map<String, String> loaded = source.loadConfig();
-        assertEquals("cache-value", loaded.get("cache.key"));
-    }
+    source.refresh();
 
-    @Test
-    void testDeleteConfigUpdatesCache() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-        source.getConfigCache().put("to.delete", "value");
+    assertEquals("refreshed-value", source.getConfig("refreshed.key"));
+  }
 
-        when(logical.delete(anyString())).thenReturn(logicalResponse);
+  @Test
+  void testLoadConfigWithNullResponse() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        source.deleteConfig("to.delete");
+    when(logical.read(anyString())).thenReturn(null);
 
-        Map<String, String> loaded = source.loadConfig();
-        assertFalse(loaded.containsKey("to.delete"));
-    }
+    Map<String, String> loaded = source.loadConfig();
+    assertTrue(loaded.isEmpty());
+  }
 
-    @Test
-    void testSetConfigException() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+  @Test
+  void testLoadConfigWithNullData() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        when(logical.write(anyString(), anyMap()))
-            .thenThrow(new VaultException("Connection failed"));
+    when(logical.read(anyString())).thenReturn(logicalResponse);
+    when(logicalResponse.getData()).thenReturn(null);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            source.setConfig("fail.key", "value");
-        });
-        assertTrue(exception.getMessage().contains("Failed to set config"));
-    }
+    Map<String, String> loaded = source.loadConfig();
+    assertTrue(loaded.isEmpty());
+  }
 
-    @Test
-    void testDeleteConfigException() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-
-        when(logical.delete(anyString()))
-            .thenThrow(new VaultException("Connection failed"));
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            source.deleteConfig("fail.key");
-        });
-        assertTrue(exception.getMessage().contains("Failed to delete config"));
-    }
-
-    @Test
-    void testGetConfigCacheReturnsInternalCache() {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-        source.getConfigCache().put("internal.key", "internal-value");
-
-        assertEquals("internal-value", source.getConfigCache().get("internal.key"));
-    }
-
-    @Test
-    void testRefresh() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-
-        Map<String, String> secretData = new HashMap<>();
-        secretData.put("key", "value");
-
-        when(logical.read(anyString())).thenReturn(logicalResponse);
-        when(logicalResponse.getData()).thenReturn(secretData);
-
-        source.refresh();
-
-        verify(logical).read(anyString());
-    }
-
-    @Test
-    void testRefreshUpdatesCache() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-
-        Map<String, String> secretData = new HashMap<>();
-        secretData.put("refreshed.key", "refreshed-value");
-
-        when(logical.read(anyString())).thenReturn(logicalResponse);
-        when(logicalResponse.getData()).thenReturn(secretData);
-
-        source.refresh();
-
-        assertEquals("refreshed-value", source.getConfig("refreshed.key"));
-    }
-
-    @Test
-    void testLoadConfigWithNullResponse() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-
-        when(logical.read(anyString())).thenReturn(null);
-
-        Map<String, String> loaded = source.loadConfig();
-        assertTrue(loaded.isEmpty());
-    }
-
-    @Test
-    void testLoadConfigWithNullData() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
-
-        when(logical.read(anyString())).thenReturn(logicalResponse);
-        when(logicalResponse.getData()).thenReturn(null);
-
-        Map<String, String> loaded = source.loadConfig();
-        assertTrue(loaded.isEmpty());
-    }
-
-    @Test
-    void testConfigWithCustomSecretPath() throws VaultException {
-        VaultConfigSourceConfig customConfig = VaultConfigSourceConfig.builder()
+  @Test
+  void testConfigWithCustomSecretPath() throws VaultException {
+    VaultConfigSourceConfig customConfig =
+        VaultConfigSourceConfig.builder()
             .address("http://localhost:8200")
             .token("test-token")
             .secretPath("secret/myapp")
             .build();
 
-        VaultConfigSource source = new VaultConfigSource(customConfig, vault);
+    VaultConfigSource source = new VaultConfigSource(customConfig, vault);
 
-        when(logical.write(anyString(), anyMap())).thenReturn(logicalResponse);
+    when(logical.write(anyString(), anyMap())).thenReturn(logicalResponse);
 
-        source.setConfig("test", "value");
+    source.setConfig("test", "value");
 
-        verify(logical).write(eq("secret/myapp"), anyMap());
-    }
+    verify(logical).write(eq("secret/myapp"), anyMap());
+  }
 
-    @Test
-    void testMultipleConfigValues() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+  @Test
+  void testMultipleConfigValues() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        when(logical.write(anyString(), anyMap())).thenReturn(logicalResponse);
+    when(logical.write(anyString(), anyMap())).thenReturn(logicalResponse);
 
-        source.setConfig("key1", "value1");
-        source.setConfig("key2", "value2");
-        source.setConfig("key3", "value3");
+    source.setConfig("key1", "value1");
+    source.setConfig("key2", "value2");
+    source.setConfig("key3", "value3");
 
-        assertEquals("value1", source.getConfig("key1"));
-        assertEquals("value2", source.getConfig("key2"));
-        assertEquals("value3", source.getConfig("key3"));
-    }
+    assertEquals("value1", source.getConfig("key1"));
+    assertEquals("value2", source.getConfig("key2"));
+    assertEquals("value3", source.getConfig("key3"));
+  }
 
-    @Test
-    void testRefreshException() throws VaultException {
-        VaultConfigSource source = new VaultConfigSource(config, vault);
+  @Test
+  void testRefreshException() throws VaultException {
+    VaultConfigSource source = new VaultConfigSource(config, vault);
 
-        when(logical.read(anyString())).thenThrow(new VaultException("Connection failed"));
+    when(logical.read(anyString())).thenThrow(new VaultException("Connection failed"));
 
-        assertDoesNotThrow(() -> source.refresh());
-    }
+    assertDoesNotThrow(() -> source.refresh());
+  }
 }

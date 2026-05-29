@@ -20,11 +20,11 @@ package org.flossware.platform.api;
 import java.util.Map;
 
 /**
- * Distributed state store for cluster-wide application state.
- * Provides synchronized access to application descriptors and state
- * across all nodes in the cluster.
+ * Distributed state store for cluster-wide application state. Provides synchronized access to
+ * application descriptors and state across all nodes in the cluster.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * ClusterStateStore store = cluster.getStateStore();
  *
@@ -44,79 +44,77 @@ import java.util.Map;
  */
 public interface ClusterStateStore {
 
-    /**
-     * Stores application state in the distributed store.
-     *
-     * @param applicationId the application identifier
-     * @param state the application state
-     */
-    void putApplicationState(String applicationId, ApplicationState state);
+  /**
+   * Stores application state in the distributed store.
+   *
+   * @param applicationId the application identifier
+   * @param state the application state
+   */
+  void putApplicationState(String applicationId, ApplicationState state);
 
-    /**
-     * Retrieves application state from the distributed store.
-     *
-     * @param applicationId the application identifier
-     * @return the application state, or null if not found
-     */
-    ApplicationState getApplicationState(String applicationId);
+  /**
+   * Retrieves application state from the distributed store.
+   *
+   * @param applicationId the application identifier
+   * @return the application state, or null if not found
+   */
+  ApplicationState getApplicationState(String applicationId);
 
-    /**
-     * Returns all application states in the cluster.
-     *
-     * @return a map of application ID to state
-     */
-    Map<String, ApplicationState> getAllApplicationStates();
+  /**
+   * Returns all application states in the cluster.
+   *
+   * @return a map of application ID to state
+   */
+  Map<String, ApplicationState> getAllApplicationStates();
 
-    /**
-     * Stores an application descriptor in the distributed store.
-     *
-     * @param applicationId the application identifier
-     * @param descriptor the application descriptor
-     */
-    void putApplicationDescriptor(String applicationId, ApplicationDescriptor descriptor);
+  /**
+   * Stores an application descriptor in the distributed store.
+   *
+   * @param applicationId the application identifier
+   * @param descriptor the application descriptor
+   */
+  void putApplicationDescriptor(String applicationId, ApplicationDescriptor descriptor);
 
-    /**
-     * Retrieves an application descriptor from the distributed store.
-     *
-     * @param applicationId the application identifier
-     * @return the application descriptor, or null if not found
-     */
-    ApplicationDescriptor getApplicationDescriptor(String applicationId);
+  /**
+   * Retrieves an application descriptor from the distributed store.
+   *
+   * @param applicationId the application identifier
+   * @return the application descriptor, or null if not found
+   */
+  ApplicationDescriptor getApplicationDescriptor(String applicationId);
 
-    /**
-     * Returns all application descriptors in the cluster.
-     *
-     * @return a map of application ID to descriptor
-     */
-    Map<String, ApplicationDescriptor> getAllApplicationDescriptors();
+  /**
+   * Returns all application descriptors in the cluster.
+   *
+   * @return a map of application ID to descriptor
+   */
+  Map<String, ApplicationDescriptor> getAllApplicationDescriptors();
 
-    /**
-     * Subscribes to changes for a specific key.
-     *
-     * @param key the key to watch
-     * @param listener the listener to notify on changes
-     */
-    void subscribe(String key, StateChangeListener listener);
+  /**
+   * Subscribes to changes for a specific key.
+   *
+   * @param key the key to watch
+   * @param listener the listener to notify on changes
+   */
+  void subscribe(String key, StateChangeListener listener);
 
-    /**
-     * Unsubscribes from changes for a specific key.
-     *
-     * @param key the key to stop watching
-     * @param listener the listener to remove
-     */
-    void unsubscribe(String key, StateChangeListener listener);
+  /**
+   * Unsubscribes from changes for a specific key.
+   *
+   * @param key the key to stop watching
+   * @param listener the listener to remove
+   */
+  void unsubscribe(String key, StateChangeListener listener);
 
+  /** Listener for state changes in the distributed store. */
+  @FunctionalInterface
+  interface StateChangeListener {
     /**
-     * Listener for state changes in the distributed store.
+     * Called when a state value changes.
+     *
+     * @param key the key that changed
+     * @param value the new value
      */
-    @FunctionalInterface
-    interface StateChangeListener {
-        /**
-         * Called when a state value changes.
-         *
-         * @param key the key that changed
-         * @param value the new value
-         */
-        void onStateChanged(String key, Object value);
-    }
+    void onStateChanged(String key, Object value);
+  }
 }

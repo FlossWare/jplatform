@@ -23,11 +23,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Configuration for filesystem deployment watcher.
- * Specifies which directory to watch, file extensions to monitor,
- * and automatic deployment behavior.
+ * Configuration for filesystem deployment watcher. Specifies which directory to watch, file
+ * extensions to monitor, and automatic deployment behavior.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * WatcherConfig config = WatcherConfig.builder()
  *     .watchDirectory(Paths.get("/var/platform/apps"))
@@ -42,185 +42,183 @@ import java.util.Set;
  * @see DeploymentWatcher
  */
 public class WatcherConfig {
-    private final Path watchDirectory;
-    private final boolean autoStart;
-    private final boolean autoDeploy;
-    private final Set<String> fileExtensions;
-    private final long debounceMillis;
+  private final Path watchDirectory;
+  private final boolean autoStart;
+  private final boolean autoDeploy;
+  private final Set<String> fileExtensions;
+  private final long debounceMillis;
 
-    private WatcherConfig(Builder builder) {
-        this.watchDirectory = builder.watchDirectory;
-        this.autoStart = builder.autoStart;
-        this.autoDeploy = builder.autoDeploy;
-        this.fileExtensions = builder.fileExtensions != null ?
-                Set.copyOf(builder.fileExtensions) : Set.of("yaml", "json");
-        this.debounceMillis = builder.debounceMillis;
-    }
+  private WatcherConfig(Builder builder) {
+    this.watchDirectory = builder.watchDirectory;
+    this.autoStart = builder.autoStart;
+    this.autoDeploy = builder.autoDeploy;
+    this.fileExtensions =
+        builder.fileExtensions != null
+            ? Set.copyOf(builder.fileExtensions)
+            : Set.of("yaml", "json");
+    this.debounceMillis = builder.debounceMillis;
+  }
+
+  /**
+   * Returns the directory to watch for descriptor files.
+   *
+   * @return the watch directory path
+   */
+  public Path getWatchDirectory() {
+    return watchDirectory;
+  }
+
+  /**
+   * Checks if applications should be automatically started after deployment.
+   *
+   * @return true if auto-start is enabled
+   */
+  public boolean isAutoStart() {
+    return autoStart;
+  }
+
+  /**
+   * Checks if detected descriptor files should be automatically deployed.
+   *
+   * @return true if auto-deploy is enabled
+   */
+  public boolean isAutoDeploy() {
+    return autoDeploy;
+  }
+
+  /**
+   * Returns the file extensions to monitor (without leading dot).
+   *
+   * @return an unmodifiable set of file extensions
+   */
+  public Set<String> getFileExtensions() {
+    return Collections.unmodifiableSet(fileExtensions);
+  }
+
+  /**
+   * Returns the debounce delay in milliseconds. File changes are debounced to avoid processing
+   * rapid modifications.
+   *
+   * @return the debounce delay in milliseconds
+   */
+  public long getDebounceMillis() {
+    return debounceMillis;
+  }
+
+  /**
+   * Creates a new builder for constructing watcher configurations.
+   *
+   * @return a new builder instance
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /** Builder for WatcherConfig. */
+  public static class Builder {
+    private Path watchDirectory;
+    private boolean autoStart = true;
+    private boolean autoDeploy = true;
+    private Set<String> fileExtensions = new HashSet<>(Set.of("yaml", "json"));
+    private long debounceMillis = 500;
 
     /**
-     * Returns the directory to watch for descriptor files.
+     * Sets the directory to watch for descriptor files.
      *
-     * @return the watch directory path
+     * @param watchDirectory the directory to watch
+     * @return this builder
      */
-    public Path getWatchDirectory() {
-        return watchDirectory;
+    public Builder watchDirectory(Path watchDirectory) {
+      this.watchDirectory = watchDirectory;
+      return this;
     }
 
     /**
-     * Checks if applications should be automatically started after deployment.
+     * Sets whether to automatically start applications after deployment.
      *
-     * @return true if auto-start is enabled
+     * @param autoStart true to enable auto-start
+     * @return this builder
      */
-    public boolean isAutoStart() {
-        return autoStart;
+    public Builder autoStart(boolean autoStart) {
+      this.autoStart = autoStart;
+      return this;
     }
 
     /**
-     * Checks if detected descriptor files should be automatically deployed.
+     * Sets whether to automatically deploy detected descriptor files.
      *
-     * @return true if auto-deploy is enabled
+     * @param autoDeploy true to enable auto-deploy
+     * @return this builder
      */
-    public boolean isAutoDeploy() {
-        return autoDeploy;
+    public Builder autoDeploy(boolean autoDeploy) {
+      this.autoDeploy = autoDeploy;
+      return this;
     }
 
     /**
-     * Returns the file extensions to monitor (without leading dot).
+     * Adds a file extension to monitor (without leading dot).
      *
-     * @return an unmodifiable set of file extensions
+     * @param extension the file extension (e.g., "yaml", "json")
+     * @return this builder
      */
-    public Set<String> getFileExtensions() {
-        return Collections.unmodifiableSet(fileExtensions);
+    public Builder addFileExtension(String extension) {
+      if (extension == null || extension.trim().isEmpty()) {
+        throw new IllegalArgumentException("File extension cannot be null or empty");
+      }
+      if (this.fileExtensions == null) {
+        this.fileExtensions = new HashSet<>();
+      }
+      // Remove leading dot if present
+      String cleaned = extension.toLowerCase().trim();
+      if (cleaned.startsWith(".")) {
+        cleaned = cleaned.substring(1);
+      }
+      this.fileExtensions.add(cleaned);
+      return this;
     }
 
     /**
-     * Returns the debounce delay in milliseconds.
-     * File changes are debounced to avoid processing rapid modifications.
+     * Sets all file extensions to monitor, replacing any previously added.
      *
-     * @return the debounce delay in milliseconds
+     * @param extensions the file extensions to monitor
+     * @return this builder
      */
-    public long getDebounceMillis() {
-        return debounceMillis;
+    public Builder fileExtensions(Set<String> extensions) {
+      if (extensions == null) {
+        throw new IllegalArgumentException("extensions set cannot be null");
+      }
+      this.fileExtensions = new HashSet<>();
+      for (String ext : extensions) {
+        addFileExtension(ext); // Reuse validation
+      }
+      return this;
     }
 
     /**
-     * Creates a new builder for constructing watcher configurations.
+     * Sets the debounce delay for file changes.
      *
-     * @return a new builder instance
+     * @param debounceMillis the delay in milliseconds
+     * @return this builder
      */
-    public static Builder builder() {
-        return new Builder();
+    public Builder debounceMillis(long debounceMillis) {
+      if (debounceMillis < 0) {
+        throw new IllegalArgumentException("debounceMillis must be >= 0, got: " + debounceMillis);
+      }
+      this.debounceMillis = debounceMillis;
+      return this;
     }
 
     /**
-     * Builder for WatcherConfig.
+     * Builds the WatcherConfig instance.
+     *
+     * @return a new WatcherConfig
+     * @throws IllegalStateException if watchDirectory is not set
      */
-    public static class Builder {
-        private Path watchDirectory;
-        private boolean autoStart = true;
-        private boolean autoDeploy = true;
-        private Set<String> fileExtensions = new HashSet<>(Set.of("yaml", "json"));
-        private long debounceMillis = 500;
-
-        /**
-         * Sets the directory to watch for descriptor files.
-         *
-         * @param watchDirectory the directory to watch
-         * @return this builder
-         */
-        public Builder watchDirectory(Path watchDirectory) {
-            this.watchDirectory = watchDirectory;
-            return this;
-        }
-
-        /**
-         * Sets whether to automatically start applications after deployment.
-         *
-         * @param autoStart true to enable auto-start
-         * @return this builder
-         */
-        public Builder autoStart(boolean autoStart) {
-            this.autoStart = autoStart;
-            return this;
-        }
-
-        /**
-         * Sets whether to automatically deploy detected descriptor files.
-         *
-         * @param autoDeploy true to enable auto-deploy
-         * @return this builder
-         */
-        public Builder autoDeploy(boolean autoDeploy) {
-            this.autoDeploy = autoDeploy;
-            return this;
-        }
-
-        /**
-         * Adds a file extension to monitor (without leading dot).
-         *
-         * @param extension the file extension (e.g., "yaml", "json")
-         * @return this builder
-         */
-        public Builder addFileExtension(String extension) {
-            if (extension == null || extension.trim().isEmpty()) {
-                throw new IllegalArgumentException(
-                    "File extension cannot be null or empty");
-            }
-            if (this.fileExtensions == null) {
-                this.fileExtensions = new HashSet<>();
-            }
-            // Remove leading dot if present
-            String cleaned = extension.toLowerCase().trim();
-            if (cleaned.startsWith(".")) {
-                cleaned = cleaned.substring(1);
-            }
-            this.fileExtensions.add(cleaned);
-            return this;
-        }
-
-        /**
-         * Sets all file extensions to monitor, replacing any previously added.
-         *
-         * @param extensions the file extensions to monitor
-         * @return this builder
-         */
-        public Builder fileExtensions(Set<String> extensions) {
-            if (extensions == null) {
-                throw new IllegalArgumentException("extensions set cannot be null");
-            }
-            this.fileExtensions = new HashSet<>();
-            for (String ext : extensions) {
-                addFileExtension(ext);  // Reuse validation
-            }
-            return this;
-        }
-
-        /**
-         * Sets the debounce delay for file changes.
-         *
-         * @param debounceMillis the delay in milliseconds
-         * @return this builder
-         */
-        public Builder debounceMillis(long debounceMillis) {
-            if (debounceMillis < 0) {
-                throw new IllegalArgumentException(
-                    "debounceMillis must be >= 0, got: " + debounceMillis);
-            }
-            this.debounceMillis = debounceMillis;
-            return this;
-        }
-
-        /**
-         * Builds the WatcherConfig instance.
-         *
-         * @return a new WatcherConfig
-         * @throws IllegalStateException if watchDirectory is not set
-         */
-        public WatcherConfig build() {
-            if (watchDirectory == null) {
-                throw new IllegalStateException("watchDirectory is required");
-            }
-            return new WatcherConfig(this);
-        }
+    public WatcherConfig build() {
+      if (watchDirectory == null) {
+        throw new IllegalStateException("watchDirectory is required");
+      }
+      return new WatcherConfig(this);
     }
+  }
 }

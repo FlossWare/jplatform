@@ -18,10 +18,11 @@
 package org.flossware.platform.api;
 
 /**
- * Listener for resource monitoring events.
- * Notified when resource quotas are exceeded or thresholds are crossed.
+ * Listener for resource monitoring events. Notified when resource quotas are exceeded or thresholds
+ * are crossed.
  *
- * <p>Example usage:</p>
+ * <p>Example usage:
+ *
  * <pre>{@code
  * ResourceEventListener listener = new ResourceEventListener() {
  *     @Override
@@ -43,22 +44,23 @@ package org.flossware.platform.api;
  * @see ResourceQuota
  */
 public interface ResourceEventListener {
-    /**
-     * Called when an application exceeds its resource quota.
-     *
-     * @param applicationId the application identifier
-     * @param quota the quota that was exceeded
-     * @param snapshot the current resource usage
-     */
-    void onQuotaExceeded(String applicationId, ResourceQuota quota, ResourceSnapshot snapshot);
+  /**
+   * Called when an application exceeds its resource quota.
+   *
+   * @param applicationId the application identifier
+   * @param quota the quota that was exceeded
+   * @param snapshot the current resource usage
+   */
+  void onQuotaExceeded(String applicationId, ResourceQuota quota, ResourceSnapshot snapshot);
 
-    /**
-     * Called when a resource metric crosses a configured threshold.
-     *
-     * @param applicationId the application identifier
-     * @param metric the metric name (e.g., "cpu", "memory")
-     * @param threshold the threshold value
-     * @param currentValue the current metric value
-     */
-    void onThresholdCrossed(String applicationId, String metric, double threshold, double currentValue);
+  /**
+   * Called when a resource metric crosses a configured threshold.
+   *
+   * @param applicationId the application identifier
+   * @param metric the metric name (e.g., "cpu", "memory")
+   * @param threshold the threshold value
+   * @param currentValue the current metric value
+   */
+  void onThresholdCrossed(
+      String applicationId, String metric, double threshold, double currentValue);
 }

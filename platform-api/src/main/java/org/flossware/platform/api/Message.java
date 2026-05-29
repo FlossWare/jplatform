@@ -26,17 +26,19 @@ import java.util.UUID;
 /**
  * Message for inter-application communication via the message bus.
  *
- * <p>Messages contain:</p>
+ * <p>Messages contain:
+ *
  * <ul>
- *   <li>Unique ID (auto-generated if not provided)</li>
- *   <li>Topic for routing</li>
- *   <li>Source application ID</li>
- *   <li>Custom headers (metadata)</li>
- *   <li>Binary payload (content)</li>
- *   <li>Timestamp (auto-generated if not provided)</li>
+ *   <li>Unique ID (auto-generated if not provided)
+ *   <li>Topic for routing
+ *   <li>Source application ID
+ *   <li>Custom headers (metadata)
+ *   <li>Binary payload (content)
+ *   <li>Timestamp (auto-generated if not provided)
  * </ul>
  *
- * <p>Example:</p>
+ * <p>Example:
+ *
  * <pre>{@code
  * Message msg = Message.builder()
  *     .topic("events")
@@ -50,235 +52,229 @@ import java.util.UUID;
  * @see MessageHandler
  */
 public class Message {
-    private final String id;
-    private final String topic;
-    private final String sourceApplicationId;
-    private final Map<String, Object> headers;
-    private final byte[] payload;
-    private final long timestamp;
+  private final String id;
+  private final String topic;
+  private final String sourceApplicationId;
+  private final Map<String, Object> headers;
+  private final byte[] payload;
+  private final long timestamp;
 
-    private Message(Builder builder) {
-        this.id = builder.id != null ? builder.id : UUID.randomUUID().toString();
-        this.topic = builder.topic;
-        this.sourceApplicationId = builder.sourceApplicationId;
+  private Message(Builder builder) {
+    this.id = builder.id != null ? builder.id : UUID.randomUUID().toString();
+    this.topic = builder.topic;
+    this.sourceApplicationId = builder.sourceApplicationId;
 
-        // Validate and copy headers
-        if (builder.headers != null) {
-            for (Map.Entry<String, Object> entry : builder.headers.entrySet()) {
-                if (entry.getKey() == null) {
-                    throw new IllegalArgumentException("Message headers cannot contain null keys");
-                }
-                if (entry.getValue() == null) {
-                    throw new IllegalArgumentException(
-                        "Message headers cannot contain null values (key: " + entry.getKey() + ")");
-                }
-            }
-            this.headers = new HashMap<>(builder.headers);
-        } else {
-            this.headers = Collections.emptyMap();
+    // Validate and copy headers
+    if (builder.headers != null) {
+      for (Map.Entry<String, Object> entry : builder.headers.entrySet()) {
+        if (entry.getKey() == null) {
+          throw new IllegalArgumentException("Message headers cannot contain null keys");
         }
-
-        this.payload = builder.payload != null ?
-                Arrays.copyOf(builder.payload, builder.payload.length) : null;
-        this.timestamp = builder.timestamp > 0 ? builder.timestamp : System.currentTimeMillis();
+        if (entry.getValue() == null) {
+          throw new IllegalArgumentException(
+              "Message headers cannot contain null values (key: " + entry.getKey() + ")");
+        }
+      }
+      this.headers = new HashMap<>(builder.headers);
+    } else {
+      this.headers = Collections.emptyMap();
     }
 
+    this.payload =
+        builder.payload != null ? Arrays.copyOf(builder.payload, builder.payload.length) : null;
+    this.timestamp = builder.timestamp > 0 ? builder.timestamp : System.currentTimeMillis();
+  }
+
+  /**
+   * Returns the message identifier.
+   *
+   * @return the message ID
+   */
+  public String getId() {
+    return id;
+  }
+
+  /**
+   * Returns the message topic.
+   *
+   * @return the topic name
+   */
+  public String getTopic() {
+    return topic;
+  }
+
+  /**
+   * Returns the source application identifier.
+   *
+   * @return the ID of the sending application
+   */
+  public String getSourceApplicationId() {
+    return sourceApplicationId;
+  }
+
+  /**
+   * Returns the message headers.
+   *
+   * @return an unmodifiable map of headers
+   */
+  public Map<String, Object> getHeaders() {
+    return Collections.unmodifiableMap(headers);
+  }
+
+  /**
+   * Returns the message payload.
+   *
+   * @return a defensive copy of the binary message content
+   */
+  public byte[] getPayload() {
+    return payload != null ? Arrays.copyOf(payload, payload.length) : null;
+  }
+
+  /**
+   * Returns the message timestamp.
+   *
+   * @return the timestamp in milliseconds since epoch
+   */
+  public long getTimestamp() {
+    return timestamp;
+  }
+
+  /**
+   * Creates a new builder for constructing messages.
+   *
+   * @return a new builder instance
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
+   * Builder for constructing Message instances. ID and timestamp are auto-generated if not
+   * provided.
+   */
+  public static class Builder {
+    private String id;
+    private String topic;
+    private String sourceApplicationId;
+    private Map<String, Object> headers;
+    private byte[] payload;
+    private long timestamp;
+
     /**
-     * Returns the message identifier.
+     * Sets the message ID. Auto-generated if not set.
      *
-     * @return the message ID
+     * @param id the message identifier
+     * @return this builder
      */
-    public String getId() {
-        return id;
+    public Builder id(String id) {
+      this.id = id;
+      return this;
     }
 
     /**
-     * Returns the message topic.
+     * Sets the message topic for routing.
      *
-     * @return the topic name
+     * @param topic the topic name
+     * @return this builder
      */
-    public String getTopic() {
-        return topic;
+    public Builder topic(String topic) {
+      this.topic = topic;
+      return this;
     }
 
     /**
-     * Returns the source application identifier.
+     * Sets the source application identifier.
      *
-     * @return the ID of the sending application
+     * @param sourceApplicationId the ID of the sending application
+     * @return this builder
      */
-    public String getSourceApplicationId() {
-        return sourceApplicationId;
+    public Builder sourceApplicationId(String sourceApplicationId) {
+      this.sourceApplicationId = sourceApplicationId;
+      return this;
     }
 
     /**
-     * Returns the message headers.
+     * Sets the complete map of message headers. Replaces any previously added headers. Makes a
+     * defensive copy to prevent external modifications.
      *
-     * @return an unmodifiable map of headers
+     * @param headers the headers map
+     * @return this builder
+     * @throws IllegalArgumentException if headers contain null keys or values
      */
-    public Map<String, Object> getHeaders() {
-        return Collections.unmodifiableMap(headers);
+    public Builder headers(Map<String, Object> headers) {
+      if (headers != null) {
+        for (Map.Entry<String, Object> entry : headers.entrySet()) {
+          if (entry.getKey() == null) {
+            throw new IllegalArgumentException("Message headers cannot contain null keys");
+          }
+          if (entry.getValue() == null) {
+            throw new IllegalArgumentException(
+                "Message headers cannot contain null values (key: " + entry.getKey() + ")");
+          }
+        }
+      }
+      this.headers = headers != null ? new HashMap<>(headers) : null;
+      return this;
     }
 
     /**
-     * Returns the message payload.
+     * Adds a single message header. Can be called multiple times to build headers incrementally.
      *
-     * @return a defensive copy of the binary message content
+     * @param key the header key
+     * @param value the header value
+     * @return this builder
+     * @throws IllegalArgumentException if key or value is null
      */
-    public byte[] getPayload() {
-        return payload != null ? Arrays.copyOf(payload, payload.length) : null;
+    public Builder header(String key, Object value) {
+      if (key == null) {
+        throw new IllegalArgumentException("Message header key cannot be null");
+      }
+      if (value == null) {
+        throw new IllegalArgumentException("Message header value cannot be null");
+      }
+      if (this.headers == null) {
+        this.headers = new HashMap<>();
+      }
+      this.headers.put(key, value);
+      return this;
     }
 
     /**
-     * Returns the message timestamp.
+     * Sets the message payload. Makes a defensive copy to prevent external modifications.
      *
-     * @return the timestamp in milliseconds since epoch
+     * @param payload the binary message content
+     * @return this builder
      */
-    public long getTimestamp() {
-        return timestamp;
+    public Builder payload(byte[] payload) {
+      this.payload = payload != null ? Arrays.copyOf(payload, payload.length) : null;
+      return this;
     }
 
     /**
-     * Creates a new builder for constructing messages.
+     * Sets the message timestamp. Auto-generated to current time if not set.
      *
-     * @return a new builder instance
+     * @param timestamp the timestamp in milliseconds since epoch
+     * @return this builder
      */
-    public static Builder builder() {
-        return new Builder();
+    public Builder timestamp(long timestamp) {
+      this.timestamp = timestamp;
+      return this;
     }
 
     /**
-     * Builder for constructing Message instances.
-     * ID and timestamp are auto-generated if not provided.
+     * Builds the Message instance. Auto-generates ID and timestamp if not provided.
+     *
+     * @return a new Message with the configured values
+     * @throws IllegalStateException if topic or sourceApplicationId is not set
      */
-    public static class Builder {
-        private String id;
-        private String topic;
-        private String sourceApplicationId;
-        private Map<String, Object> headers;
-        private byte[] payload;
-        private long timestamp;
-
-        /**
-         * Sets the message ID.
-         * Auto-generated if not set.
-         *
-         * @param id the message identifier
-         * @return this builder
-         */
-        public Builder id(String id) {
-            this.id = id;
-            return this;
-        }
-
-        /**
-         * Sets the message topic for routing.
-         *
-         * @param topic the topic name
-         * @return this builder
-         */
-        public Builder topic(String topic) {
-            this.topic = topic;
-            return this;
-        }
-
-        /**
-         * Sets the source application identifier.
-         *
-         * @param sourceApplicationId the ID of the sending application
-         * @return this builder
-         */
-        public Builder sourceApplicationId(String sourceApplicationId) {
-            this.sourceApplicationId = sourceApplicationId;
-            return this;
-        }
-
-        /**
-         * Sets the complete map of message headers.
-         * Replaces any previously added headers.
-         * Makes a defensive copy to prevent external modifications.
-         *
-         * @param headers the headers map
-         * @return this builder
-         * @throws IllegalArgumentException if headers contain null keys or values
-         */
-        public Builder headers(Map<String, Object> headers) {
-            if (headers != null) {
-                for (Map.Entry<String, Object> entry : headers.entrySet()) {
-                    if (entry.getKey() == null) {
-                        throw new IllegalArgumentException("Message headers cannot contain null keys");
-                    }
-                    if (entry.getValue() == null) {
-                        throw new IllegalArgumentException(
-                            "Message headers cannot contain null values (key: " + entry.getKey() + ")");
-                    }
-                }
-            }
-            this.headers = headers != null ? new HashMap<>(headers) : null;
-            return this;
-        }
-
-        /**
-         * Adds a single message header.
-         * Can be called multiple times to build headers incrementally.
-         *
-         * @param key the header key
-         * @param value the header value
-         * @return this builder
-         * @throws IllegalArgumentException if key or value is null
-         */
-        public Builder header(String key, Object value) {
-            if (key == null) {
-                throw new IllegalArgumentException("Message header key cannot be null");
-            }
-            if (value == null) {
-                throw new IllegalArgumentException("Message header value cannot be null");
-            }
-            if (this.headers == null) {
-                this.headers = new HashMap<>();
-            }
-            this.headers.put(key, value);
-            return this;
-        }
-
-        /**
-         * Sets the message payload.
-         * Makes a defensive copy to prevent external modifications.
-         *
-         * @param payload the binary message content
-         * @return this builder
-         */
-        public Builder payload(byte[] payload) {
-            this.payload = payload != null ? Arrays.copyOf(payload, payload.length) : null;
-            return this;
-        }
-
-        /**
-         * Sets the message timestamp.
-         * Auto-generated to current time if not set.
-         *
-         * @param timestamp the timestamp in milliseconds since epoch
-         * @return this builder
-         */
-        public Builder timestamp(long timestamp) {
-            this.timestamp = timestamp;
-            return this;
-        }
-
-        /**
-         * Builds the Message instance.
-         * Auto-generates ID and timestamp if not provided.
-         *
-         * @return a new Message with the configured values
-         * @throws IllegalStateException if topic or sourceApplicationId is not set
-         */
-        public Message build() {
-            if (topic == null || topic.trim().isEmpty()) {
-                throw new IllegalStateException("Message topic is required");
-            }
-            if (sourceApplicationId == null || sourceApplicationId.trim().isEmpty()) {
-                throw new IllegalStateException("Message sourceApplicationId is required");
-            }
-            return new Message(this);
-        }
+    public Message build() {
+      if (topic == null || topic.trim().isEmpty()) {
+        throw new IllegalStateException("Message topic is required");
+      }
+      if (sourceApplicationId == null || sourceApplicationId.trim().isEmpty()) {
+        throw new IllegalStateException("Message sourceApplicationId is required");
+      }
+      return new Message(this);
     }
+  }
 }

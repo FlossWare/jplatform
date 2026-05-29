@@ -17,247 +17,250 @@
 
 package org.flossware.platform.launcher;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for PlatformLauncher.
  *
- * Note: Many methods in PlatformLauncher are difficult to unit test because they:
- * - Read from System.in (Scanner)
- * - Write to System.out (console output)
- * - Run in infinite loops (start() method)
- * - Interact with external systems (REST API, JMX, filesystem)
+ * <p>Note: Many methods in PlatformLauncher are difficult to unit test because they: - Read from
+ * System.in (Scanner) - Write to System.out (console output) - Run in infinite loops (start()
+ * method) - Interact with external systems (REST API, JMX, filesystem)
  *
- * These tests focus on testable components and configuration.
+ * <p>These tests focus on testable components and configuration.
  */
 class PlatformLauncherTest {
 
-    @Test
-    void testConstructorWithMinimalConfig() {
-        // Test that launcher can be constructed with basic configuration
-        PlatformConfig config = new PlatformConfig();
-        assertNotNull(config);
+  @Test
+  void testConstructorWithMinimalConfig() {
+    // Test that launcher can be constructed with basic configuration
+    PlatformConfig config = new PlatformConfig();
+    assertNotNull(config);
 
-        // Basic validation that config was created
-        assertNotNull(config.getApi());
-        assertEquals(8080, config.getApi().getPort());
-    }
+    // Basic validation that config was created
+    assertNotNull(config.getApi());
+    assertEquals(8080, config.getApi().getPort());
+  }
 
-    @Test
-    void testConstructorWithCustomPort() {
-        PlatformConfig config = new PlatformConfig();
-        config.mergeCommandLineArgs(new String[]{"--port", "9090"});
+  @Test
+  void testConstructorWithCustomPort() {
+    PlatformConfig config = new PlatformConfig();
+    config.mergeCommandLineArgs(new String[] {"--port", "9090"});
 
-        assertEquals(9090, config.getApi().getPort());
-    }
+    assertEquals(9090, config.getApi().getPort());
+  }
 
-    @Test
-    void testConstructorWithRestApiEnabled() {
-        PlatformConfig config = new PlatformConfig();
-        config.mergeCommandLineArgs(new String[]{"--rest-api"});
+  @Test
+  void testConstructorWithRestApiEnabled() {
+    PlatformConfig config = new PlatformConfig();
+    config.mergeCommandLineArgs(new String[] {"--rest-api"});
 
-        assertTrue(config.getApi().isEnabled());
-    }
+    assertTrue(config.getApi().isEnabled());
+  }
 
-    @Test
-    void testConstructorWithJmxPort() {
-        PlatformConfig config = new PlatformConfig();
-        config.mergeCommandLineArgs(new String[]{"--jmx-port", "9999"});
+  @Test
+  void testConstructorWithJmxPort() {
+    PlatformConfig config = new PlatformConfig();
+    config.mergeCommandLineArgs(new String[] {"--jmx-port", "9999"});
 
-        assertEquals(9999, config.getMetrics().getJmx().getPort());
-    }
+    assertEquals(9999, config.getMetrics().getJmx().getPort());
+  }
 
-    @Test
-    void testConstructorWithPrometheusEnabled() {
-        PlatformConfig config = new PlatformConfig();
-        config.mergeCommandLineArgs(new String[]{"--prometheus"});
+  @Test
+  void testConstructorWithPrometheusEnabled() {
+    PlatformConfig config = new PlatformConfig();
+    config.mergeCommandLineArgs(new String[] {"--prometheus"});
 
-        assertTrue(config.getMetrics().getPrometheus().isEnabled());
-    }
+    assertTrue(config.getMetrics().getPrometheus().isEnabled());
+  }
 
-    @Test
-    void testConstructorWithPrometheusPort() {
-        PlatformConfig config = new PlatformConfig();
-        config.mergeCommandLineArgs(new String[]{"--prometheus", "--prometheus-port", "9091"});
+  @Test
+  void testConstructorWithPrometheusPort() {
+    PlatformConfig config = new PlatformConfig();
+    config.mergeCommandLineArgs(new String[] {"--prometheus", "--prometheus-port", "9091"});
 
-        assertTrue(config.getMetrics().getPrometheus().isEnabled());
-        assertEquals(9091, config.getMetrics().getPrometheus().getPort());
-    }
+    assertTrue(config.getMetrics().getPrometheus().isEnabled());
+    assertEquals(9091, config.getMetrics().getPrometheus().getPort());
+  }
 
-    @Test
-    void testConstructorWithWatchDir() {
-        PlatformConfig config = new PlatformConfig();
-        config.mergeCommandLineArgs(new String[]{"--watch-dir", "/tmp/apps"});
+  @Test
+  void testConstructorWithWatchDir() {
+    PlatformConfig config = new PlatformConfig();
+    config.mergeCommandLineArgs(new String[] {"--watch-dir", "/tmp/apps"});
 
-        assertEquals("/tmp/apps", config.getWatcher().getDirectory());
-    }
+    assertEquals("/tmp/apps", config.getWatcher().getDirectory());
+  }
 
-    @Test
-    void testConstructorWithMultipleOptions() {
-        PlatformConfig config = new PlatformConfig();
-        config.mergeCommandLineArgs(new String[]{
-            "--rest-api",
-            "--port", "8088",
-            "--jmx-port", "9999",
-            "--prometheus",
-            "--prometheus-port", "9091",
-            "--watch-dir", "/opt/apps"
+  @Test
+  void testConstructorWithMultipleOptions() {
+    PlatformConfig config = new PlatformConfig();
+    config.mergeCommandLineArgs(
+        new String[] {
+          "--rest-api",
+          "--port",
+          "8088",
+          "--jmx-port",
+          "9999",
+          "--prometheus",
+          "--prometheus-port",
+          "9091",
+          "--watch-dir",
+          "/opt/apps"
         });
 
-        assertTrue(config.getApi().isEnabled());
-        assertEquals(8088, config.getApi().getPort());
-        assertEquals(9999, config.getMetrics().getJmx().getPort());
-        assertTrue(config.getMetrics().getPrometheus().isEnabled());
-        assertEquals(9091, config.getMetrics().getPrometheus().getPort());
-        assertEquals("/opt/apps", config.getWatcher().getDirectory());
-    }
+    assertTrue(config.getApi().isEnabled());
+    assertEquals(8088, config.getApi().getPort());
+    assertEquals(9999, config.getMetrics().getJmx().getPort());
+    assertTrue(config.getMetrics().getPrometheus().isEnabled());
+    assertEquals(9091, config.getMetrics().getPrometheus().getPort());
+    assertEquals("/opt/apps", config.getWatcher().getDirectory());
+  }
 
-    @Test
-    void testDefaultConfiguration() {
-        PlatformConfig config = new PlatformConfig();
+  @Test
+  void testDefaultConfiguration() {
+    PlatformConfig config = new PlatformConfig();
 
-        assertNotNull(config.getApi());
-        assertEquals(8080, config.getApi().getPort());
-        assertFalse(config.getApi().isEnabled());
-        assertFalse(config.getMetrics().getPrometheus().isEnabled());
-        assertEquals(9090, config.getMetrics().getPrometheus().getPort());
-        assertNull(config.getWatcher().getDirectory());
-    }
+    assertNotNull(config.getApi());
+    assertEquals(8080, config.getApi().getPort());
+    assertFalse(config.getApi().isEnabled());
+    assertFalse(config.getMetrics().getPrometheus().isEnabled());
+    assertEquals(9090, config.getMetrics().getPrometheus().getPort());
+    assertNull(config.getWatcher().getDirectory());
+  }
 
-    @Test
-    void testEmptyCommandLineArgs() {
-        PlatformConfig config = new PlatformConfig();
-        config.mergeCommandLineArgs(new String[]{});
+  @Test
+  void testEmptyCommandLineArgs() {
+    PlatformConfig config = new PlatformConfig();
+    config.mergeCommandLineArgs(new String[] {});
 
-        // Should use defaults
-        assertEquals(8080, config.getApi().getPort());
-        assertFalse(config.getApi().isEnabled());
-    }
+    // Should use defaults
+    assertEquals(8080, config.getApi().getPort());
+    assertFalse(config.getApi().isEnabled());
+  }
 
-    @Test
-    void testPortBoundaries() {
-        PlatformConfig config = new PlatformConfig();
+  @Test
+  void testPortBoundaries() {
+    PlatformConfig config = new PlatformConfig();
 
-        // Valid ports
-        config.mergeCommandLineArgs(new String[]{"--port", "1"});
-        assertEquals(1, config.getApi().getPort());
+    // Valid ports
+    config.mergeCommandLineArgs(new String[] {"--port", "1"});
+    assertEquals(1, config.getApi().getPort());
 
-        config.mergeCommandLineArgs(new String[]{"--port", "65535"});
-        assertEquals(65535, config.getApi().getPort());
-    }
+    config.mergeCommandLineArgs(new String[] {"--port", "65535"});
+    assertEquals(65535, config.getApi().getPort());
+  }
 
-    @Test
-    void testJmxPortBoundaries() {
-        PlatformConfig config = new PlatformConfig();
+  @Test
+  void testJmxPortBoundaries() {
+    PlatformConfig config = new PlatformConfig();
 
-        config.mergeCommandLineArgs(new String[]{"--jmx-port", "1099"});
-        assertEquals(1099, config.getMetrics().getJmx().getPort());
+    config.mergeCommandLineArgs(new String[] {"--jmx-port", "1099"});
+    assertEquals(1099, config.getMetrics().getJmx().getPort());
 
-        config.mergeCommandLineArgs(new String[]{"--jmx-port", "65535"});
-        assertEquals(65535, config.getMetrics().getJmx().getPort());
-    }
+    config.mergeCommandLineArgs(new String[] {"--jmx-port", "65535"});
+    assertEquals(65535, config.getMetrics().getJmx().getPort());
+  }
 
-    @Test
-    void testPrometheusPortBoundaries() {
-        PlatformConfig config = new PlatformConfig();
+  @Test
+  void testPrometheusPortBoundaries() {
+    PlatformConfig config = new PlatformConfig();
 
-        config.mergeCommandLineArgs(new String[]{"--prometheus-port", "9090"});
-        assertEquals(9090, config.getMetrics().getPrometheus().getPort());
+    config.mergeCommandLineArgs(new String[] {"--prometheus-port", "9090"});
+    assertEquals(9090, config.getMetrics().getPrometheus().getPort());
 
-        config.mergeCommandLineArgs(new String[]{"--prometheus-port", "9999"});
-        assertEquals(9999, config.getMetrics().getPrometheus().getPort());
-    }
+    config.mergeCommandLineArgs(new String[] {"--prometheus-port", "9999"});
+    assertEquals(9999, config.getMetrics().getPrometheus().getPort());
+  }
 
-    @Test
-    void testWatchDirPath() {
-        PlatformConfig config = new PlatformConfig();
+  @Test
+  void testWatchDirPath() {
+    PlatformConfig config = new PlatformConfig();
 
-        config.mergeCommandLineArgs(new String[]{"--watch-dir", "/var/lib/jplatform"});
-        assertEquals("/var/lib/jplatform", config.getWatcher().getDirectory());
+    config.mergeCommandLineArgs(new String[] {"--watch-dir", "/var/lib/jplatform"});
+    assertEquals("/var/lib/jplatform", config.getWatcher().getDirectory());
 
-        config.mergeCommandLineArgs(new String[]{"--watch-dir", "relative/path"});
-        assertEquals("relative/path", config.getWatcher().getDirectory());
-    }
+    config.mergeCommandLineArgs(new String[] {"--watch-dir", "relative/path"});
+    assertEquals("relative/path", config.getWatcher().getDirectory());
+  }
 
-    @Test
-    void testConfigurationOverrides() {
-        PlatformConfig config = new PlatformConfig();
+  @Test
+  void testConfigurationOverrides() {
+    PlatformConfig config = new PlatformConfig();
 
-        // Set initial value
-        config.mergeCommandLineArgs(new String[]{"--port", "8080"});
-        assertEquals(8080, config.getApi().getPort());
+    // Set initial value
+    config.mergeCommandLineArgs(new String[] {"--port", "8080"});
+    assertEquals(8080, config.getApi().getPort());
 
-        // Override with new value
-        config.mergeCommandLineArgs(new String[]{"--port", "9090"});
-        assertEquals(9090, config.getApi().getPort());
-    }
+    // Override with new value
+    config.mergeCommandLineArgs(new String[] {"--port", "9090"});
+    assertEquals(9090, config.getApi().getPort());
+  }
 
-    @Test
-    void testMultipleConfigMerges() {
-        PlatformConfig config = new PlatformConfig();
+  @Test
+  void testMultipleConfigMerges() {
+    PlatformConfig config = new PlatformConfig();
 
-        config.mergeCommandLineArgs(new String[]{"--rest-api"});
-        assertTrue(config.getApi().isEnabled());
+    config.mergeCommandLineArgs(new String[] {"--rest-api"});
+    assertTrue(config.getApi().isEnabled());
 
-        config.mergeCommandLineArgs(new String[]{"--prometheus"});
-        assertTrue(config.getMetrics().getPrometheus().isEnabled());
+    config.mergeCommandLineArgs(new String[] {"--prometheus"});
+    assertTrue(config.getMetrics().getPrometheus().isEnabled());
 
-        // Previous setting should still be set
-        assertTrue(config.getApi().isEnabled());
-    }
+    // Previous setting should still be set
+    assertTrue(config.getApi().isEnabled());
+  }
 
-    @Test
-    void testNestedConfigObjects() {
-        PlatformConfig config = new PlatformConfig();
+  @Test
+  void testNestedConfigObjects() {
+    PlatformConfig config = new PlatformConfig();
 
-        assertNotNull(config.getApi());
-        assertNotNull(config.getMetrics());
-        assertNotNull(config.getMetrics().getJmx());
-        assertNotNull(config.getMetrics().getPrometheus());
-        assertNotNull(config.getMetrics().getOpentelemetry());
-        assertNotNull(config.getWatcher());
-    }
+    assertNotNull(config.getApi());
+    assertNotNull(config.getMetrics());
+    assertNotNull(config.getMetrics().getJmx());
+    assertNotNull(config.getMetrics().getPrometheus());
+    assertNotNull(config.getMetrics().getOpentelemetry());
+    assertNotNull(config.getWatcher());
+  }
 
-    @Test
-    void testApiConfigDefaults() {
-        PlatformConfig config = new PlatformConfig();
-        PlatformConfig.ApiConfig api = config.getApi();
+  @Test
+  void testApiConfigDefaults() {
+    PlatformConfig config = new PlatformConfig();
+    PlatformConfig.ApiConfig api = config.getApi();
 
-        assertFalse(api.isEnabled());
-        assertEquals(8080, api.getPort());
-        assertEquals("0.0.0.0", api.getBindAddress());
-    }
+    assertFalse(api.isEnabled());
+    assertEquals(8080, api.getPort());
+    assertEquals("0.0.0.0", api.getBindAddress());
+  }
 
-    @Test
-    void testJmxConfigDefaults() {
-        PlatformConfig config = new PlatformConfig();
-        PlatformConfig.JmxConfig jmx = config.getMetrics().getJmx();
+  @Test
+  void testJmxConfigDefaults() {
+    PlatformConfig config = new PlatformConfig();
+    PlatformConfig.JmxConfig jmx = config.getMetrics().getJmx();
 
-        assertFalse(jmx.isEnabled());
-        assertEquals(9999, jmx.getPort());
-        assertEquals("org.flossware.jplatform", jmx.getDomain());
-    }
+    assertFalse(jmx.isEnabled());
+    assertEquals(9999, jmx.getPort());
+    assertEquals("org.flossware.jplatform", jmx.getDomain());
+  }
 
-    @Test
-    void testPrometheusConfigDefaults() {
-        PlatformConfig config = new PlatformConfig();
-        PlatformConfig.PrometheusConfig prometheus = config.getMetrics().getPrometheus();
+  @Test
+  void testPrometheusConfigDefaults() {
+    PlatformConfig config = new PlatformConfig();
+    PlatformConfig.PrometheusConfig prometheus = config.getMetrics().getPrometheus();
 
-        assertFalse(prometheus.isEnabled());
-        assertEquals(9090, prometheus.getPort());
-        assertEquals("/metrics", prometheus.getPath());
-    }
+    assertFalse(prometheus.isEnabled());
+    assertEquals(9090, prometheus.getPort());
+    assertEquals("/metrics", prometheus.getPath());
+  }
 
-    // Note: The following cannot be easily unit tested without refactoring:
-    // - start() method (runs infinite loop with Scanner)
-    // - handleCommand() and related methods (need mocked console I/O)
-    // - initializeOptionalComponents() (creates actual REST server, JMX, etc.)
-    // - main() method (entry point, hard to test without process spawning)
-    //
-    // These would require:
-    // - Dependency injection for Scanner/PrintStream
-    // - Integration tests that spawn the process
-    // - Mocking of external systems (REST server, JMX registry, etc.)
+  // Note: The following cannot be easily unit tested without refactoring:
+  // - start() method (runs infinite loop with Scanner)
+  // - handleCommand() and related methods (need mocked console I/O)
+  // - initializeOptionalComponents() (creates actual REST server, JMX, etc.)
+  // - main() method (entry point, hard to test without process spawning)
+  //
+  // These would require:
+  // - Dependency injection for Scanner/PrintStream
+  // - Integration tests that spawn the process
+  // - Mocking of external systems (REST server, JMX registry, etc.)
 }

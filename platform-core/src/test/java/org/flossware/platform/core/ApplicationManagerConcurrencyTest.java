@@ -17,179 +17,188 @@
 
 package org.flossware.platform.core;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.flossware.platform.api.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
- * Concurrency tests for ApplicationManager to verify fine-grained locking behavior.
- * Tests that operations on different applications can execute in parallel.
+ * Concurrency tests for ApplicationManager to verify fine-grained locking behavior. Tests that
+ * operations on different applications can execute in parallel.
  */
 class ApplicationManagerConcurrencyTest {
 
-    private ApplicationManager manager;
-    private ExecutorService executor;
+  private ApplicationManager manager;
+  private ExecutorService executor;
 
-    @BeforeEach
-    void setUp() {
-        manager = new ApplicationManager();
-        executor = Executors.newFixedThreadPool(10);
+  @BeforeEach
+  void setUp() {
+    manager = new ApplicationManager();
+    executor = Executors.newFixedThreadPool(10);
+  }
+
+  @AfterEach
+  void tearDown() throws Exception {
+    if (executor != null) {
+      executor.shutdownNow();
+      executor.awaitTermination(5, TimeUnit.SECONDS);
     }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        if (executor != null) {
-            executor.shutdownNow();
-            executor.awaitTermination(5, TimeUnit.SECONDS);
-        }
-        if (manager != null) {
-            manager.shutdown();
-        }
+    if (manager != null) {
+      manager.shutdown();
     }
+  }
 
-    @Test
-    void testConcurrentDeploymentOfDifferentApplications() throws Exception {
-        int numApps = 10;
-        CountDownLatch latch = new CountDownLatch(numApps);
-        AtomicInteger successCount = new AtomicInteger(0);
-        List<Future<?>> futures = new ArrayList<>();
+  @Test
+  void testConcurrentDeploymentOfDifferentApplications() throws Exception {
+    int numApps = 10;
+    CountDownLatch latch = new CountDownLatch(numApps);
+    AtomicInteger successCount = new AtomicInteger(0);
+    List<Future<?>> futures = new ArrayList<>();
 
-        for (int i = 0; i < numApps; i++) {
-            final int appIndex = i;
-            Future<?> future = executor.submit(() -> {
+    for (int i = 0; i < numApps; i++) {
+      final int appIndex = i;
+      Future<?> future =
+          executor.submit(
+              () -> {
                 try {
-                    ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
-                            .applicationId("app-" + appIndex)
-                            .name("Test App " + appIndex)
-                            .mainClass("com.example.TestApp" + appIndex)
-                            .addClasspathEntry(URI.create("file:///test" + appIndex + ".jar"))
-                            .build();
+                  ApplicationDescriptor descriptor =
+                      ApplicationDescriptor.builder()
+                          .applicationId("app-" + appIndex)
+                          .name("Test App " + appIndex)
+                          .mainClass("com.example.TestApp" + appIndex)
+                          .addClasspathEntry(URI.create("file:///test" + appIndex + ".jar"))
+                          .build();
 
-                    manager.deploy(descriptor);
-                    successCount.incrementAndGet();
+                  manager.deploy(descriptor);
+                  successCount.incrementAndGet();
                 } catch (Exception e) {
-                    fail("Failed to deploy app-" + appIndex + ": " + e.getMessage());
+                  fail("Failed to deploy app-" + appIndex + ": " + e.getMessage());
                 } finally {
-                    latch.countDown();
+                  latch.countDown();
                 }
-            });
-            futures.add(future);
-        }
-
-        assertTrue(latch.await(10, TimeUnit.SECONDS), "All deployments should complete");
-        assertEquals(numApps, successCount.get(), "All applications should deploy successfully");
-
-        // Verify all apps are deployed
-        Map<String, ApplicationState> apps = manager.listApplications();
-        assertEquals(numApps, apps.size());
-
-        for (int i = 0; i < numApps; i++) {
-            assertTrue(apps.containsKey("app-" + i));
-            assertEquals(ApplicationState.DEPLOYED, apps.get("app-" + i));
-        }
+              });
+      futures.add(future);
     }
 
-    @Test
-    void testConcurrentUndeploymentOfDifferentApplications() throws Exception {
-        int numApps = 5;
+    assertTrue(latch.await(10, TimeUnit.SECONDS), "All deployments should complete");
+    assertEquals(numApps, successCount.get(), "All applications should deploy successfully");
 
-        // First deploy all apps
-        for (int i = 0; i < numApps; i++) {
-            ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
-                    .applicationId("app-" + i)
-                    .name("Test App " + i)
-                    .mainClass("com.example.TestApp" + i)
-                    .addClasspathEntry(URI.create("file:///test" + i + ".jar"))
-                    .build();
-            manager.deploy(descriptor);
-        }
+    // Verify all apps are deployed
+    Map<String, ApplicationState> apps = manager.listApplications();
+    assertEquals(numApps, apps.size());
 
-        assertEquals(numApps, manager.listApplications().size());
+    for (int i = 0; i < numApps; i++) {
+      assertTrue(apps.containsKey("app-" + i));
+      assertEquals(ApplicationState.DEPLOYED, apps.get("app-" + i));
+    }
+  }
 
-        // Now undeploy concurrently
-        CountDownLatch latch = new CountDownLatch(numApps);
-        AtomicInteger successCount = new AtomicInteger(0);
+  @Test
+  void testConcurrentUndeploymentOfDifferentApplications() throws Exception {
+    int numApps = 5;
 
-        for (int i = 0; i < numApps; i++) {
-            final int appIndex = i;
-            executor.submit(() -> {
-                try {
-                    manager.undeploy("app-" + appIndex);
-                    successCount.incrementAndGet();
-                } catch (Exception e) {
-                    fail("Failed to undeploy app-" + appIndex + ": " + e.getMessage());
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        assertTrue(latch.await(10, TimeUnit.SECONDS), "All undeployments should complete");
-        assertEquals(numApps, successCount.get(), "All applications should undeploy successfully");
-
-        // Verify all apps are undeployed
-        assertEquals(0, manager.listApplications().size());
+    // First deploy all apps
+    for (int i = 0; i < numApps; i++) {
+      ApplicationDescriptor descriptor =
+          ApplicationDescriptor.builder()
+              .applicationId("app-" + i)
+              .name("Test App " + i)
+              .mainClass("com.example.TestApp" + i)
+              .addClasspathEntry(URI.create("file:///test" + i + ".jar"))
+              .build();
+      manager.deploy(descriptor);
     }
 
-    @Test
-    void testSameApplicationOperationsAreSerialized() throws Exception {
-        // This test verifies that operations on the SAME application are serialized
-        // We can't easily test this directly, but we can verify it doesn't cause errors
+    assertEquals(numApps, manager.listApplications().size());
 
-        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
-                .applicationId("same-app")
-                .name("Same App")
-                .mainClass("com.example.TestApp")
-                .addClasspathEntry(URI.create("file:///test.jar"))
-                .build();
+    // Now undeploy concurrently
+    CountDownLatch latch = new CountDownLatch(numApps);
+    AtomicInteger successCount = new AtomicInteger(0);
 
-        manager.deploy(descriptor);
-
-        int numAttempts = 20;
-        CountDownLatch latch = new CountDownLatch(numAttempts);
-        AtomicInteger errorCount = new AtomicInteger(0);
-
-        // Try to get context many times concurrently
-        for (int i = 0; i < numAttempts; i++) {
-            executor.submit(() -> {
-                try {
-                    ApplicationContext ctx = manager.getApplicationContext("same-app");
-                    assertNotNull(ctx);
-                    assertEquals("same-app", ctx.getApplicationId());
-                } catch (Exception e) {
-                    errorCount.incrementAndGet();
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-        assertEquals(0, errorCount.get(), "No errors should occur when accessing same app concurrently");
+    for (int i = 0; i < numApps; i++) {
+      final int appIndex = i;
+      executor.submit(
+          () -> {
+            try {
+              manager.undeploy("app-" + appIndex);
+              successCount.incrementAndGet();
+            } catch (Exception e) {
+              fail("Failed to undeploy app-" + appIndex + ": " + e.getMessage());
+            } finally {
+              latch.countDown();
+            }
+          });
     }
 
-    @Test
-    void testDeployDuplicateApplicationThrowsException() {
-        ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
-                .applicationId("duplicate")
-                .name("Duplicate App")
-                .mainClass("com.example.TestApp")
-                .addClasspathEntry(URI.create("file:///test.jar"))
-                .build();
+    assertTrue(latch.await(10, TimeUnit.SECONDS), "All undeployments should complete");
+    assertEquals(numApps, successCount.get(), "All applications should undeploy successfully");
 
-        assertDoesNotThrow(() -> manager.deploy(descriptor));
-        assertThrows(IllegalStateException.class, () -> manager.deploy(descriptor),
-                "Deploying duplicate application should throw IllegalStateException");
+    // Verify all apps are undeployed
+    assertEquals(0, manager.listApplications().size());
+  }
+
+  @Test
+  void testSameApplicationOperationsAreSerialized() throws Exception {
+    // This test verifies that operations on the SAME application are serialized
+    // We can't easily test this directly, but we can verify it doesn't cause errors
+
+    ApplicationDescriptor descriptor =
+        ApplicationDescriptor.builder()
+            .applicationId("same-app")
+            .name("Same App")
+            .mainClass("com.example.TestApp")
+            .addClasspathEntry(URI.create("file:///test.jar"))
+            .build();
+
+    manager.deploy(descriptor);
+
+    int numAttempts = 20;
+    CountDownLatch latch = new CountDownLatch(numAttempts);
+    AtomicInteger errorCount = new AtomicInteger(0);
+
+    // Try to get context many times concurrently
+    for (int i = 0; i < numAttempts; i++) {
+      executor.submit(
+          () -> {
+            try {
+              ApplicationContext ctx = manager.getApplicationContext("same-app");
+              assertNotNull(ctx);
+              assertEquals("same-app", ctx.getApplicationId());
+            } catch (Exception e) {
+              errorCount.incrementAndGet();
+            } finally {
+              latch.countDown();
+            }
+          });
     }
+
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    assertEquals(
+        0, errorCount.get(), "No errors should occur when accessing same app concurrently");
+  }
+
+  @Test
+  void testDeployDuplicateApplicationThrowsException() {
+    ApplicationDescriptor descriptor =
+        ApplicationDescriptor.builder()
+            .applicationId("duplicate")
+            .name("Duplicate App")
+            .mainClass("com.example.TestApp")
+            .addClasspathEntry(URI.create("file:///test.jar"))
+            .build();
+
+    assertDoesNotThrow(() -> manager.deploy(descriptor));
+    assertThrows(
+        IllegalStateException.class,
+        () -> manager.deploy(descriptor),
+        "Deploying duplicate application should throw IllegalStateException");
+  }
 }

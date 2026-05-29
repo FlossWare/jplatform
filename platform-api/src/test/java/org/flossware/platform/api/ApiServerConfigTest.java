@@ -17,39 +17,39 @@
 
 package org.flossware.platform.api;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
- * Comprehensive unit tests for ApiServerConfig.
- * Tests builder validation, getters, defaults, and CORS configuration.
+ * Comprehensive unit tests for ApiServerConfig. Tests builder validation, getters, defaults, and
+ * CORS configuration.
  */
 @Tag("unit")
 @Tag("security")
 class ApiServerConfigTest {
 
-    @Test
-    void testBuilderDefaults() {
-        ApiServerConfig config = ApiServerConfig.builder().build();
+  @Test
+  void testBuilderDefaults() {
+    ApiServerConfig config = ApiServerConfig.builder().build();
 
-        assertEquals(8080, config.getPort());
-        assertEquals("0.0.0.0", config.getBindAddress());
-        assertFalse(config.isEnableAuth());
-        assertNull(config.getApiKey());
-        assertEquals("X-API-Key", config.getApiKeyHeader());
-        assertEquals(20, config.getThreadPoolSize());
-        assertEquals(200, config.getMaxThreadPoolSize());
-        assertTrue(config.getAllowedOrigins().isEmpty(), "Default CORS policy should deny all origins");
-    }
+    assertEquals(8080, config.getPort());
+    assertEquals("0.0.0.0", config.getBindAddress());
+    assertFalse(config.isEnableAuth());
+    assertNull(config.getApiKey());
+    assertEquals("X-API-Key", config.getApiKeyHeader());
+    assertEquals(20, config.getThreadPoolSize());
+    assertEquals(200, config.getMaxThreadPoolSize());
+    assertTrue(config.getAllowedOrigins().isEmpty(), "Default CORS policy should deny all origins");
+  }
 
-    @Test
-    void testBuilderCustomValues() {
-        ApiServerConfig config = ApiServerConfig.builder()
+  @Test
+  void testBuilderCustomValues() {
+    ApiServerConfig config =
+        ApiServerConfig.builder()
             .port(9090)
             .bindAddress("127.0.0.1")
             .enableAuth(true)
@@ -59,242 +59,213 @@ class ApiServerConfigTest {
             .maxThreadPoolSize(500)
             .build();
 
-        assertEquals(9090, config.getPort());
-        assertEquals("127.0.0.1", config.getBindAddress());
-        assertTrue(config.isEnableAuth());
-        assertEquals("test-key-123", config.getApiKey());
-        assertEquals("Authorization", config.getApiKeyHeader());
-        assertEquals(50, config.getThreadPoolSize());
-        assertEquals(500, config.getMaxThreadPoolSize());
-    }
+    assertEquals(9090, config.getPort());
+    assertEquals("127.0.0.1", config.getBindAddress());
+    assertTrue(config.isEnableAuth());
+    assertEquals("test-key-123", config.getApiKey());
+    assertEquals("Authorization", config.getApiKeyHeader());
+    assertEquals(50, config.getThreadPoolSize());
+    assertEquals(500, config.getMaxThreadPoolSize());
+  }
 
-    @Test
-    void testPortValidation() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().port(-1).build()
-        );
-    }
+  @Test
+  void testPortValidation() {
+    assertThrows(IllegalArgumentException.class, () -> ApiServerConfig.builder().port(-1).build());
+  }
 
-    @Test
-    void testPortTooHigh() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().port(65536).build()
-        );
-    }
+  @Test
+  void testPortTooHigh() {
+    assertThrows(
+        IllegalArgumentException.class, () -> ApiServerConfig.builder().port(65536).build());
+  }
 
-    @Test
-    void testPortMinValid() {
-        ApiServerConfig config = ApiServerConfig.builder().port(0).build();
-        assertEquals(0, config.getPort());
-    }
+  @Test
+  void testPortMinValid() {
+    ApiServerConfig config = ApiServerConfig.builder().port(0).build();
+    assertEquals(0, config.getPort());
+  }
 
-    @Test
-    void testPortMaxValid() {
-        ApiServerConfig config = ApiServerConfig.builder().port(65535).build();
-        assertEquals(65535, config.getPort());
-    }
+  @Test
+  void testPortMaxValid() {
+    ApiServerConfig config = ApiServerConfig.builder().port(65535).build();
+    assertEquals(65535, config.getPort());
+  }
 
-    @Test
-    void testBindAddressNull() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().bindAddress(null).build()
-        );
-    }
+  @Test
+  void testBindAddressNull() {
+    assertThrows(
+        IllegalArgumentException.class, () -> ApiServerConfig.builder().bindAddress(null).build());
+  }
 
-    @Test
-    void testBindAddressEmpty() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().bindAddress("").build()
-        );
-    }
+  @Test
+  void testBindAddressEmpty() {
+    assertThrows(
+        IllegalArgumentException.class, () -> ApiServerConfig.builder().bindAddress("").build());
+  }
 
-    @Test
-    void testBindAddressWhitespace() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().bindAddress("   ").build()
-        );
-    }
+  @Test
+  void testBindAddressWhitespace() {
+    assertThrows(
+        IllegalArgumentException.class, () -> ApiServerConfig.builder().bindAddress("   ").build());
+  }
 
-    @Test
-    void testEnableAuthWithoutApiKey() {
-        assertThrows(IllegalStateException.class, () ->
-            ApiServerConfig.builder().enableAuth(true).build()
-        );
-    }
+  @Test
+  void testEnableAuthWithoutApiKey() {
+    assertThrows(
+        IllegalStateException.class, () -> ApiServerConfig.builder().enableAuth(true).build());
+  }
 
-    @Test
-    void testEnableAuthWithEmptyApiKey() {
-        assertThrows(IllegalStateException.class, () ->
-            ApiServerConfig.builder()
-                .enableAuth(true)
-                .apiKey("")
-                .build()
-        );
-    }
+  @Test
+  void testEnableAuthWithEmptyApiKey() {
+    assertThrows(
+        IllegalStateException.class,
+        () -> ApiServerConfig.builder().enableAuth(true).apiKey("").build());
+  }
 
-    @Test
-    void testEnableAuthWithWhitespaceApiKey() {
-        assertThrows(IllegalStateException.class, () ->
-            ApiServerConfig.builder()
-                .enableAuth(true)
-                .apiKey("   ")
-                .build()
-        );
-    }
+  @Test
+  void testEnableAuthWithWhitespaceApiKey() {
+    assertThrows(
+        IllegalStateException.class,
+        () -> ApiServerConfig.builder().enableAuth(true).apiKey("   ").build());
+  }
 
-    @Test
-    void testEnableAuthWithValidApiKey() {
-        ApiServerConfig config = ApiServerConfig.builder()
-            .enableAuth(true)
-            .apiKey("valid-key")
-            .build();
+  @Test
+  void testEnableAuthWithValidApiKey() {
+    ApiServerConfig config = ApiServerConfig.builder().enableAuth(true).apiKey("valid-key").build();
 
-        assertTrue(config.isEnableAuth());
-        assertEquals("valid-key", config.getApiKey());
-    }
+    assertTrue(config.isEnableAuth());
+    assertEquals("valid-key", config.getApiKey());
+  }
 
-    @Test
-    void testApiKeyHeaderNull() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().apiKeyHeader(null).build()
-        );
-    }
+  @Test
+  void testApiKeyHeaderNull() {
+    assertThrows(
+        IllegalArgumentException.class, () -> ApiServerConfig.builder().apiKeyHeader(null).build());
+  }
 
-    @Test
-    void testApiKeyHeaderEmpty() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().apiKeyHeader("").build()
-        );
-    }
+  @Test
+  void testApiKeyHeaderEmpty() {
+    assertThrows(
+        IllegalArgumentException.class, () -> ApiServerConfig.builder().apiKeyHeader("").build());
+  }
 
-    @Test
-    void testApiKeyHeaderWhitespace() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().apiKeyHeader("   ").build()
-        );
-    }
+  @Test
+  void testApiKeyHeaderWhitespace() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> ApiServerConfig.builder().apiKeyHeader("   ").build());
+  }
 
-    @Test
-    void testAddAllowedOrigin() {
-        ApiServerConfig config = ApiServerConfig.builder()
-            .addAllowedOrigin("http://localhost:3000")
-            .build();
+  @Test
+  void testAddAllowedOrigin() {
+    ApiServerConfig config =
+        ApiServerConfig.builder().addAllowedOrigin("http://localhost:3000").build();
 
-        assertTrue(config.getAllowedOrigins().contains("http://localhost:3000"));
-    }
+    assertTrue(config.getAllowedOrigins().contains("http://localhost:3000"));
+  }
 
-    @Test
-    void testAddAllowedOriginNull() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().addAllowedOrigin(null).build()
-        );
-    }
+  @Test
+  void testAddAllowedOriginNull() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> ApiServerConfig.builder().addAllowedOrigin(null).build());
+  }
 
-    @Test
-    void testAllowedOriginsReplacesDefaults() {
-        Set<String> origins = new HashSet<>();
-        origins.add("http://app1.com");
-        origins.add("http://app2.com");
+  @Test
+  void testAllowedOriginsReplacesDefaults() {
+    Set<String> origins = new HashSet<>();
+    origins.add("http://app1.com");
+    origins.add("http://app2.com");
 
-        ApiServerConfig config = ApiServerConfig.builder()
-            .allowedOrigins(origins)
-            .build();
+    ApiServerConfig config = ApiServerConfig.builder().allowedOrigins(origins).build();
 
-        assertEquals(2, config.getAllowedOrigins().size());
-        assertTrue(config.getAllowedOrigins().contains("http://app1.com"));
-        assertTrue(config.getAllowedOrigins().contains("http://app2.com"));
-        assertFalse(config.getAllowedOrigins().contains("*"));
-    }
+    assertEquals(2, config.getAllowedOrigins().size());
+    assertTrue(config.getAllowedOrigins().contains("http://app1.com"));
+    assertTrue(config.getAllowedOrigins().contains("http://app2.com"));
+    assertFalse(config.getAllowedOrigins().contains("*"));
+  }
 
-    @Test
-    void testAllowedOriginsNull() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().allowedOrigins(null).build()
-        );
-    }
+  @Test
+  void testAllowedOriginsNull() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> ApiServerConfig.builder().allowedOrigins(null).build());
+  }
 
-    @Test
-    void testAllowedOriginsContainsNull() {
-        Set<String> origins = new HashSet<>();
-        origins.add("http://app1.com");
-        origins.add(null);
+  @Test
+  void testAllowedOriginsContainsNull() {
+    Set<String> origins = new HashSet<>();
+    origins.add("http://app1.com");
+    origins.add(null);
 
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().allowedOrigins(origins).build()
-        );
-    }
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> ApiServerConfig.builder().allowedOrigins(origins).build());
+  }
 
-    @Test
-    void testGetAllowedOriginsIsUnmodifiable() {
-        ApiServerConfig config = ApiServerConfig.builder().build();
+  @Test
+  void testGetAllowedOriginsIsUnmodifiable() {
+    ApiServerConfig config = ApiServerConfig.builder().build();
 
-        assertThrows(UnsupportedOperationException.class, () ->
-            config.getAllowedOrigins().add("http://hacker.com")
-        );
-    }
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> config.getAllowedOrigins().add("http://hacker.com"));
+  }
 
-    @Test
-    void testThreadPoolSizeZero() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().threadPoolSize(0).build()
-        );
-    }
+  @Test
+  void testThreadPoolSizeZero() {
+    assertThrows(
+        IllegalArgumentException.class, () -> ApiServerConfig.builder().threadPoolSize(0).build());
+  }
 
-    @Test
-    void testThreadPoolSizeNegative() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().threadPoolSize(-1).build()
-        );
-    }
+  @Test
+  void testThreadPoolSizeNegative() {
+    assertThrows(
+        IllegalArgumentException.class, () -> ApiServerConfig.builder().threadPoolSize(-1).build());
+  }
 
-    @Test
-    void testThreadPoolSizeValid() {
-        ApiServerConfig config = ApiServerConfig.builder()
-            .threadPoolSize(100)
-            .maxThreadPoolSize(200)
-            .build();
+  @Test
+  void testThreadPoolSizeValid() {
+    ApiServerConfig config =
+        ApiServerConfig.builder().threadPoolSize(100).maxThreadPoolSize(200).build();
 
-        assertEquals(100, config.getThreadPoolSize());
-    }
+    assertEquals(100, config.getThreadPoolSize());
+  }
 
-    @Test
-    void testMaxThreadPoolSizeZero() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().maxThreadPoolSize(0).build()
-        );
-    }
+  @Test
+  void testMaxThreadPoolSizeZero() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> ApiServerConfig.builder().maxThreadPoolSize(0).build());
+  }
 
-    @Test
-    void testMaxThreadPoolSizeNegative() {
-        assertThrows(IllegalArgumentException.class, () ->
-            ApiServerConfig.builder().maxThreadPoolSize(-1).build()
-        );
-    }
+  @Test
+  void testMaxThreadPoolSizeNegative() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> ApiServerConfig.builder().maxThreadPoolSize(-1).build());
+  }
 
-    @Test
-    void testMaxThreadPoolSizeLessThanThreadPoolSize() {
-        assertThrows(IllegalStateException.class, () ->
-            ApiServerConfig.builder()
-                .threadPoolSize(100)
-                .maxThreadPoolSize(50)
-                .build()
-        );
-    }
+  @Test
+  void testMaxThreadPoolSizeLessThanThreadPoolSize() {
+    assertThrows(
+        IllegalStateException.class,
+        () -> ApiServerConfig.builder().threadPoolSize(100).maxThreadPoolSize(50).build());
+  }
 
-    @Test
-    void testMaxThreadPoolSizeEqualToThreadPoolSize() {
-        ApiServerConfig config = ApiServerConfig.builder()
-            .threadPoolSize(100)
-            .maxThreadPoolSize(100)
-            .build();
+  @Test
+  void testMaxThreadPoolSizeEqualToThreadPoolSize() {
+    ApiServerConfig config =
+        ApiServerConfig.builder().threadPoolSize(100).maxThreadPoolSize(100).build();
 
-        assertEquals(100, config.getThreadPoolSize());
-        assertEquals(100, config.getMaxThreadPoolSize());
-    }
+    assertEquals(100, config.getThreadPoolSize());
+    assertEquals(100, config.getMaxThreadPoolSize());
+  }
 
-    @Test
-    void testBuilderChaining() {
-        ApiServerConfig config = ApiServerConfig.builder()
+  @Test
+  void testBuilderChaining() {
+    ApiServerConfig config =
+        ApiServerConfig.builder()
             .port(8443)
             .bindAddress("localhost")
             .enableAuth(true)
@@ -305,84 +276,76 @@ class ApiServerConfigTest {
             .maxThreadPoolSize(300)
             .build();
 
-        assertEquals(8443, config.getPort());
-        assertEquals("localhost", config.getBindAddress());
-        assertTrue(config.isEnableAuth());
-        assertEquals("secret", config.getApiKey());
-        assertEquals("X-Auth", config.getApiKeyHeader());
-        assertTrue(config.getAllowedOrigins().contains("http://app.com"));
-        assertEquals(30, config.getThreadPoolSize());
-        assertEquals(300, config.getMaxThreadPoolSize());
-    }
+    assertEquals(8443, config.getPort());
+    assertEquals("localhost", config.getBindAddress());
+    assertTrue(config.isEnableAuth());
+    assertEquals("secret", config.getApiKey());
+    assertEquals("X-Auth", config.getApiKeyHeader());
+    assertTrue(config.getAllowedOrigins().contains("http://app.com"));
+    assertEquals(30, config.getThreadPoolSize());
+    assertEquals(300, config.getMaxThreadPoolSize());
+  }
 
-    @Test
-    void testMultipleAllowedOrigins() {
-        ApiServerConfig config = ApiServerConfig.builder()
+  @Test
+  void testMultipleAllowedOrigins() {
+    ApiServerConfig config =
+        ApiServerConfig.builder()
             .addAllowedOrigin("http://app1.com")
             .addAllowedOrigin("http://app2.com")
             .addAllowedOrigin("http://app3.com")
             .build();
 
-        assertEquals(3, config.getAllowedOrigins().size());
-        assertTrue(config.getAllowedOrigins().contains("http://app1.com"));
-        assertTrue(config.getAllowedOrigins().contains("http://app2.com"));
-        assertTrue(config.getAllowedOrigins().contains("http://app3.com"));
-    }
+    assertEquals(3, config.getAllowedOrigins().size());
+    assertTrue(config.getAllowedOrigins().contains("http://app1.com"));
+    assertTrue(config.getAllowedOrigins().contains("http://app2.com"));
+    assertTrue(config.getAllowedOrigins().contains("http://app3.com"));
+  }
 
-    @Test
-    void testAuthDisabledAllowsNullApiKey() {
-        ApiServerConfig config = ApiServerConfig.builder()
-            .enableAuth(false)
-            .build();
+  @Test
+  void testAuthDisabledAllowsNullApiKey() {
+    ApiServerConfig config = ApiServerConfig.builder().enableAuth(false).build();
 
-        assertFalse(config.isEnableAuth());
-        assertNull(config.getApiKey());
-    }
+    assertFalse(config.isEnableAuth());
+    assertNull(config.getApiKey());
+  }
 
-    @Test
-    void testHighThreadPoolSizes() {
-        ApiServerConfig config = ApiServerConfig.builder()
-            .threadPoolSize(1000)
-            .maxThreadPoolSize(10000)
-            .build();
+  @Test
+  void testHighThreadPoolSizes() {
+    ApiServerConfig config =
+        ApiServerConfig.builder().threadPoolSize(1000).maxThreadPoolSize(10000).build();
 
-        assertEquals(1000, config.getThreadPoolSize());
-        assertEquals(10000, config.getMaxThreadPoolSize());
-    }
+    assertEquals(1000, config.getThreadPoolSize());
+    assertEquals(10000, config.getMaxThreadPoolSize());
+  }
 
-    @Test
-    void testIpv6BindAddress() {
-        ApiServerConfig config = ApiServerConfig.builder()
-            .bindAddress("::1")
-            .build();
+  @Test
+  void testIpv6BindAddress() {
+    ApiServerConfig config = ApiServerConfig.builder().bindAddress("::1").build();
 
-        assertEquals("::1", config.getBindAddress());
-    }
+    assertEquals("::1", config.getBindAddress());
+  }
 
-    @Test
-    void testDefaultCorsIsRestrictive() {
-        ApiServerConfig config = ApiServerConfig.builder().build();
+  @Test
+  void testDefaultCorsIsRestrictive() {
+    ApiServerConfig config = ApiServerConfig.builder().build();
 
-        assertTrue(config.getAllowedOrigins().isEmpty(),
-                "Default CORS should deny all origins for security");
-    }
+    assertTrue(
+        config.getAllowedOrigins().isEmpty(), "Default CORS should deny all origins for security");
+  }
 
-    @Test
-    void testWildcardOriginCanBeExplicitlySet() {
-        ApiServerConfig config = ApiServerConfig.builder()
-                .addAllowedOrigin("*")
-                .build();
+  @Test
+  void testWildcardOriginCanBeExplicitlySet() {
+    ApiServerConfig config = ApiServerConfig.builder().addAllowedOrigin("*").build();
 
-        assertTrue(config.getAllowedOrigins().contains("*"),
-                "Wildcard can be explicitly set (though discouraged)");
-    }
+    assertTrue(
+        config.getAllowedOrigins().contains("*"),
+        "Wildcard can be explicitly set (though discouraged)");
+  }
 
-    @Test
-    void testCustomPortRange() {
-        ApiServerConfig config = ApiServerConfig.builder()
-            .port(8000)
-            .build();
+  @Test
+  void testCustomPortRange() {
+    ApiServerConfig config = ApiServerConfig.builder().port(8000).build();
 
-        assertEquals(8000, config.getPort());
-    }
+    assertEquals(8000, config.getPort());
+  }
 }

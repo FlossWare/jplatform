@@ -17,25 +17,26 @@
 
 package org.flossware.platform.api;
 
-import org.flossware.platform.util.EnvironmentVariableResolver;
-
 import java.net.URI;
 import java.util.*;
+import org.flossware.platform.util.EnvironmentVariableResolver;
 
 /**
  * Descriptor containing all metadata and configuration for deploying an application.
  *
- * <p>Includes:</p>
+ * <p>Includes:
+ *
  * <ul>
- *   <li>Application identity (ID, name, version)</li>
- *   <li>Entry point (main class)</li>
- *   <li>Classpath entries (JARs, directories)</li>
- *   <li>Resource limits (thread pool, memory, CPU)</li>
- *   <li>Security configuration (permissions)</li>
- *   <li>Optional features (messaging)</li>
+ *   <li>Application identity (ID, name, version)
+ *   <li>Entry point (main class)
+ *   <li>Classpath entries (JARs, directories)
+ *   <li>Resource limits (thread pool, memory, CPU)
+ *   <li>Security configuration (permissions)
+ *   <li>Optional features (messaging)
  * </ul>
  *
- * <p>Use the builder to construct:</p>
+ * <p>Use the builder to construct:
+ *
  * <pre>{@code
  * ApplicationDescriptor descriptor = ApplicationDescriptor.builder()
  *     .applicationId("my-app")
@@ -46,452 +47,447 @@ import java.util.*;
  * }</pre>
  */
 public class ApplicationDescriptor {
-    private final String applicationId;
-    private final String name;
-    private final String version;
-    private final String mainClass;
-    private final List<URI> classpathEntries;
-    private final ThreadPoolConfig threadPoolConfig;
-    private final SecurityConfig securityConfig;
-    private final ResourceConfig resourceConfig;
-    private final Map<String, String> properties;
-    private final boolean enableMessaging;
-    private final List<VolumeMount> volumes;  // Added in 2.0
-    private final List<ApplicationDependency> dependencies;  // Added in 2.0
-    private final List<NativeLibrary> nativeLibraries;  // Added in 2.0
-    private final boolean nativeImage;  // Added in 2.0
+  private final String applicationId;
+  private final String name;
+  private final String version;
+  private final String mainClass;
+  private final List<URI> classpathEntries;
+  private final ThreadPoolConfig threadPoolConfig;
+  private final SecurityConfig securityConfig;
+  private final ResourceConfig resourceConfig;
+  private final Map<String, String> properties;
+  private final boolean enableMessaging;
+  private final List<VolumeMount> volumes; // Added in 2.0
+  private final List<ApplicationDependency> dependencies; // Added in 2.0
+  private final List<NativeLibrary> nativeLibraries; // Added in 2.0
+  private final boolean nativeImage; // Added in 2.0
 
-    private ApplicationDescriptor(Builder builder) {
-        this.applicationId = Objects.requireNonNull(builder.applicationId, "applicationId is required");
-        this.name = builder.name != null ? builder.name : applicationId;
-        this.version = builder.version != null ? builder.version : "1.0.0";
-        this.mainClass = Objects.requireNonNull(builder.mainClass, "mainClass is required");
-        this.classpathEntries = builder.classpathEntries != null ?
-                List.copyOf(builder.classpathEntries) : Collections.emptyList();
-        this.threadPoolConfig = builder.threadPoolConfig != null ?
-                builder.threadPoolConfig : ThreadPoolConfig.defaultConfig();
-        this.securityConfig = builder.securityConfig != null ?
-                builder.securityConfig : SecurityConfig.permissive();
-        this.resourceConfig = builder.resourceConfig != null ?
-                builder.resourceConfig : ResourceConfig.unlimited();
+  private ApplicationDescriptor(Builder builder) {
+    this.applicationId = Objects.requireNonNull(builder.applicationId, "applicationId is required");
+    this.name = builder.name != null ? builder.name : applicationId;
+    this.version = builder.version != null ? builder.version : "1.0.0";
+    this.mainClass = Objects.requireNonNull(builder.mainClass, "mainClass is required");
+    this.classpathEntries =
+        builder.classpathEntries != null
+            ? List.copyOf(builder.classpathEntries)
+            : Collections.emptyList();
+    this.threadPoolConfig =
+        builder.threadPoolConfig != null
+            ? builder.threadPoolConfig
+            : ThreadPoolConfig.defaultConfig();
+    this.securityConfig =
+        builder.securityConfig != null ? builder.securityConfig : SecurityConfig.permissive();
+    this.resourceConfig =
+        builder.resourceConfig != null ? builder.resourceConfig : ResourceConfig.unlimited();
 
-        // Resolve environment variables in properties for secure credential handling
-        if (builder.properties != null && !builder.properties.isEmpty()) {
-            EnvironmentVariableResolver resolver = new EnvironmentVariableResolver();
-            this.properties = Collections.unmodifiableMap(resolver.resolveMap(builder.properties));
-        } else {
-            this.properties = Collections.emptyMap();
-        }
-
-        this.enableMessaging = builder.enableMessaging;
-        this.volumes = builder.volumes != null ?
-                List.copyOf(builder.volumes) : Collections.emptyList();
-        this.dependencies = builder.dependencies != null ?
-                List.copyOf(builder.dependencies) : Collections.emptyList();
-        this.nativeLibraries = builder.nativeLibraries != null ?
-                List.copyOf(builder.nativeLibraries) : Collections.emptyList();
-        this.nativeImage = builder.nativeImage;
+    // Resolve environment variables in properties for secure credential handling
+    if (builder.properties != null && !builder.properties.isEmpty()) {
+      EnvironmentVariableResolver resolver = new EnvironmentVariableResolver();
+      this.properties = Collections.unmodifiableMap(resolver.resolveMap(builder.properties));
+    } else {
+      this.properties = Collections.emptyMap();
     }
 
+    this.enableMessaging = builder.enableMessaging;
+    this.volumes = builder.volumes != null ? List.copyOf(builder.volumes) : Collections.emptyList();
+    this.dependencies =
+        builder.dependencies != null ? List.copyOf(builder.dependencies) : Collections.emptyList();
+    this.nativeLibraries =
+        builder.nativeLibraries != null
+            ? List.copyOf(builder.nativeLibraries)
+            : Collections.emptyList();
+    this.nativeImage = builder.nativeImage;
+  }
+
+  /**
+   * Returns the application identifier.
+   *
+   * @return the application ID
+   */
+  public String getApplicationId() {
+    return applicationId;
+  }
+
+  /**
+   * Returns the application display name.
+   *
+   * @return the application name
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * Returns the application version.
+   *
+   * @return the version string
+   */
+  public String getVersion() {
+    return version;
+  }
+
+  /**
+   * Returns the main class name.
+   *
+   * @return the fully qualified main class name
+   */
+  public String getMainClass() {
+    return mainClass;
+  }
+
+  /**
+   * Returns the classpath entries for this application.
+   *
+   * @return an unmodifiable list of classpath URIs
+   */
+  public List<URI> getClasspathEntries() {
+    return classpathEntries;
+  }
+
+  /**
+   * Returns the thread pool configuration.
+   *
+   * @return the thread pool configuration
+   */
+  public ThreadPoolConfig getThreadPoolConfig() {
+    return threadPoolConfig;
+  }
+
+  /**
+   * Returns the security configuration.
+   *
+   * @return the security configuration
+   */
+  public SecurityConfig getSecurityConfig() {
+    return securityConfig;
+  }
+
+  /**
+   * Returns the resource limits configuration.
+   *
+   * @return the resource configuration
+   */
+  public ResourceConfig getResourceConfig() {
+    return resourceConfig;
+  }
+
+  /**
+   * Returns the application properties.
+   *
+   * @return an unmodifiable map of properties
+   */
+  public Map<String, String> getProperties() {
+    return Collections.unmodifiableMap(properties);
+  }
+
+  /**
+   * Checks if messaging is enabled for this application.
+   *
+   * @return true if messaging is enabled, false otherwise
+   */
+  public boolean isEnableMessaging() {
+    return enableMessaging;
+  }
+
+  /**
+   * Returns the volume mounts defined for this application.
+   *
+   * @return immutable list of volume mounts
+   * @since 2.0
+   */
+  public List<VolumeMount> getVolumes() {
+    return volumes;
+  }
+
+  /**
+   * Returns the dependencies declared for this application.
+   *
+   * @return immutable list of application dependencies
+   * @since 2.0
+   */
+  public List<ApplicationDependency> getDependencies() {
+    return dependencies;
+  }
+
+  /**
+   * Returns the native libraries defined for this application.
+   *
+   * @return immutable list of native libraries
+   * @since 2.0
+   */
+  public List<NativeLibrary> getNativeLibraries() {
+    return nativeLibraries;
+  }
+
+  /**
+   * Checks if this is a GraalVM native image application.
+   *
+   * @return true if native image, false if standard JVM application
+   * @since 2.0
+   */
+  public boolean isNativeImage() {
+    return nativeImage;
+  }
+
+  /**
+   * Creates a new builder for constructing application descriptors.
+   *
+   * @return a new builder instance
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
+   * Builder for constructing ApplicationDescriptor instances. Required fields: applicationId,
+   * mainClass. All other fields have sensible defaults.
+   */
+  public static class Builder {
+    private String applicationId;
+    private String name;
+    private String version;
+    private String mainClass;
+    private List<URI> classpathEntries;
+    private ThreadPoolConfig threadPoolConfig;
+    private SecurityConfig securityConfig;
+    private ResourceConfig resourceConfig;
+    private Map<String, String> properties;
+    private boolean enableMessaging;
+    private List<VolumeMount> volumes; // Added in 2.0
+    private List<ApplicationDependency> dependencies; // Added in 2.0
+    private List<NativeLibrary> nativeLibraries; // Added in 2.0
+    private boolean nativeImage; // Added in 2.0
+
     /**
-     * Returns the application identifier.
+     * Sets the application identifier (required).
      *
-     * @return the application ID
+     * @param applicationId the unique application identifier
+     * @return this builder
      */
-    public String getApplicationId() {
-        return applicationId;
+    public Builder applicationId(String applicationId) {
+      if (applicationId == null || applicationId.trim().isEmpty()) {
+        throw new IllegalArgumentException("applicationId cannot be null or empty");
+      }
+      this.applicationId = applicationId;
+      return this;
     }
 
     /**
-     * Returns the application display name.
+     * Sets the application display name. Defaults to applicationId if not set.
      *
-     * @return the application name
+     * @param name the application name
+     * @return this builder
      */
-    public String getName() {
-        return name;
+    public Builder name(String name) {
+      this.name = name;
+      return this;
     }
 
     /**
-     * Returns the application version.
+     * Sets the application version. Defaults to "1.0.0" if not set.
      *
-     * @return the version string
+     * @param version the application version
+     * @return this builder
      */
-    public String getVersion() {
-        return version;
+    public Builder version(String version) {
+      this.version = version;
+      return this;
     }
 
     /**
-     * Returns the main class name.
+     * Sets the main class name (required). Must implement the Application interface.
      *
-     * @return the fully qualified main class name
+     * @param mainClass the fully qualified main class name
+     * @return this builder
      */
-    public String getMainClass() {
-        return mainClass;
+    public Builder mainClass(String mainClass) {
+      if (mainClass == null || mainClass.trim().isEmpty()) {
+        throw new IllegalArgumentException("mainClass cannot be null or empty");
+      }
+      this.mainClass = mainClass;
+      return this;
     }
 
     /**
-     * Returns the classpath entries for this application.
+     * Sets the complete list of classpath entries. Replaces any previously added entries.
      *
-     * @return an unmodifiable list of classpath URIs
+     * @param classpathEntries the list of classpath URIs
+     * @return this builder
      */
-    public List<URI> getClasspathEntries() {
-        return classpathEntries;
+    public Builder classpathEntries(List<URI> classpathEntries) {
+      this.classpathEntries = classpathEntries;
+      return this;
     }
 
     /**
-     * Returns the thread pool configuration.
+     * Adds a single classpath entry. Can be called multiple times to build the classpath
+     * incrementally.
      *
-     * @return the thread pool configuration
+     * @param entry the classpath URI to add
+     * @return this builder
+     * @throws NullPointerException if entry is null
      */
-    public ThreadPoolConfig getThreadPoolConfig() {
-        return threadPoolConfig;
+    public Builder addClasspathEntry(URI entry) {
+      Objects.requireNonNull(entry, "Classpath entry cannot be null");
+      if (this.classpathEntries == null) {
+        this.classpathEntries = new ArrayList<>();
+      }
+      this.classpathEntries.add(entry);
+      return this;
     }
 
     /**
-     * Returns the security configuration.
+     * Sets the thread pool configuration. Defaults to ThreadPoolConfig.defaultConfig() if not set.
      *
-     * @return the security configuration
+     * @param threadPoolConfig the thread pool configuration
+     * @return this builder
      */
-    public SecurityConfig getSecurityConfig() {
-        return securityConfig;
+    public Builder threadPoolConfig(ThreadPoolConfig threadPoolConfig) {
+      this.threadPoolConfig = threadPoolConfig;
+      return this;
     }
 
     /**
-     * Returns the resource limits configuration.
+     * Sets the security configuration. Defaults to SecurityConfig.permissive() if not set.
      *
-     * @return the resource configuration
+     * @param securityConfig the security configuration
+     * @return this builder
      */
-    public ResourceConfig getResourceConfig() {
-        return resourceConfig;
+    public Builder securityConfig(SecurityConfig securityConfig) {
+      this.securityConfig = securityConfig;
+      return this;
     }
 
     /**
-     * Returns the application properties.
+     * Sets the resource limits configuration. Defaults to ResourceConfig.unlimited() if not set.
      *
-     * @return an unmodifiable map of properties
+     * @param resourceConfig the resource configuration
+     * @return this builder
      */
-    public Map<String, String> getProperties() {
-        return Collections.unmodifiableMap(properties);
+    public Builder resourceConfig(ResourceConfig resourceConfig) {
+      this.resourceConfig = resourceConfig;
+      return this;
     }
 
     /**
-     * Checks if messaging is enabled for this application.
+     * Sets the complete map of application properties. Replaces any previously added properties.
      *
-     * @return true if messaging is enabled, false otherwise
+     * @param properties the properties map
+     * @return this builder
      */
-    public boolean isEnableMessaging() {
-        return enableMessaging;
+    public Builder properties(Map<String, String> properties) {
+      this.properties = properties;
+      return this;
     }
 
     /**
-     * Returns the volume mounts defined for this application.
+     * Adds a single application property. Can be called multiple times to build properties
+     * incrementally.
      *
-     * @return immutable list of volume mounts
+     * @param key the property key
+     * @param value the property value
+     * @return this builder
+     */
+    public Builder property(String key, String value) {
+      if (key == null || key.trim().isEmpty()) {
+        throw new IllegalArgumentException("Property key cannot be null or empty");
+      }
+      // Note: value can legitimately be null for unset/placeholder properties
+
+      if (this.properties == null) {
+        this.properties = new HashMap<>();
+      }
+      this.properties.put(key, value);
+      return this;
+    }
+
+    /**
+     * Sets whether messaging should be enabled for this application. Defaults to false if not set.
+     *
+     * @param enableMessaging true to enable messaging, false to disable
+     * @return this builder
+     */
+    public Builder enableMessaging(boolean enableMessaging) {
+      this.enableMessaging = enableMessaging;
+      return this;
+    }
+
+    /**
+     * Adds a volume mount to this application. Volumes provide persistent or ephemeral storage
+     * accessible to the application.
+     *
+     * @param volume the volume mount configuration
+     * @return this builder
+     * @throws NullPointerException if volume is null
      * @since 2.0
      */
-    public List<VolumeMount> getVolumes() {
-        return volumes;
+    public Builder addVolume(VolumeMount volume) {
+      Objects.requireNonNull(volume, "Volume cannot be null");
+      if (this.volumes == null) {
+        this.volumes = new ArrayList<>();
+      }
+      this.volumes.add(volume);
+      return this;
     }
 
     /**
-     * Returns the dependencies declared for this application.
+     * Adds a dependency on a service provided by another application. Dependencies are validated at
+     * deploy time and determine startup order.
      *
-     * @return immutable list of application dependencies
+     * @param dependency the application dependency
+     * @return this builder
+     * @throws NullPointerException if dependency is null
      * @since 2.0
      */
-    public List<ApplicationDependency> getDependencies() {
-        return dependencies;
+    public Builder addDependency(ApplicationDependency dependency) {
+      Objects.requireNonNull(dependency, "Dependency cannot be null");
+      if (this.dependencies == null) {
+        this.dependencies = new ArrayList<>();
+      }
+      this.dependencies.add(dependency);
+      return this;
     }
 
     /**
-     * Returns the native libraries defined for this application.
+     * Adds a native library to load for this application. The platform will load libraries matching
+     * the current OS and architecture.
      *
-     * @return immutable list of native libraries
+     * @param library the native library descriptor
+     * @return this builder
+     * @throws NullPointerException if library is null
      * @since 2.0
      */
-    public List<NativeLibrary> getNativeLibraries() {
-        return nativeLibraries;
+    public Builder addNativeLibrary(NativeLibrary library) {
+      Objects.requireNonNull(library, "Native library cannot be null");
+      if (this.nativeLibraries == null) {
+        this.nativeLibraries = new ArrayList<>();
+      }
+      this.nativeLibraries.add(library);
+      return this;
     }
 
     /**
-     * Checks if this is a GraalVM native image application.
+     * Sets whether this application is a GraalVM native image. Native image applications are
+     * launched as separate processes, not JVM applications.
      *
-     * @return true if native image, false if standard JVM application
+     * @param nativeImage true if this is a native image, false for standard JVM application
+     * @return this builder
      * @since 2.0
      */
-    public boolean isNativeImage() {
-        return nativeImage;
+    public Builder nativeImage(boolean nativeImage) {
+      this.nativeImage = nativeImage;
+      return this;
     }
 
     /**
-     * Creates a new builder for constructing application descriptors.
+     * Builds the ApplicationDescriptor instance. Validates that required fields (applicationId,
+     * mainClass) are set.
      *
-     * @return a new builder instance
+     * @return a new ApplicationDescriptor with the configured values
+     * @throws NullPointerException if applicationId or mainClass is not set
      */
-    public static Builder builder() {
-        return new Builder();
+    public ApplicationDescriptor build() {
+      return new ApplicationDescriptor(this);
     }
-
-    /**
-     * Builder for constructing ApplicationDescriptor instances.
-     * Required fields: applicationId, mainClass.
-     * All other fields have sensible defaults.
-     */
-    public static class Builder {
-        private String applicationId;
-        private String name;
-        private String version;
-        private String mainClass;
-        private List<URI> classpathEntries;
-        private ThreadPoolConfig threadPoolConfig;
-        private SecurityConfig securityConfig;
-        private ResourceConfig resourceConfig;
-        private Map<String, String> properties;
-        private boolean enableMessaging;
-        private List<VolumeMount> volumes;  // Added in 2.0
-        private List<ApplicationDependency> dependencies;  // Added in 2.0
-        private List<NativeLibrary> nativeLibraries;  // Added in 2.0
-        private boolean nativeImage;  // Added in 2.0
-
-        /**
-         * Sets the application identifier (required).
-         *
-         * @param applicationId the unique application identifier
-         * @return this builder
-         */
-        public Builder applicationId(String applicationId) {
-            if (applicationId == null || applicationId.trim().isEmpty()) {
-                throw new IllegalArgumentException("applicationId cannot be null or empty");
-            }
-            this.applicationId = applicationId;
-            return this;
-        }
-
-        /**
-         * Sets the application display name.
-         * Defaults to applicationId if not set.
-         *
-         * @param name the application name
-         * @return this builder
-         */
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        /**
-         * Sets the application version.
-         * Defaults to "1.0.0" if not set.
-         *
-         * @param version the application version
-         * @return this builder
-         */
-        public Builder version(String version) {
-            this.version = version;
-            return this;
-        }
-
-        /**
-         * Sets the main class name (required).
-         * Must implement the Application interface.
-         *
-         * @param mainClass the fully qualified main class name
-         * @return this builder
-         */
-        public Builder mainClass(String mainClass) {
-            if (mainClass == null || mainClass.trim().isEmpty()) {
-                throw new IllegalArgumentException("mainClass cannot be null or empty");
-            }
-            this.mainClass = mainClass;
-            return this;
-        }
-
-        /**
-         * Sets the complete list of classpath entries.
-         * Replaces any previously added entries.
-         *
-         * @param classpathEntries the list of classpath URIs
-         * @return this builder
-         */
-        public Builder classpathEntries(List<URI> classpathEntries) {
-            this.classpathEntries = classpathEntries;
-            return this;
-        }
-
-        /**
-         * Adds a single classpath entry.
-         * Can be called multiple times to build the classpath incrementally.
-         *
-         * @param entry the classpath URI to add
-         * @return this builder
-         * @throws NullPointerException if entry is null
-         */
-        public Builder addClasspathEntry(URI entry) {
-            Objects.requireNonNull(entry, "Classpath entry cannot be null");
-            if (this.classpathEntries == null) {
-                this.classpathEntries = new ArrayList<>();
-            }
-            this.classpathEntries.add(entry);
-            return this;
-        }
-
-        /**
-         * Sets the thread pool configuration.
-         * Defaults to ThreadPoolConfig.defaultConfig() if not set.
-         *
-         * @param threadPoolConfig the thread pool configuration
-         * @return this builder
-         */
-        public Builder threadPoolConfig(ThreadPoolConfig threadPoolConfig) {
-            this.threadPoolConfig = threadPoolConfig;
-            return this;
-        }
-
-        /**
-         * Sets the security configuration.
-         * Defaults to SecurityConfig.permissive() if not set.
-         *
-         * @param securityConfig the security configuration
-         * @return this builder
-         */
-        public Builder securityConfig(SecurityConfig securityConfig) {
-            this.securityConfig = securityConfig;
-            return this;
-        }
-
-        /**
-         * Sets the resource limits configuration.
-         * Defaults to ResourceConfig.unlimited() if not set.
-         *
-         * @param resourceConfig the resource configuration
-         * @return this builder
-         */
-        public Builder resourceConfig(ResourceConfig resourceConfig) {
-            this.resourceConfig = resourceConfig;
-            return this;
-        }
-
-        /**
-         * Sets the complete map of application properties.
-         * Replaces any previously added properties.
-         *
-         * @param properties the properties map
-         * @return this builder
-         */
-        public Builder properties(Map<String, String> properties) {
-            this.properties = properties;
-            return this;
-        }
-
-        /**
-         * Adds a single application property.
-         * Can be called multiple times to build properties incrementally.
-         *
-         * @param key the property key
-         * @param value the property value
-         * @return this builder
-         */
-        public Builder property(String key, String value) {
-            if (key == null || key.trim().isEmpty()) {
-                throw new IllegalArgumentException("Property key cannot be null or empty");
-            }
-            // Note: value can legitimately be null for unset/placeholder properties
-
-            if (this.properties == null) {
-                this.properties = new HashMap<>();
-            }
-            this.properties.put(key, value);
-            return this;
-        }
-
-        /**
-         * Sets whether messaging should be enabled for this application.
-         * Defaults to false if not set.
-         *
-         * @param enableMessaging true to enable messaging, false to disable
-         * @return this builder
-         */
-        public Builder enableMessaging(boolean enableMessaging) {
-            this.enableMessaging = enableMessaging;
-            return this;
-        }
-
-        /**
-         * Adds a volume mount to this application.
-         * Volumes provide persistent or ephemeral storage accessible to the application.
-         *
-         * @param volume the volume mount configuration
-         * @return this builder
-         * @throws NullPointerException if volume is null
-         * @since 2.0
-         */
-        public Builder addVolume(VolumeMount volume) {
-            Objects.requireNonNull(volume, "Volume cannot be null");
-            if (this.volumes == null) {
-                this.volumes = new ArrayList<>();
-            }
-            this.volumes.add(volume);
-            return this;
-        }
-
-        /**
-         * Adds a dependency on a service provided by another application.
-         * Dependencies are validated at deploy time and determine startup order.
-         *
-         * @param dependency the application dependency
-         * @return this builder
-         * @throws NullPointerException if dependency is null
-         * @since 2.0
-         */
-        public Builder addDependency(ApplicationDependency dependency) {
-            Objects.requireNonNull(dependency, "Dependency cannot be null");
-            if (this.dependencies == null) {
-                this.dependencies = new ArrayList<>();
-            }
-            this.dependencies.add(dependency);
-            return this;
-        }
-
-        /**
-         * Adds a native library to load for this application.
-         * The platform will load libraries matching the current OS and architecture.
-         *
-         * @param library the native library descriptor
-         * @return this builder
-         * @throws NullPointerException if library is null
-         * @since 2.0
-         */
-        public Builder addNativeLibrary(NativeLibrary library) {
-            Objects.requireNonNull(library, "Native library cannot be null");
-            if (this.nativeLibraries == null) {
-                this.nativeLibraries = new ArrayList<>();
-            }
-            this.nativeLibraries.add(library);
-            return this;
-        }
-
-        /**
-         * Sets whether this application is a GraalVM native image.
-         * Native image applications are launched as separate processes, not JVM applications.
-         *
-         * @param nativeImage true if this is a native image, false for standard JVM application
-         * @return this builder
-         * @since 2.0
-         */
-        public Builder nativeImage(boolean nativeImage) {
-            this.nativeImage = nativeImage;
-            return this;
-        }
-
-        /**
-         * Builds the ApplicationDescriptor instance.
-         * Validates that required fields (applicationId, mainClass) are set.
-         *
-         * @return a new ApplicationDescriptor with the configured values
-         * @throws NullPointerException if applicationId or mainClass is not set
-         */
-        public ApplicationDescriptor build() {
-            return new ApplicationDescriptor(this);
-        }
-    }
+  }
 }
