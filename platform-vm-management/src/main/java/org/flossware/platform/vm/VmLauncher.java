@@ -638,6 +638,15 @@ public class VmLauncher {
     private final int memoryMB;
     private final String uuid;
 
+    /**
+     * Constructs a VmInfo instance.
+     *
+     * @param domain the libvirt domain object
+     * @param name the VM name
+     * @param vcpu the number of virtual CPUs
+     * @param memoryMB the memory in megabytes
+     * @param uuid the VM UUID
+     */
     public VmInfo(Domain domain, String name, int vcpu, int memoryMB, String uuid) {
       this.domain = domain;
       this.name = name;
@@ -675,6 +684,15 @@ public class VmLauncher {
     private final long cpuTimeNs;
     private final String state;
 
+    /**
+     * Constructs a VmStats instance.
+     *
+     * @param memoryMB the current memory usage in megabytes
+     * @param maxMemoryMB the maximum memory in megabytes
+     * @param vcpu the number of virtual CPUs
+     * @param cpuTimeNs the CPU time in nanoseconds
+     * @param state the VM state
+     */
     public VmStats(long memoryMB, long maxMemoryMB, int vcpu, long cpuTimeNs, String state) {
       this.memoryMB = memoryMB;
       this.maxMemoryMB = maxMemoryMB;
