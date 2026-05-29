@@ -26,6 +26,7 @@ import java.util.Set;
 import org.flossware.platform.api.ApplicationDependency;
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Test;
  * <p>Note: DependencyResolver operates on service-level dependencies, not application IDs. These
  * tests focus on basic API contract validation.
  */
+@Tag("unit")
 class DependencyResolverTest {
 
   private DependencyResolver resolver;

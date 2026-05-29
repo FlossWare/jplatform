@@ -23,9 +23,11 @@ import java.util.Optional;
 
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Tests for HealthCheckConfigParser. */
+@Tag("unit")
 class HealthCheckConfigParserTest {
 
   private HealthCheckConfigParser parser;

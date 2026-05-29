@@ -21,12 +21,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
  * Comprehensive unit tests for ArgumentParser. Tests command-line argument parsing with various
  * quote scenarios.
  */
+@Tag("unit")
 class ArgumentParserTest {
 
   @Test

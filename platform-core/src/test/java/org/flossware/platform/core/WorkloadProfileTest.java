@@ -21,9 +21,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.flossware.platform.api.ResourceConfig;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for WorkloadProfile. */
+@Tag("unit")
 class WorkloadProfileTest {
 
   @Test

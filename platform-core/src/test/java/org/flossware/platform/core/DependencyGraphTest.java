@@ -23,11 +23,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for DependencyGraph. Tests topological sort, cycle detection, and dependency tracking.
  */
+@Tag("unit")
 class DependencyGraphTest {
 
   private DependencyGraph graph;

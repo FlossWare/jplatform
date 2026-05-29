@@ -29,6 +29,7 @@ import org.flossware.platform.api.NativeLibrary;
 import org.flossware.platform.api.Platform;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.io.TempDir;
  * <p>Note: Full integration testing of library extraction requires creating actual native library
  * files. These tests focus on the public API contract and basic filesystem operations.
  */
+@Tag("unit")
 class NativeLibraryLoaderTest {
 
   @TempDir Path tempDir;

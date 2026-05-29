@@ -19,9 +19,11 @@ package org.flossware.platform.core;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for PlacementDecision. */
+@Tag("unit")
 class PlacementDecisionTest {
 
   @Test

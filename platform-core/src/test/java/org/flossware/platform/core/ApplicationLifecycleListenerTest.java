@@ -86,21 +86,24 @@ class ApplicationLifecycleListenerTest {
 
     manager.addLifecycleListener("test", listener1);
 
-    assertThrows(IllegalArgumentException.class, () -> {
-      manager.addLifecycleListener("test", listener2);
-    });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          manager.addLifecycleListener("test", listener2);
+        });
   }
 
   @Test
   void testOnDeployedNotification() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    TestListener listener = new TestListener() {
-      @Override
-      public void onDeployed(String applicationId, ApplicationDescriptor descriptor) {
-        super.onDeployed(applicationId, descriptor);
-        latch.countDown();
-      }
-    };
+    TestListener listener =
+        new TestListener() {
+          @Override
+          public void onDeployed(String applicationId, ApplicationDescriptor descriptor) {
+            super.onDeployed(applicationId, descriptor);
+            latch.countDown();
+          }
+        };
 
     manager.addLifecycleListener("test", listener);
 
@@ -121,13 +124,14 @@ class ApplicationLifecycleListenerTest {
   @Test
   void testOnUndeployedNotification() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    TestListener listener = new TestListener() {
-      @Override
-      public void onUndeployed(String applicationId) {
-        super.onUndeployed(applicationId);
-        latch.countDown();
-      }
-    };
+    TestListener listener =
+        new TestListener() {
+          @Override
+          public void onUndeployed(String applicationId) {
+            super.onUndeployed(applicationId);
+            latch.countDown();
+          }
+        };
 
     manager.addLifecycleListener("test", listener);
 
@@ -173,27 +177,29 @@ class ApplicationLifecycleListenerTest {
   @Test
   void testListenerExceptionDoesNotBreakLifecycle() throws Exception {
     TestListener goodListener = new TestListener();
-    ApplicationLifecycleListener badListener = new ApplicationLifecycleListener() {
-      @Override
-      public void onDeployed(String applicationId, ApplicationDescriptor descriptor) {
-        throw new RuntimeException("Listener exception");
-      }
+    ApplicationLifecycleListener badListener =
+        new ApplicationLifecycleListener() {
+          @Override
+          public void onDeployed(String applicationId, ApplicationDescriptor descriptor) {
+            throw new RuntimeException("Listener exception");
+          }
 
-      @Override
-      public void onStarted(String applicationId) {}
+          @Override
+          public void onStarted(String applicationId) {}
 
-      @Override
-      public void onStopped(String applicationId, int exitCode) {}
+          @Override
+          public void onStopped(String applicationId, int exitCode) {}
 
-      @Override
-      public void onRestarted(String applicationId, int attemptNumber) {}
+          @Override
+          public void onRestarted(String applicationId, int attemptNumber) {}
 
-      @Override
-      public void onHealthChanged(String applicationId, HealthStatus oldStatus, HealthStatus newStatus) {}
+          @Override
+          public void onHealthChanged(
+              String applicationId, HealthStatus oldStatus, HealthStatus newStatus) {}
 
-      @Override
-      public void onUndeployed(String applicationId) {}
-    };
+          @Override
+          public void onUndeployed(String applicationId) {}
+        };
 
     manager.addLifecycleListener("bad", badListener);
     manager.addLifecycleListener("good", goodListener);

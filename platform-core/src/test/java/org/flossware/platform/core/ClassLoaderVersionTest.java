@@ -22,12 +22,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for ClassLoaderVersion. Tests version tracking, reference counting, and garbage
  * collection eligibility.
  */
+@Tag("unit")
 class ClassLoaderVersionTest {
 
   private ClassLoader testClassLoader;

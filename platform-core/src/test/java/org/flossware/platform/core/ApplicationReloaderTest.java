@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.Test;
  * ApplicationContext, and classloaders. These tests focus on the public API contract for version
  * tracking and history management.
  */
+@Tag("unit")
 class ApplicationReloaderTest {
 
   private ApplicationReloader reloader;

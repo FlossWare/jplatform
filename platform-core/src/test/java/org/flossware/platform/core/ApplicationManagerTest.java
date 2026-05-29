@@ -26,6 +26,7 @@ import java.util.Set;
 import org.flossware.platform.api.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Test;
  * <p>Note: These tests focus on API contract and state management. Full integration tests with
  * actual application loading are in jplatform-launcher module.
  */
+@Tag("unit")
 class ApplicationManagerTest {
 
   private ApplicationManager manager;

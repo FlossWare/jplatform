@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.Test;
  * <p>Note: Full integration tests require Docker/Podman/containerd/LXC installed. These tests focus
  * on configuration parsing and validation.
  */
+@Tag("unit")
 class ContainerLauncherTest {
 
   private ContainerLauncher launcher;

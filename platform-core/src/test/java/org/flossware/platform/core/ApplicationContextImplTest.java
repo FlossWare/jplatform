@@ -27,12 +27,14 @@ import org.flossware.platform.api.*;
 import org.flossware.platform.monitoring.ApplicationResourceMonitor;
 import org.flossware.platform.security.ApplicationSecurityPolicy;
 import org.flossware.platform.threadpool.ManagedThreadPool;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
  * Comprehensive unit tests for ApplicationContextImpl. Tests builder validation, getters, state
  * management, and thread safety.
  */
+@Tag("unit")
 class ApplicationContextImplTest {
 
   private static final String APP_ID = "test-app";

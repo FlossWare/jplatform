@@ -23,9 +23,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for SimpleServiceRegistry. */
+@Tag("unit")
 class SimpleServiceRegistryTest {
 
   private SimpleServiceRegistry registry;

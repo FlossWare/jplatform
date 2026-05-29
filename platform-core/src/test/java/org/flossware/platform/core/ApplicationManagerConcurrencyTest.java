@@ -29,12 +29,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.flossware.platform.api.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
  * Concurrency tests for ApplicationManager to verify fine-grained locking behavior. Tests that
  * operations on different applications can execute in parallel.
  */
+@Tag("unit")
 class ApplicationManagerConcurrencyTest {
 
   private ApplicationManager manager;

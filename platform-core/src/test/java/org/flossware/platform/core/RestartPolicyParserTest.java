@@ -24,9 +24,11 @@ import java.util.Optional;
 import org.flossware.platform.api.ApplicationDescriptor;
 import org.flossware.platform.api.RestartPolicy;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Tests for RestartPolicyParser. */
+@Tag("unit")
 class RestartPolicyParserTest {
 
   private RestartPolicyParser parser;
