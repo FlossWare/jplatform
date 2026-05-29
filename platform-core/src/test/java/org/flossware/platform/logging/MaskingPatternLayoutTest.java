@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for MaskingPatternLayout.
  * Verifies that sensitive data is properly redacted from log messages.
  */
+@Tag("unit")
+@Tag("security")
 class MaskingPatternLayoutTest {
 
     private MaskingPatternLayout layout;

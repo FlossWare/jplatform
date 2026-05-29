@@ -37,6 +37,9 @@
     <snakeyaml.version>2.3</snakeyaml.version>
     <opentelemetry.version>1.40.0</opentelemetry.version>
     <dependency-check.version>10.0.4</dependency-check.version>
+    <!-- Test categorization properties -->
+    <test.groups/>
+    <test.excludedGroups/>
     <message>Automated Version Bump ${project.version} [ci skip]</message>
   </properties>
   <modules>
@@ -295,6 +298,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.1.2</version>
+          <configuration>
+            <!-- Support JUnit 5 @Tag annotations for test categorization -->
+            <groups>${test.groups}</groups>
+            <excludedGroups>${test.excludedGroups}</excludedGroups>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

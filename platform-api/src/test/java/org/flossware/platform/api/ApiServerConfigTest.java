@@ -17,6 +17,7 @@
 
 package org.flossware.platform.api;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -28,6 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Comprehensive unit tests for ApiServerConfig.
  * Tests builder validation, getters, defaults, and CORS configuration.
  */
+@Tag("unit")
+@Tag("security")
 class ApiServerConfigTest {
 
     @Test

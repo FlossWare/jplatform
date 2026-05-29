@@ -18,6 +18,7 @@
 package org.flossware.platform.util;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -29,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for EnvironmentVariableResolver.
  * Verifies environment variable substitution for secure credential handling.
  */
+@Tag("unit")
+@Tag("security")
 class EnvironmentVariableResolverTest {
 
     private EnvironmentVariableResolver resolver;
