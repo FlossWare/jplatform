@@ -359,11 +359,12 @@ public class PlatformLauncher {
 
     /**
      * Adds lifecycle hooks to automatically register/unregister applications with JMX.
+     * <p>
+     * Note: Lifecycle listener support not yet implemented (see issue #340).
+     * For now, applications are registered manually in deploy commands.
      */
     private void addJmxLifecycleHooks() {
-        // Note: This would require adding lifecycle listener support to ApplicationManager
-        // For now, we'll register applications manually in the deploy commands
-        // TODO: Add ApplicationLifecycleListener interface to jplatform-api
+        // Future enhancement: Use ApplicationLifecycleListener when available
     }
 
     /**

@@ -226,12 +226,7 @@ public class DependencyResolver {
                             applicationId, serviceInterface
                     ));
                 } else if (!implementations.isEmpty()) {
-                    // TODO: Validate version compatibility (requires API enhancement)
-                    // Need to:
-                    // 1. Add version field to ApplicationDependency
-                    // 2. Add version metadata to ServiceRegistry
-                    // 3. Implement semantic version comparison
-                    // 4. Define compatibility rules (exact, semver range, etc.)
+                    // Note: Version compatibility validation not yet implemented (see issue #339)
                     logger.debug("[{}] Found {} implementation(s) of {}",
                             applicationId, implementations.size(), serviceInterface);
                 }
