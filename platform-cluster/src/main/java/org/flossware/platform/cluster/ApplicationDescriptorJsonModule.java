@@ -1,0 +1,168 @@
+/*
+ * Copyright (C) 2024-2026 FlossWare
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package org.flossware.platform.cluster;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.flossware.platform.api.ApplicationDescriptor;
+import org.flossware.platform.api.ThreadPoolConfig;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
+
+/**
+ * Jackson module for serializing/deserializing ApplicationDescriptor.
+ * Handles the Builder pattern and excludes non-serializable fields like SecurityConfig.
+ */
+public class ApplicationDescriptorJsonModule extends SimpleModule {
+
+    public ApplicationDescriptorJsonModule() {
+        super("ApplicationDescriptorModule");
+        addSerializer(ApplicationDescriptor.class, new ApplicationDescriptorSerializer());
+        addDeserializer(ApplicationDescriptor.class, new ApplicationDescriptorDeserializer());
+    }
+
+    /**
+     * Custom serializer for ApplicationDescriptor.
+     * Excludes SecurityConfig to avoid FilePermission serialization issues.
+     */
+    private static class ApplicationDescriptorSerializer extends JsonSerializer<ApplicationDescriptor> {
+        @Override
+        public void serialize(ApplicationDescriptor descriptor, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
+            gen.writeStartObject();
+            gen.writeStringField("applicationId", descriptor.getApplicationId());
+            gen.writeStringField("name", descriptor.getName());
+            gen.writeStringField("version", descriptor.getVersion());
+            gen.writeStringField("mainClass", descriptor.getMainClass());
+
+            // Write classpath
+            gen.writeArrayFieldStart("classpath");
+            for (URI uri : descriptor.getClasspathEntries()) {
+                gen.writeString(uri.toString());
+            }
+            gen.writeEndArray();
+
+            // Write properties (combines environment variables and system properties)
+            gen.writeObjectField("properties", descriptor.getProperties());
+
+            // Write thread pool config if present
+            if (descriptor.getThreadPoolConfig() != null) {
+                gen.writeObjectFieldStart("threadPool");
+                ThreadPoolConfig config = descriptor.getThreadPoolConfig();
+                gen.writeNumberField("corePoolSize", config.getCorePoolSize());
+                gen.writeNumberField("maxPoolSize", config.getMaxPoolSize());
+                gen.writeNumberField("queueCapacity", config.getQueueCapacity());
+                gen.writeNumberField("keepAliveTimeSeconds", config.getKeepAliveTimeSeconds());
+                gen.writeEndObject();
+            }
+
+            // Write messaging flag
+            gen.writeBooleanField("enableMessaging", descriptor.isEnableMessaging());
+
+            // Skip SecurityConfig and ResourceConfig to avoid serialization issues
+
+            gen.writeEndObject();
+        }
+    }
+
+    /**
+     * Custom deserializer for ApplicationDescriptor.
+     * Reconstructs using the Builder pattern.
+     */
+    private static class ApplicationDescriptorDeserializer extends JsonDeserializer<ApplicationDescriptor> {
+        @Override
+        public ApplicationDescriptor deserialize(JsonParser parser, DeserializationContext ctxt)
+                throws IOException {
+            JsonNode node = parser.getCodec().readTree(parser);
+
+            // Validate required fields
+            JsonNode appIdNode = node.get("applicationId");
+            if (appIdNode == null) {
+                throw new IOException("Missing required field: applicationId");
+            }
+            JsonNode nameNode = node.get("name");
+            if (nameNode == null) {
+                throw new IOException("Missing required field: name");
+            }
+            JsonNode versionNode = node.get("version");
+            if (versionNode == null) {
+                throw new IOException("Missing required field: version");
+            }
+            JsonNode mainClassNode = node.get("mainClass");
+            if (mainClassNode == null) {
+                throw new IOException("Missing required field: mainClass");
+            }
+
+            ApplicationDescriptor.Builder builder = ApplicationDescriptor.builder()
+                    .applicationId(appIdNode.asText())
+                    .name(nameNode.asText())
+                    .version(versionNode.asText())
+                    .mainClass(mainClassNode.asText());
+
+            // Add classpath entries
+            JsonNode classpath = node.get("classpath");
+            if (classpath != null && classpath.isArray()) {
+                for (JsonNode entry : classpath) {
+                    builder.addClasspathEntry(URI.create(entry.asText()));
+                }
+            }
+
+            // Add properties
+            JsonNode props = node.get("properties");
+            if (props != null && props.isObject()) {
+                props.fields().forEachRemaining(entry ->
+                        builder.property(entry.getKey(), entry.getValue().asText()));
+            }
+
+            // Add thread pool config if present
+            JsonNode threadPool = node.get("threadPool");
+            if (threadPool != null) {
+                // Validate threadPool required fields
+                JsonNode coreSizeNode = threadPool.get("corePoolSize");
+                JsonNode maxSizeNode = threadPool.get("maxPoolSize");
+                JsonNode queueCapNode = threadPool.get("queueCapacity");
+                JsonNode keepAliveNode = threadPool.get("keepAliveTimeSeconds");
+
+                if (coreSizeNode == null || maxSizeNode == null ||
+                    queueCapNode == null || keepAliveNode == null) {
+                    throw new IOException("threadPool object is incomplete - missing required fields");
+                }
+
+                ThreadPoolConfig config = ThreadPoolConfig.builder()
+                        .corePoolSize(coreSizeNode.asInt())
+                        .maxPoolSize(maxSizeNode.asInt())
+                        .queueCapacity(queueCapNode.asInt())
+                        .keepAliveTimeSeconds(keepAliveNode.asLong())
+                        .build();
+                builder.threadPoolConfig(config);
+            }
+
+            // Set messaging flag
+            JsonNode enableMessaging = node.get("enableMessaging");
+            if (enableMessaging != null) {
+                builder.enableMessaging(enableMessaging.asBoolean());
+            }
+
+            return builder.build();
+        }
+    }
+}

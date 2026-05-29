@@ -39,55 +39,55 @@
     <message>Automated Version Bump ${project.version} [ci skip]</message>
   </properties>
   <modules>
-    <module>jplatform-api</module>
-    <module>jplatform-core</module>
-    <module>jplatform-classloader</module>
-    <module>jplatform-threadpool</module>
-    <module>jplatform-security</module>
-    <module>jplatform-monitoring</module>
-    <module>jplatform-messaging</module>
-    <module>jplatform-messaging-jms</module>
-    <module>jplatform-storage</module>
+    <module>platform-api</module>
+    <module>platform-core</module>
+    <module>platform-classloader</module>
+    <module>platform-threadpool</module>
+    <module>platform-security</module>
+    <module>platform-monitoring</module>
+    <module>platform-messaging</module>
+    <module>platform-messaging-jms</module>
+    <module>platform-storage</module>
     <!-- New deployment modules -->
-    <module>jplatform-config</module>
-    <module>jplatform-fs-watcher</module>
-    <module>jplatform-deployment</module>
+    <module>platform-config</module>
+    <module>platform-fs-watcher</module>
+    <module>platform-deployment</module>
     <!-- New management modules -->
-    <module>jplatform-rest-api</module>
-    <module>jplatform-web-console</module>
-    <module>jplatform-swing-ui</module>
-    <module>jplatform-terminal-ui</module>
+    <module>platform-rest-api</module>
+    <module>platform-web-console</module>
+    <module>platform-swing-ui</module>
+    <module>platform-terminal-ui</module>
     <!-- New metrics modules -->
-    <module>jplatform-metrics-jmx</module>
-    <module>jplatform-metrics-prometheus</module>
+    <module>platform-metrics-jmx</module>
+    <module>platform-metrics-prometheus</module>
     <!-- Advanced modules -->
-    <!-- <module>jplatform-jvmti-agent</module> -->
-    <module>jplatform-cluster</module>
-    <module>jplatform-otel</module>
+    <!-- <module>platform-jvmti-agent</module> -->
+    <module>platform-cluster</module>
+    <module>platform-otel</module>
     <!-- Clustering plugins -->
-    <module>jplatform-cluster-consul</module>
-    <module>jplatform-cluster-etcd</module>
-    <module>jplatform-cluster-redis</module>
-    <module>jplatform-cluster-zookeeper</module>
+    <module>platform-cluster-consul</module>
+    <module>platform-cluster-etcd</module>
+    <module>platform-cluster-redis</module>
+    <module>platform-cluster-zookeeper</module>
     <!-- Service registry plugins -->
-    <module>jplatform-registry-consul</module>
-    <module>jplatform-registry-etcd</module>
-    <module>jplatform-registry-eureka</module>
+    <module>platform-registry-consul</module>
+    <module>platform-registry-etcd</module>
+    <module>platform-registry-eureka</module>
     <!-- Storage plugins -->
-    <module>jplatform-storage-s3</module>
-    <module>jplatform-storage-database</module>
-    <module>jplatform-storage-redis</module>
+    <module>platform-storage-s3</module>
+    <module>platform-storage-database</module>
+    <module>platform-storage-redis</module>
     <!-- VM Management -->
-    <module>jplatform-vm-management</module>
+    <module>platform-vm-management</module>
     <!-- Config source plugins -->
-    <module>jplatform-config-consul</module>
-    <module>jplatform-config-etcd</module>
-    <module>jplatform-config-vault</module>
-    <module>jplatform-config-zookeeper</module>
+    <module>platform-config-consul</module>
+    <module>platform-config-etcd</module>
+    <module>platform-config-vault</module>
+    <module>platform-config-zookeeper</module>
     <!-- API server plugins -->
-    <module>jplatform-rest-api-netty</module>
-    <module>jplatform-launcher</module>
-    <module>jplatform-samples</module>
+    <module>platform-rest-api-netty</module>
+    <module>platform-launcher</module>
+    <module>platform-samples</module>
   </modules>
   <dependencyManagement>
     <dependencies>
