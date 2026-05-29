@@ -428,6 +428,7 @@ Common violations to avoid:
 ### Test Coverage
 
 - **Minimum coverage**: 93% instruction coverage (enforced by JaCoCo)
+- **New code requirement**: 80%+ coverage for all new code
 - **All new code must have tests**
 - **Tests must be meaningful**, not just coverage boosters
 
@@ -453,22 +454,54 @@ void shouldDeployApplicationSuccessfully() {
 }
 ```
 
-#### 2. Test Naming
+#### 2. Test Categorization with @Tag
+
+All tests must be tagged as either unit or integration tests:
+
+```java
+// Unit tests - fast, isolated, no external dependencies
+@Test
+@Tag("unit")
+void shouldValidateDescriptorFields() { ... }
+
+// Integration tests - involve multiple components or external systems
+@Test
+@Tag("integration")
+void shouldDeployToRemoteRegistry() { ... }
+```
+
+Run specific test categories:
+
+```bash
+# Run only unit tests
+mvn test -Dgroups="unit"
+
+# Run only integration tests
+mvn test -Dgroups="integration"
+
+# Run all tests
+mvn test
+```
+
+#### 3. Test Naming
 
 Use descriptive names following `should<ExpectedBehavior>When<StateUnderTest>` pattern:
 
 ```java
 @Test
+@Tag("unit")
 void shouldThrowExceptionWhenDescriptorIsNull() { ... }
 
 @Test
+@Tag("unit")
 void shouldStartApplicationWhenInDeployedState() { ... }
 
 @Test
+@Tag("integration")
 void shouldRejectDuplicateApplicationId() { ... }
 ```
 
-#### 3. Test Organization
+#### 4. Test Organization
 
 - **One test class per production class**
 - **Group related tests** with `@Nested` classes
@@ -487,21 +520,24 @@ class ApplicationManagerTest {
     @Nested
     class DeploymentTests {
         @Test
+        @Tag("unit")
         void shouldDeployApplication() { ... }
         
         @Test
+        @Tag("unit")
         void shouldRejectDuplicateId() { ... }
     }
     
     @Nested
     class LifecycleTests {
         @Test
+        @Tag("integration")
         void shouldStartDeployedApplication() { ... }
     }
 }
 ```
 
-#### 4. Mocking
+#### 5. Mocking
 
 Use Mockito for mocking dependencies:
 
