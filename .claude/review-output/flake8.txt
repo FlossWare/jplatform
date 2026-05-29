@@ -1,0 +1,2 @@
+./.claude/scripts/create_github_issues.py:7:1: F401 'os' imported but unused
+./.claude/scripts/create_github_issues.py:148:24: E741 ambiguous variable name 'l'

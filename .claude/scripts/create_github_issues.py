@@ -4,11 +4,9 @@ Create GitHub issues from code review findings.
 Uses GitHub CLI (gh) to create issues.
 """
 
-import os
 import sys
 import json
 import subprocess
-import hashlib
 from pathlib import Path
 from datetime import datetime
 
@@ -42,12 +40,6 @@ def get_existing_issues():
     if output:
         return json.loads(output)
     return []
-
-
-def create_issue_hash(title, body):
-    """Create a hash of the issue content for deduplication."""
-    content = f"{title}\n{body}"
-    return hashlib.md5(content.encode()).hexdigest()[:8]
 
 
 def parse_checkstyle_output(file_path):
@@ -145,7 +137,7 @@ def parse_security_patterns(file_path):
     issues = []
     with open(file_path) as f:
         content = f.read()
-        lines = [l for l in content.split('\n') if l.strip() and not l.startswith('===')]
+        lines = [line for line in content.split('\n') if line.strip() and not line.startswith('===')]
 
         if lines:
             issues.append({

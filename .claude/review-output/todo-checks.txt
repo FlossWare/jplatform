@@ -1,0 +1,25 @@
+./.claude/scripts/create_github_issues.py:123:    """Parse TODO/FIXME comments."""
+./.claude/scripts/create_github_issues.py:132:            "title": f"{ISSUE_PREFIX} {len(lines)} TODO/FIXME comments found",
+./.claude/scripts/create_github_issues.py:133:            "body": f"Found {len(lines)} TODO/FIXME comments in the codebase.\n\n```\n{''.join(lines[:20])}\n... and {len(lines) - 20} more\n```\n\nSee `.claude/review-output/todos.txt` for full list.",
+./.claude/scripts/create_review_issues.py:4:Handles both Python (mypy, flake8, bandit) and Java (security, TODOs) findings.
+./.claude/scripts/create_review_issues.py:143:    """Parse TODO/FIXME comments."""
+./.claude/scripts/create_review_issues.py:152:            "title": f"{ISSUE_PREFIX} {len(lines)} TODO/FIXME comments found",
+./.claude/scripts/create_review_issues.py:153:            "body": f"Found {len(lines)} TODO/FIXME comments in the codebase.\n\n```\n{''.join(lines[:20])}\n... and {len(lines) - 20} more\n```\n\nSee `.claude/review-output/todo-checks.txt` for full list.",
+./platform-cluster/target/site/jacoco/jacoco-resources/prettify.js:217:      // TODO: maybe style special characters inside a regexp as punctuation.
+./platform-cluster/target/site/jacoco/jacoco-resources/prettify.js:550:            // TODO: handle letters in numeric escapes.
+./platform-cluster/target/site/jacoco/jacoco-resources/prettify.js:1025:        // TODO(mikesamuel): recognize non-latin letters and numerals in idents
+./platform-config-zookeeper/target/site/jacoco/jacoco-resources/prettify.js:217:      // TODO: maybe style special characters inside a regexp as punctuation.
+./platform-config-zookeeper/target/site/jacoco/jacoco-resources/prettify.js:550:            // TODO: handle letters in numeric escapes.
+./platform-config-zookeeper/target/site/jacoco/jacoco-resources/prettify.js:1025:        // TODO(mikesamuel): recognize non-latin letters and numerals in idents
+./platform-core/target/site/jacoco/jacoco-resources/prettify.js:217:      // TODO: maybe style special characters inside a regexp as punctuation.
+./platform-core/target/site/jacoco/jacoco-resources/prettify.js:550:            // TODO: handle letters in numeric escapes.
+./platform-core/target/site/jacoco/jacoco-resources/prettify.js:1025:        // TODO(mikesamuel): recognize non-latin letters and numerals in idents
+./platform-metrics-jmx/target/site/jacoco/jacoco-resources/prettify.js:217:      // TODO: maybe style special characters inside a regexp as punctuation.
+./platform-metrics-jmx/target/site/jacoco/jacoco-resources/prettify.js:550:            // TODO: handle letters in numeric escapes.
+./platform-metrics-jmx/target/site/jacoco/jacoco-resources/prettify.js:1025:        // TODO(mikesamuel): recognize non-latin letters and numerals in idents
+./platform-metrics-prometheus/target/site/jacoco/jacoco-resources/prettify.js:217:      // TODO: maybe style special characters inside a regexp as punctuation.
+./platform-metrics-prometheus/target/site/jacoco/jacoco-resources/prettify.js:550:            // TODO: handle letters in numeric escapes.
+./platform-metrics-prometheus/target/site/jacoco/jacoco-resources/prettify.js:1025:        // TODO(mikesamuel): recognize non-latin letters and numerals in idents
+./platform-rest-api-netty/target/site/jacoco/jacoco-resources/prettify.js:217:      // TODO: maybe style special characters inside a regexp as punctuation.
+./platform-rest-api-netty/target/site/jacoco/jacoco-resources/prettify.js:550:            // TODO: handle letters in numeric escapes.
+./platform-rest-api-netty/target/site/jacoco/jacoco-resources/prettify.js:1025:        // TODO(mikesamuel): recognize non-latin letters and numerals in idents

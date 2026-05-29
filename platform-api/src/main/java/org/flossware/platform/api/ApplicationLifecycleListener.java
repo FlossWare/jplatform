@@ -18,75 +18,91 @@
 package org.flossware.platform.api;
 
 /**
- * Listener for application lifecycle events. All methods have default empty implementations, so you
- * only need to override the events you care about.
+ * Observer interface for application lifecycle events.
+ *
+ * <p>Listeners are notified of key events in an application's lifecycle, allowing external systems
+ * to react to changes without modifying application code.
+ *
+ * <p><b>Thread Safety:</b> Listener methods may be called from different threads. Implementations
+ * must be thread-safe.
+ *
+ * <p><b>Error Handling:</b> Exceptions thrown by listener methods are logged but do not affect the
+ * lifecycle operation. Listeners should handle errors internally.
  *
  * <p>Example usage:
  *
  * <pre>{@code
- * ApplicationLifecycleListener listener = new ApplicationLifecycleListener() {
- *     @Override
- *     public void onStarted(String applicationId) {
- *         System.out.println("Application started: " + applicationId);
- *     }
+ * public class MetricsListener implements ApplicationLifecycleListener {
+ *   @Override
+ *   public void onStarted(String applicationId) {
+ *     metrics.increment("app.started", "app", applicationId);
+ *   }
  *
- *     @Override
- *     public void onError(String applicationId, Throwable error) {
- *         System.err.println("Application error: " + error.getMessage());
- *     }
- * };
+ *   @Override
+ *   public void onStopped(String applicationId, int exitCode) {
+ *     metrics.increment("app.stopped", "app", applicationId, "exitCode", String.valueOf(exitCode));
+ *   }
+ *
+ *   // ... other methods
+ * }
+ *
+ * applicationManager.addLifecycleListener(new MetricsListener());
  * }</pre>
  *
- * @see ApplicationState
+ * @since 2.4
  */
 public interface ApplicationLifecycleListener {
-  /**
-   * Called when an application has been deployed.
-   *
-   * @param applicationId the application identifier
-   */
-  default void onDeployed(String applicationId) {}
 
   /**
-   * Called when an application is starting.
+   * Called when an application is deployed to the platform.
+   *
+   * <p>At this point resources are allocated but the application is not yet started.
    *
    * @param applicationId the application identifier
+   * @param descriptor the application descriptor containing configuration
    */
-  default void onStarting(String applicationId) {}
+  void onDeployed(String applicationId, ApplicationDescriptor descriptor);
 
   /**
-   * Called when an application has successfully started.
+   * Called when an application transitions to RUNNING state.
    *
    * @param applicationId the application identifier
    */
-  default void onStarted(String applicationId) {}
+  void onStarted(String applicationId);
 
   /**
-   * Called when an application is stopping.
+   * Called when an application transitions to STOPPED or FAILED state.
    *
    * @param applicationId the application identifier
+   * @param exitCode the exit code (0 for normal shutdown, non-zero for errors)
    */
-  default void onStopping(String applicationId) {}
+  void onStopped(String applicationId, int exitCode);
 
   /**
-   * Called when an application has stopped.
+   * Called when an application is automatically restarted by the RestartManager.
    *
    * @param applicationId the application identifier
+   * @param attemptNumber the restart attempt number (1-based)
    */
-  default void onStopped(String applicationId) {}
+  void onRestarted(String applicationId, int attemptNumber);
 
   /**
-   * Called when an application has been undeployed.
+   * Called when an application's health status changes.
+   *
+   * <p>This is triggered by the HealthChecker when health checks detect a status change.
    *
    * @param applicationId the application identifier
+   * @param oldStatus the previous health status
+   * @param newStatus the new health status
    */
-  default void onUndeployed(String applicationId) {}
+  void onHealthChanged(String applicationId, HealthStatus oldStatus, HealthStatus newStatus);
 
   /**
-   * Called when an error occurs during application lifecycle.
+   * Called when an application is undeployed from the platform.
+   *
+   * <p>Resources are released and the application context is destroyed.
    *
    * @param applicationId the application identifier
-   * @param error the error that occurred
    */
-  default void onError(String applicationId, Throwable error) {}
+  void onUndeployed(String applicationId);
 }

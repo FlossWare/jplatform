@@ -1,0 +1,2 @@
+=== Python Security Patterns ===
+./.claude/scripts/create_review_issues.py:110:        java_lines = [line for line in content.split('\n') if '.java:' in line and any(p in line for p in ['System.out', 'printStackTrace', 'Runtime', 'exec'])]
