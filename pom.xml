@@ -36,6 +36,7 @@
     <jackson.version>2.17.3</jackson.version>
     <snakeyaml.version>2.3</snakeyaml.version>
     <opentelemetry.version>1.40.0</opentelemetry.version>
+    <dependency-check.version>10.0.4</dependency-check.version>
     <message>Automated Version Bump ${project.version} [ci skip]</message>
   </properties>
   <modules>
@@ -305,6 +306,11 @@
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.8.12</version>
         </plugin>
+        <plugin>
+          <groupId>org.owasp</groupId>
+          <artifactId>dependency-check-maven</artifactId>
+          <version>${dependency-check.version}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -410,6 +416,29 @@
           </providerImplementations>
           <tag>${project.version}</tag>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <configuration>
+          <suppressionFiles>
+            <suppressionFile>dependency-check-suppressions.xml</suppressionFile>
+          </suppressionFiles>
+          <failBuildOnCVSS>7</failBuildOnCVSS>
+          <formats>
+            <format>HTML</format>
+            <format>XML</format>
+          </formats>
+          <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+          <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
